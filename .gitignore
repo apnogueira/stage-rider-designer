@@ -1,0 +1,33 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor/IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Build/cache (future-proof)
+dist/
+build/
+coverage/
+.cache/
+
+# Runtime artifacts
+*.pid
+
+# Optional exports (uncomment if you do not want generated outputs tracked)
+# *.rider.json
+# *-report.html
+# *_report.pdf
+# stage-layout.png
+# stage-layout.json

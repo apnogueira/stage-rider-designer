@@ -1,0 +1,2347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stage Designer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700&display=swap');
+:root {
+  --bg:#0a0b0d; --surface:#13151a; --panel:#1a1d24; --border:#2a2e3a;
+  --accent:#e8ff47; --accent2:#47c4ff; --accent3:#ff6b47; --accent4:#c47fff;
+  --text:#d4d8e2; --muted:#6b7280; --stage-bg:#0f1318; --stage-border:#2d3340;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+/* HEADER */
+header{display:flex;align-items:center;gap:10px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;z-index:100;}
+.logo{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--accent);letter-spacing:2px;white-space:nowrap;}
+.logo span{color:var(--muted);}
+header .sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
+.header-btns{display:flex;gap:5px;margin-left:auto;}
+.project-name-wrap{display:flex;align-items:center;gap:6px;margin-left:auto;}
+.project-name-label{font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;letter-spacing:.8px;white-space:nowrap;}
+.project-name-input{width:190px;max-width:32vw;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--text);font-size:11px;font-family:'Share Tech Mono',monospace;outline:none;}
+.project-name-input:focus{border-color:var(--accent2);}
+.btn{padding:5px 11px;border-radius:4px;font-family:'Barlow',sans-serif;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-primary{background:var(--accent);color:#0a0b0d;}
+.btn-primary:hover{background:#d4e83d;}
+.btn-danger{background:transparent;border:1px solid var(--accent3);color:var(--accent3);}
+.btn-danger:hover{background:var(--accent3);color:#fff;}
+.zoom-controls{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;}
+.zoom-btn{width:20px;height:20px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;cursor:pointer;line-height:1;}
+.zoom-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+.zoom-range{width:90px;accent-color:var(--accent2);}
+.zoom-value{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent2);width:40px;text-align:right;}
+/* LAYOUT */
+.workspace{display:flex;flex:1;overflow:hidden;}
+/* SIDEBAR */
+.sidebar{width:208px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.ss{padding:9px 10px;border-bottom:1px solid var(--border);}
+.st{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:7px;}
+/* DIMS */
+.dim-row{display:flex;align-items:center;gap:5px;margin-bottom:5px;}
+.dim-label{font-size:10px;color:var(--muted);width:22px;flex-shrink:0;font-family:'Share Tech Mono',monospace;}
+.dim-input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:3px 5px;color:var(--text);font-size:11px;font-family:'Share Tech Mono',monospace;outline:none;}
+.dim-input:focus{border-color:var(--accent);}
+.dim-unit{font-size:10px;color:var(--muted);flex-shrink:0;}
+.scale-d{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent2);margin-top:2px;}
+/* CATS */
+.cat-tabs{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:7px;}
+.cat-tab{padding:2px 6px;font-size:8px;font-family:'Share Tech Mono',monospace;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .12s;}
+.cat-tab.active{background:var(--accent);color:#0a0b0d;border-color:var(--accent);font-weight:700;}
+/* PALETTE */
+.pal-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.pal-tile{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 3px;cursor:grab;text-align:center;transition:all .15s;user-select:none;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.pal-tile:hover{border-color:var(--accent);background:rgba(232,255,71,.05);}
+.pal-tile.snake-tile{border-color:#c47fff44;background:#13101a;}
+.pal-tile.snake-tile:hover{border-color:var(--accent4);}
+.pal-tile:active{cursor:grabbing;}
+.ti{font-size:17px;line-height:1;}
+.tn{font-size:8px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+/* CABLES */
+.cable-colors{display:flex;flex-direction:column;gap:3px;}
+.ccrow{display:flex;align-items:center;gap:6px;cursor:pointer;padding:3px 4px;border-radius:3px;transition:background .1s;}
+.ccrow:hover{background:var(--surface);}
+.ccrow.selected{background:var(--surface);outline:1px solid var(--border);}
+.cswatch{width:14px;height:6px;border-radius:2px;flex-shrink:0;}
+.clabel{font-size:10px;color:var(--text);}
+/* LEGEND */
+.leg-list{display:flex;flex-direction:column;gap:3px;}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text);}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+/* STAGE */
+.stage-container{flex:1;background:var(--bg);overflow:hidden;position:relative;}
+.stage-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface);padding:4px 11px;border-radius:20px;border:1px solid var(--border);pointer-events:none;white-space:nowrap;z-index:10;}
+#canvas-wrap{width:100%;height:100%;position:relative;overflow:hidden;}
+#canvas-wrap.is-panning{cursor:grabbing;}
+canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:auto;z-index:2;}
+#stage-platform{position:absolute;background:var(--stage-bg);border:2px solid var(--stage-border);border-radius:9px 9px 3px 3px;z-index:0;}
+#stage-platform::after{content:'';position:absolute;bottom:-14px;left:-2px;right:-2px;height:14px;background:var(--stage-border);border-radius:0 0 4px 4px;opacity:.3;}
+#stage-stairs{position:absolute;bottom:-2px;height:16px;background:var(--stage-border);border:2px solid var(--stage-border);border-top:none;border-radius:0 0 4px 4px;opacity:.9;display:none;pointer-events:none;}
+#stage-stairs::before,#stage-stairs::after{content:'';position:absolute;left:0;right:0;height:3px;background:rgba(10,11,13,.45);}
+#stage-stairs::before{top:5px;}
+#stage-stairs::after{top:10px;}
+#stage-inner-label{position:absolute;top:8px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;z-index:1;}
+#stage-name{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--border);letter-spacing:6px;}
+#stage-dims{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);opacity:.6;}
+#ruler-h,#ruler-v{position:absolute;background:transparent;z-index:1;pointer-events:none;}
+#ruler-h{height:20px;}#ruler-v{width:20px;}
+#audience-label{position:absolute;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:4px;opacity:.4;pointer-events:none;z-index:1;text-align:center;white-space:nowrap;}
+/* INSTRUMENTS */
+.si{position:absolute;z-index:3;cursor:move;display:flex;flex-direction:column;align-items:center;gap:2px;user-select:none;padding:4px;}
+.si:hover .ib{border-color:var(--accent);}
+.si.selected .ib{border-color:var(--accent);box-shadow:0 0 0 2px rgba(232,255,71,.2);}
+.si.connecting-source .ib{border-color:var(--accent2);animation:pc 1s ease-in-out infinite;}
+@keyframes pc{0%,100%{box-shadow:0 0 0 2px rgba(71,196,255,.3);}50%{box-shadow:0 0 0 7px rgba(71,196,255,.07);}}
+.ib{background:var(--panel);border:2px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative;flex-shrink:0;}
+/* SNAKE specific */
+.si.is-snake .ib{border-color:#c47fff55;background:#120f1a;border-radius:4px;}
+.si.is-snake:hover .ib{border-color:var(--accent4);}
+.si.is-snake.selected .ib{border-color:var(--accent4);box-shadow:0 0 0 2px rgba(196,127,255,.25);}
+.si.is-snake .snake-channels{display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:3px;padding:3px;justify-content:center;width:100%;max-width:120px;margin:0 auto;}
+.si.is-snake .snake-ch-pin{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--accent4);cursor:crosshair;position:relative;transition:all .12s;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:7px;line-height:1;color:#d9b8ff;font-weight:700;}
+.si.is-snake .snake-ch-pin:hover{background:var(--accent4);transform:scale(1.3);}
+.si.is-snake .snake-ch-pin.used{background:rgba(196,127,255,.4);}
+.si.is-snake .snake-ch-pin.out-pin{color:#9affca;border-color:#47ffa0;}
+.snake-label-row{display:flex;align-items:center;gap:4px;padding:2px 4px;}
+.snake-badge{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--accent4);background:rgba(196,127,255,.1);border:1px solid #c47fff44;padding:1px 5px;border-radius:10px;white-space:nowrap;}
+/* channel badge */
+.ich{position:absolute;top:-6px;right:-6px;background:var(--accent);color:#0a0b0d;font-family:'Share Tech Mono',monospace;font-size:7px;font-weight:700;min-width:15px;height:15px;border-radius:8px;padding:0 2px;display:flex;align-items:center;justify-content:center;}
+.ilabel{font-size:9px;color:var(--text);font-weight:600;text-align:center;white-space:nowrap;background:rgba(10,11,13,.88);padding:1px 5px;border-radius:3px;max-width:90px;overflow:hidden;text-overflow:ellipsis;}
+.iconn{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:8px;height:8px;background:var(--accent2);border-radius:50%;border:2px solid var(--bg);cursor:crosshair;z-index:5;transition:all .15s;}
+.iconn:hover{transform:translateX(-50%) scale(1.5);background:#fff;}
+.iconn.used{background:rgba(71,196,255,.45);border-color:#1a1d24;cursor:not-allowed;}
+.iconn.stereo-left{left:40%;}
+.iconn.stereo-right{left:60%;}
+.pin-tag{position:absolute;bottom:-16px;font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--accent2);opacity:.85;pointer-events:none;}
+.pin-tag.left{left:37%;}
+.pin-tag.right{left:57%;}
+.drum-pin-row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:120px;margin-top:2px;}
+.drum-pin-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:16px;}
+.drum-pin-row .iconn{position:static;transform:none;left:auto;bottom:auto;width:9px;height:9px;border-width:1.5px;}
+.drum-pin-row .iconn:hover{transform:scale(1.35);}
+.drum-pin-tag{position:static;left:auto;bottom:auto;font-size:7px;line-height:1;color:var(--accent2);opacity:.9;}
+.iface{display:flex;flex-direction:column;align-items:center;gap:2px;}
+/* RIGHT PANEL */
+.rpanel{width:216px;flex-shrink:0;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.pss{padding:10px;border-bottom:1px solid var(--border);}
+.pst{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:7px;}
+.pr{display:flex;flex-direction:column;gap:2px;margin-bottom:7px;}
+.plbl{font-size:10px;color:var(--muted);}
+.pi{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:4px 6px;color:var(--text);font-size:11px;font-family:'Barlow',sans-serif;width:100%;outline:none;}
+.pi:focus{border-color:var(--accent);}
+/* size slider */
+.size-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.size-row label{font-size:10px;color:var(--muted);width:54px;flex-shrink:0;}
+.size-row input[type=range]{flex:1;accent-color:var(--accent);}
+.size-val{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent);width:28px;text-align:right;flex-shrink:0;}
+.angle-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.angle-row label{font-size:10px;color:var(--muted);width:54px;flex-shrink:0;}
+.angle-row input[type=range]{flex:1;accent-color:var(--accent2);}
+/* snake props */
+.snake-props{margin-top:4px;}
+.clist{padding:10px;flex:1;overflow-y:auto;}
+.ci{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:5px 7px;margin-bottom:4px;display:flex;align-items:center;gap:6px;font-size:10px;}
+.ci.active{border-color:var(--accent2);box-shadow:0 0 0 1px rgba(71,196,255,.2) inset;}
+.cdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.ctext{flex:1;color:var(--text);line-height:1.4;}
+.cdel{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;}
+.cdel:hover{color:var(--accent3);}
+.no-conn{font-size:10px;color:var(--muted);font-style:italic;}
+.conn-focus-meta{font-size:10px;color:var(--accent2);margin-bottom:7px;font-family:'Share Tech Mono',monospace;}
+/* DELETE ZONE */
+#dz{position:absolute;bottom:10px;right:226px;background:rgba(255,107,71,.1);border:2px dashed var(--accent3);border-radius:6px;padding:6px 12px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent3);pointer-events:none;opacity:0;transition:opacity .2s;z-index:20;}
+#dz.visible{opacity:1;pointer-events:all;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">STAGE<span>/</span>MAP</div>
+  <div class="sep"></div>
+  <div class="zoom-controls" title="Stage zoom">
+    <button class="zoom-btn" onclick="changeZoom(-0.1)">-</button>
+    <input id="zoom-range" class="zoom-range" type="range" min="50" max="220" step="5" value="100" oninput="setZoom(this.value/100)">
+    <button class="zoom-btn" onclick="changeZoom(0.1)">+</button>
+    <button class="zoom-btn" style="width:auto;padding:0 5px;font-size:10px;" onclick="resetZoom()">1:1</button>
+    <span id="zoom-value" class="zoom-value">100%</span>
+  </div>
+  <div class="project-name-wrap">
+    <label class="project-name-label" for="project-name">Project</label>
+    <input id="project-name" class="project-name-input" type="text" value="untitled-project" oninput="updateProjectName(this.value)">
+  </div>
+  <div class="header-btns">
+    <button class="btn btn-ghost" onclick="undoAction()">Undo</button>
+    <button class="btn btn-ghost" onclick="autoRouteStereoSuggestion()">Auto Route</button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <button class="btn btn-ghost" onclick="saveRider()">Save Rider</button>
+    <button class="btn btn-ghost" onclick="triggerLoadRider()">Load Rider</button>
+    <button class="btn btn-ghost" onclick="exportPNG()">Export PNG</button>
+    <button class="btn btn-ghost" onclick="viewReport()">View Report</button>
+    <button class="btn btn-ghost" onclick="exportPDFReport()">Export PDF</button>
+    <button class="btn btn-primary" onclick="exportJSON()">Export Layout</button>
+  </div>
+</header>
+
+<input id="rider-file" type="file" accept="application/json,.json" style="display:none;">
+
+<div class="workspace">
+  <!-- LEFT -->
+  <div class="sidebar">
+    <div class="ss">
+      <div class="st">Stage Dimensions</div>
+      <div class="dim-row"><span class="dim-label">W</span><input class="dim-input" id="dim-w" type="number" value="7.5" min="3" max="80" step="0.5" oninput="updateStage()"><span class="dim-unit">m</span></div>
+      <div class="dim-row"><span class="dim-label">D</span><input class="dim-input" id="dim-d" type="number" value="4.4" min="2" max="50" step="0.5" oninput="updateStage()"><span class="dim-unit">m</span></div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:10px;color:var(--muted);">
+        <input id="stage-stairs-toggle" type="checkbox" checked onchange="toggleStageStairs(this.checked)">
+        <label for="stage-stairs-toggle">Show stage stairs</label>
+      </div>
+      <div class="scale-d" id="scale-d">— px/m</div>
+    </div>
+    <div class="ss">
+      <div class="st">Instruments</div>
+      <div class="cat-tabs" id="cat-tabs"></div>
+      <div class="pal-grid" id="pal"></div>
+    </div>
+    <div class="ss">
+      <div class="st">Snakes</div>
+      <div class="pal-grid" id="snake-pal"></div>
+    </div>
+    <div class="ss">
+      <div class="st">Cable Type</div>
+      <div class="cable-colors" id="cable-colors"></div>
+    </div>
+    <div class="ss">
+      <div class="st">Legend</div>
+      <div class="leg-list" id="legend"></div>
+    </div>
+    <div class="ss">
+      <div class="st">Tips</div>
+      <div style="font-size:10px;color:var(--muted);line-height:1.65;">
+        <span style="color:var(--accent2);">Arrange:</span> drag from palette, drag to move.<br>
+        <span style="color:var(--accent2);">Connect:</span> click a blue pin → click destination pin.<br>
+        <span style="color:var(--accent4);">Snake pins:</span> click a pin to connect it.<br>
+        Drag to <span style="color:var(--accent3);">delete zone</span> to remove.
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE -->
+  <div class="stage-container">
+    <div id="canvas-wrap">
+      <canvas id="conn-canvas"></canvas>
+      <div id="stage-platform"><div id="stage-stairs"></div><div id="stage-inner-label"><div id="stage-name">STAGE</div><div id="stage-dims">7.5 m × 4.4 m</div></div></div>
+      <canvas id="ruler-h"></canvas>
+      <canvas id="ruler-v"></canvas>
+      <div id="audience-label">◀ AUDIENCE ▶</div>
+      <div id="dz">🗑 DROP TO DELETE</div>
+    </div>
+    <div class="stage-hint" id="stage-hint">Drag instruments from the palette onto the stage</div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="rpanel">
+    <div class="pss">
+      <div class="pst">Properties</div>
+      <div id="no-sel" style="font-size:10px;color:var(--muted);font-style:italic;">Select an item</div>
+      <div id="prop-fields" style="display:none;">
+        <div class="pr"><label class="plbl">Label</label><input class="pi" id="p-label" type="text" oninput="updProp('label',this.value)"></div>
+        <div class="pr"><label class="plbl">Channel / Input</label><input class="pi" id="p-ch" type="text" placeholder="CH 1" oninput="updProp('channel',this.value)"></div>
+        <div class="pr"><label class="plbl">Notes</label><input class="pi" id="p-notes" type="text" placeholder="DI, 48v…" oninput="updProp('notes',this.value)"></div>
+        <div class="size-row">
+          <label>Size</label>
+          <input type="range" id="p-size" min="32" max="120" step="4" value="52" oninput="updSize(this.value)">
+          <span class="size-val" id="p-size-val">52</span>
+        </div>
+        <div class="angle-row">
+          <label>Angle</label>
+          <input type="range" id="p-angle" min="-180" max="180" step="5" value="0" oninput="updAngle(this.value)">
+          <span class="size-val" id="p-angle-val">0°</span>
+        </div>
+        <div id="snake-extra" style="display:none;" class="snake-props">
+          <div class="pr"><label class="plbl">Channels (count)</label><input class="pi" id="p-snake-ch" type="number" min="4" max="64" step="4" value="16" oninput="updSnakeChannels(this.value)"></div>
+        </div>
+
+        <div id="drum-extra" style="display:none;" class="snake-props">
+          <div class="pr">
+            <label class="plbl">Drum Mics</label>
+            <div style="display:flex;flex-direction:column;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:8px;">
+              <label style="font-size:11px;"><input type="checkbox" value="Kick" onchange="toggleDrumMic(this)"> Kick</label>
+              <label style="font-size:11px;"><input type="checkbox" value="Hi-Hat" onchange="toggleDrumMic(this)"> Hi-Hat</label>
+              <label style="font-size:11px;"><input type="checkbox" value="Snare" onchange="toggleDrumMic(this)"> Snare</label>
+              <label style="font-size:11px;"><input type="checkbox" value="Tom 1" onchange="toggleDrumMic(this)"> Tom 1</label>
+              <label style="font-size:11px;"><input type="checkbox" value="Tom 2" onchange="toggleDrumMic(this)"> Tom 2</label>
+              <label style="font-size:11px;"><input type="checkbox" value="Tom 3" onchange="toggleDrumMic(this)"> Tom 3</label>
+              <label style="font-size:11px;"><input type="checkbox" value="Ride" onchange="toggleDrumMic(this)"> Ride</label>
+              <label style="font-size:11px;"><input type="checkbox" value="Crash" onchange="toggleDrumMic(this)"> Crash</label>
+              <label style="font-size:11px;"><input type="checkbox" value="Overhead Mono" onchange="toggleDrumMic(this)"> Overhead Mono</label>
+              <label style="font-size:11px;"><input type="checkbox" value="Overheads Stereo" onchange="toggleDrumMic(this)"> Overheads Stereo</label>
+            </div>
+          </div>
+          <div class="pr">
+            <label class="plbl">Selected Drum Inputs</label>
+            <div id="drum-mic-summary" style="font-size:10px;color:var(--accent2);line-height:1.5;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:8px;">No drum mics selected</div>
+          </div>
+        </div>
+
+        <button class="btn btn-danger" style="width:100%;margin-top:3px;" onclick="deleteSelected()">Remove</button>
+      </div>
+    </div>
+    <div class="clist">
+      <div class="pst">Connections</div>
+      <div id="conn-list"><div class="no-conn">No connections yet</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════
+
+const CATS = [
+  {id:'all',label:'All'},{id:'drums',label:'Drums'},{id:'strings',label:'Strings'},
+  {id:'keys',label:'Keys'},{id:'vocals',label:'Vocals'},{id:'brass',label:'Brass'},
+  {id:'monitor',label:'Monitor'},{id:'infra',label:'Infra'},
+];
+
+const INSTRUMENTS = [
+  {type:'drumkit',   cat:'drums',   icon:'🥁', name:'Drum Kit',      wide:true },
+  {type:'kick',      cat:'drums',   icon:'🥁', name:'Kick',          wide:false},
+  {type:'snare',     cat:'drums',   icon:'🪘', name:'Snare',         wide:false},
+  {type:'hihat',     cat:'drums',   icon:'🎼', name:'Hi-Hat',        wide:false},
+  {type:'ride',      cat:'drums',   icon:'🥁', name:'Ride',          wide:false},
+  {type:'crash',     cat:'drums',   icon:'🥁', name:'Crash',         wide:false},
+  {type:'overheads', cat:'drums',   icon:'🎙', name:'Overheads',     wide:false},
+  {type:'acguitar',  cat:'strings', icon:'🎸', name:'Acoustic Guitar', wide:false},
+  {type:'elguitar',  cat:'strings', icon:'🎸', name:'Electric Guitar', wide:false},
+  {type:'bass',      cat:'strings', icon:'🎸', name:'Bass',            wide:false},
+  {type:'violin',    cat:'strings', icon:'🎻', name:'Violin',          wide:false},
+  {type:'cello',     cat:'strings', icon:'🎻', name:'Cello',           wide:false},
+  {type:'viola',     cat:'strings', icon:'🎻', name:'Viola',           wide:false},
+  {type:'harp',      cat:'strings', icon:'🎻', name:'Harp',            wide:false},
+  {type:'piano',     cat:'keys',    icon:'🎹', name:'Grand Piano',   wide:true, stereo:true },
+  {type:'keys',      cat:'keys',    icon:'🎹', name:'Keys',          wide:false, stereo:true },
+  {type:'vox',       cat:'vocals',  icon:'🎤', name:'Vocal',         wide:false},
+  {type:'bgvox',     cat:'vocals',  icon:'🎙', name:'BG Vox',        wide:false},
+  {type:'talkback',  cat:'vocals',  icon:'📢', name:'Talkback Mic',  wide:false},
+  {type:'trumpet',   cat:'brass',   icon:'🎺', name:'Trumpet',     wide:false},
+  {type:'trombone',  cat:'brass',   icon:'🎺', name:'Trombone',    wide:false},
+  {type:'sax',       cat:'brass',   icon:'🎷', name:'Sax',         wide:false},
+  {type:'monitor',   cat:'monitor', icon:'🔊', name:'Monitor',     wide:false, requiresOutput:true},
+  {type:'iems',      cat:'monitor', icon:'🎧', name:'IEMs',        wide:false},
+  {type:'p16',       cat:'monitor', icon:'🔷', name:'P16',         wide:false},
+  {type:'pm1',       cat:'monitor', icon:'🔶', name:'PM1',         wide:false, requiresOutput:true},
+  {type:'di',        cat:'infra',   icon:'📦', name:'DI Box',      wide:false},
+  {type:'amp',       cat:'infra',   icon:'🔌', name:'Amp',         wide:false},
+  {type:'pedals',    cat:'infra',   icon:'🎛', name:'Pedals',      wide:false},
+  {type:'laptop',    cat:'infra',   icon:'💻', name:'Laptop',      wide:false},
+  {type:'midipad',   cat:'infra',   icon:'🟦', name:'MIDI Pad',    wide:false},
+  {type:'power',     cat:'infra',   icon:'⚡', name:'Power Outlet',wide:false},
+];
+
+const SNAKES = [
+  {type:'snake8',  name:'8-ch Snake',  channels:8,  outputs:2 },
+  {type:'snake16', name:'16-ch Snake', channels:16, outputs:4 },
+  {type:'snake24', name:'24-ch Snake', channels:24, outputs:8 },
+  {type:'snake32', name:'32-ch Snake', channels:32, outputs:8 },
+];
+
+const CABLE_TYPES = [
+  {id:'xlr',      label:'XLR',       color:'#47c4ff'},
+  {id:'ts',       label:'TS / TRS',  color:'#e8ff47'},
+  {id:'speakon',  label:'Speakon',   color:'#ff6b47'},
+  {id:'ethernet', label:'Ethernet',  color:'#ff9f47'},
+  {id:'midi',     label:'MIDI',      color:'#c47fff'},
+  {id:'digital',  label:'Digital',   color:'#47ffa0'},
+  {id:'power',    label:'Power',     color:'#ff4747'},
+];
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+
+let instruments = [];   // {id, type, cat, icon, label, channel, notes, x, y, size, wide, isSnake, snakeChannels}
+let connections = [];   // {id, fromId, toId, fromPin, toPin, cableType, color, label}
+let selectedId = null;
+let connectingFrom = null; // {id, pin} pin=null for regular, pin=number for snake
+let isDraggingNew = false, newDragData = null;
+let selectedCable = 'xlr';
+let idCounter = 0;
+let drawingLine = null;
+let stageW = 7.5, stageD = 4.4;
+let stagePx = {left:0,top:0,width:0,height:0};
+let pxPerM = 1;
+let showStageStairs = true;
+let zoomLevel = 1;
+let gestureStartZoom = 1;
+const ZOOM_MIN = 0.5;
+const ZOOM_MAX = 2.2;
+let panX = 0;
+let panY = 0;
+let suppressCanvasClick = false;
+let hasUnsavedChanges = false;
+let hasInitialized = false;
+let projectName = 'untitled-project';
+const RIDER_FILE_EXTENSION = '.rider.json';
+const HISTORY_LIMIT = 120;
+let historyStack = [];
+let redoStack = [];
+let isRestoringHistory = false;
+let connectionHandleCache = [];
+let hoveredConnectionId = null;
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+
+function init() {
+  buildCatTabs(); buildPalette('all'); buildSnakePalette();
+  buildCableColors(); buildLegend();
+  resizeCanvas(); updateStage(true);
+  window.addEventListener('resize', () => { resizeCanvas(); updateStage(true); });
+  canvasWrap.addEventListener('wheel', handleStageZoomWheel, { passive: false });
+  canvasWrap.addEventListener('gesturestart', handleStageGestureStart, { passive: false });
+  canvasWrap.addEventListener('gesturechange', handleStageGestureChange, { passive: false });
+  document.getElementById('rider-file').addEventListener('change', handleLoadRiderFile);
+  document.getElementById('conn-canvas').addEventListener('mousedown', handleCableHandleMouseDown);
+  document.getElementById('conn-canvas').addEventListener('mousemove', handleCanvasConnectionHover);
+  document.getElementById('conn-canvas').addEventListener('mouseleave', () => setHoveredConnection(null));
+  window.addEventListener('beforeunload', e => {
+    if(!hasUnsavedChanges) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
+  document.addEventListener('keydown', handleKeyboardShortcuts);
+  hasInitialized = true;
+  markClean();
+  updateProjectNameUI();
+  applyZoom();
+  pushHistoryState();
+  render();
+}
+
+function handleKeyboardShortcuts(e) {
+  const key = (e.key || '').toLowerCase();
+  const ctrlOrMeta = e.ctrlKey || e.metaKey;
+  if(!ctrlOrMeta) return;
+  const ae = document.activeElement;
+  const isEditable = !!(ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable));
+
+  if(key === 's') {
+    e.preventDefault();
+    saveRider();
+    return;
+  }
+
+  if(key === 'z' && !e.shiftKey) {
+    if(isEditable) return;
+    e.preventDefault();
+    undoAction();
+    return;
+  }
+
+  if(key === '=' || key === '+') {
+    e.preventDefault();
+    changeZoom(0.1);
+    return;
+  }
+
+  if(key === '-' || key === '_') {
+    e.preventDefault();
+    changeZoom(-0.1);
+    return;
+  }
+
+  if(key === '0') {
+    e.preventDefault();
+    resetZoom();
+  }
+}
+
+function positionWorldElement(el, x, y) {
+  if(!el) return;
+  el.style.left = `${panX + (x * zoomLevel)}px`;
+  el.style.top = `${panY + (y * zoomLevel)}px`;
+  el.style.transformOrigin = 'top left';
+  el.style.transform = `scale(${zoomLevel})`;
+}
+
+function applyZoom() {
+  positionWorldElement(document.getElementById('stage-platform'), stagePx.left, stagePx.top);
+  positionWorldElement(document.getElementById('ruler-h'), stagePx.left, stagePx.top - 22);
+  positionWorldElement(document.getElementById('ruler-v'), stagePx.left - 22, stagePx.top);
+  positionWorldElement(document.getElementById('audience-label'), stagePx.left, stagePx.top + stagePx.height + 24);
+
+  instruments.forEach(instr => {
+    const el = getEl(instr.id);
+    if(el) positionWorldElement(el, instr.x, instr.y);
+  });
+
+  const zr = document.getElementById('zoom-range');
+  if(zr) zr.value = Math.round(zoomLevel * 100);
+  const zv = document.getElementById('zoom-value');
+  if(zv) zv.textContent = `${Math.round(zoomLevel * 100)}%`;
+  render();
+}
+
+function setZoom(nextZoom, anchorX, anchorY) {
+  const oldZoom = zoomLevel;
+  const z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Number(nextZoom) || 1));
+  if(Math.abs(z - zoomLevel) < 0.001) return;
+  if(Number.isFinite(anchorX) && Number.isFinite(anchorY)) {
+    const worldX = (anchorX - panX) / oldZoom;
+    const worldY = (anchorY - panY) / oldZoom;
+    panX = anchorX - (worldX * z);
+    panY = anchorY - (worldY * z);
+  }
+  zoomLevel = z;
+  applyZoom();
+}
+
+function changeZoom(delta) {
+  const wr = canvasWrap.getBoundingClientRect();
+  const anchorX = (wr.width || 0) / 2;
+  const anchorY = (wr.height || 0) / 2;
+  setZoom(zoomLevel + delta, anchorX, anchorY);
+}
+
+function resetZoom() {
+  setZoom(1);
+  setPan(0, 0);
+}
+
+function setPan(nextX, nextY) {
+  panX = Number(nextX) || 0;
+  panY = Number(nextY) || 0;
+  applyZoom();
+}
+
+function handleStageZoomWheel(e) {
+  // Pinch zoom on trackpads is exposed as Ctrl/Meta-modified wheel in most browsers.
+  if(e.ctrlKey || e.metaKey) {
+    e.preventDefault();
+    const factor = Math.exp(-e.deltaY * 0.0022);
+    const nextZoom = zoomLevel * factor;
+    const wr = canvasWrap.getBoundingClientRect();
+    setZoom(nextZoom, e.clientX - wr.left, e.clientY - wr.top);
+    return;
+  }
+
+  // Shift + wheel performs horizontal side scroll.
+  if(e.shiftKey) {
+    e.preventDefault();
+    const horizontalDelta = Math.abs(e.deltaX) > 0 ? e.deltaX : e.deltaY;
+    setPan(panX - horizontalDelta, panY);
+    return;
+  }
+
+  // Two-finger trackpad scroll pans the stage viewport.
+  e.preventDefault();
+  setPan(panX - e.deltaX, panY - e.deltaY);
+}
+
+function handleStageGestureStart(e) {
+  e.preventDefault();
+  gestureStartZoom = zoomLevel;
+}
+
+function handleStageGestureChange(e) {
+  // Safari exposes pinch as gesture events with a relative scale.
+  e.preventDefault();
+  const nextZoom = gestureStartZoom * (e.scale || 1);
+  const wr = canvasWrap.getBoundingClientRect();
+  setZoom(nextZoom, (wr.width || 0) / 2, (wr.height || 0) / 2);
+}
+
+function startPanDrag(e) {
+  if(e.button !== 0) return;
+  if(e.target.closest('.si')) return;
+  const startX = e.clientX;
+  const startY = e.clientY;
+  const startPanX = panX;
+  const startPanY = panY;
+  let moved = false;
+  canvasWrap.classList.add('is-panning');
+
+  function onMove(ev) {
+    const dx = ev.clientX - startX;
+    const dy = ev.clientY - startY;
+    if(Math.abs(dx) > 2 || Math.abs(dy) > 2) moved = true;
+    setPan(startPanX + dx, startPanY + dy);
+  }
+
+  function onUp() {
+    canvasWrap.classList.remove('is-panning');
+    if(moved) suppressCanvasClick = true;
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  }
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+function markDirty() {
+  if(!hasInitialized) return;
+  hasUnsavedChanges = true;
+  document.title = '* Stage Designer';
+}
+
+function markClean() {
+  hasUnsavedChanges = false;
+  document.title = 'Stage Designer';
+}
+
+function sanitizeProjectName(name) {
+  const base = (name || '').trim() || 'untitled-project';
+  return base.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^[-.]+|[-.]+$/g, '') || 'untitled-project';
+}
+
+function updateProjectName(name) {
+  const normalized = (name || '').trim();
+  projectName = normalized || 'untitled-project';
+  markDirty();
+}
+
+function updateProjectNameUI() {
+  const input = document.getElementById('project-name');
+  if(input) input.value = projectName;
+}
+
+function setProjectNameFromFileName(fileName) {
+  if(!fileName) return;
+  let withoutExt = fileName;
+  if(withoutExt.toLowerCase().endsWith(RIDER_FILE_EXTENSION.toLowerCase())) {
+    withoutExt = withoutExt.slice(0, -RIDER_FILE_EXTENSION.length);
+  } else {
+    withoutExt = withoutExt.replace(/\.[^.]+$/, '');
+  }
+  projectName = withoutExt || 'untitled-project';
+  updateProjectNameUI();
+}
+
+function getRiderSaveFileName() {
+  return sanitizeProjectName(projectName) + RIDER_FILE_EXTENSION;
+}
+
+function normalizeSnakeChannels(value) {
+  const n = Math.max(4, Math.min(64, parseInt(value, 10) || 16));
+  return Math.round(n / 4) * 4;
+}
+
+function cloneInstruments(list) {
+  return list.map(i => ({
+    ...i,
+    drumMics: Array.isArray(i.drumMics) ? [...i.drumMics] : i.drumMics,
+  }));
+}
+
+function cloneConnections(list) {
+  return list.map(c => ({...c}));
+}
+
+function captureSnapshot() {
+  return {
+    projectName,
+    stageW,
+    stageD,
+    showStageStairs,
+    instruments: cloneInstruments(instruments),
+    connections: cloneConnections(connections),
+    selectedId,
+    idCounter,
+    selectedCable,
+  };
+}
+
+function applySnapshot(snapshot, keepCleanState) {
+  isRestoringHistory = true;
+  instruments.forEach(i => { const el = getEl(i.id); if(el) el.remove(); });
+
+  projectName = snapshot.projectName || 'untitled-project';
+  stageW = snapshot.stageW;
+  stageD = snapshot.stageD;
+  showStageStairs = snapshot.showStageStairs !== false;
+  instruments = cloneInstruments(snapshot.instruments || []);
+  connections = cloneConnections(snapshot.connections || []);
+  selectedId = snapshot.selectedId || null;
+  idCounter = snapshot.idCounter || 0;
+  selectedCable = snapshot.selectedCable || 'xlr';
+  connectingFrom = null;
+  drawingLine = null;
+
+  document.getElementById('dim-w').value = stageW;
+  document.getElementById('dim-d').value = stageD;
+  const stairsToggle = document.getElementById('stage-stairs-toggle');
+  if(stairsToggle) stairsToggle.checked = showStageStairs;
+  updateProjectNameUI();
+  instruments.forEach(renderInstrument);
+  updateStage(true);
+
+  if(selectedId && instruments.some(i => i.id === selectedId)) {
+    selectInstrument(selectedId);
+  } else {
+    selectedId = null;
+    document.getElementById('no-sel').style.display='';
+    document.getElementById('prop-fields').style.display='none';
+  }
+
+  if(keepCleanState) markClean();
+  else markDirty();
+  isRestoringHistory = false;
+}
+
+function pushHistoryState() {
+  if(isRestoringHistory) return;
+  historyStack.push(captureSnapshot());
+  if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
+  redoStack = [];
+}
+
+function undoAction() {
+  if(historyStack.length <= 1) return;
+  const current = historyStack.pop();
+  redoStack.push(current);
+  const previous = historyStack[historyStack.length - 1];
+  applySnapshot(previous, false);
+}
+
+function serializeLayout() {
+  return {
+    version:3,
+    created:new Date().toISOString(),
+    projectName,
+    stage:{widthM:stageW, depthM:stageD, showStairs:showStageStairs},
+    instruments:instruments.map(({id,type,cat,icon,label,channel,notes,x,y,size,wide,angle,isSnake,snakeChannels,snakeOutputs,requiresOutput,drumMics})=>({id,type,cat,icon,label,channel,notes,x,y,size,wide,angle,isSnake,snakeChannels,snakeOutputs,requiresOutput,drumMics})),
+    connections:connections.map(({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX})=>({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX})),
+  };
+}
+
+function buildCatTabs() {
+  const w = document.getElementById('cat-tabs'); w.innerHTML = '';
+  CATS.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'cat-tab' + (c.id==='all'?' active':'');
+    b.textContent = c.label;
+    b.onclick = () => {
+      document.querySelectorAll('.cat-tab').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active'); buildPalette(c.id);
+    };
+    w.appendChild(b);
+  });
+}
+
+function buildPalette(cat) {
+  const grid = document.getElementById('pal'); grid.innerHTML = '';
+  const list = cat==='all' ? INSTRUMENTS : INSTRUMENTS.filter(i=>i.cat===cat);
+  list.forEach(instr => {
+    const t = makeTile(instr.icon, instr.name, false);
+    t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr,isSnake:false}; e.dataTransfer.effectAllowed='copy'; });
+    t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
+    grid.appendChild(t);
+  });
+}
+
+function buildSnakePalette() {
+  const grid = document.getElementById('snake-pal'); grid.innerHTML = '';
+  SNAKES.forEach(s => {
+    const t = makeTile('🐍', s.name, true);
+    t.addEventListener('dragstart', e => {
+      isDraggingNew=true;
+      newDragData={
+		type:s.type,
+		cat:'snake',
+		icon:'🐍',
+		name:s.name,
+		isSnake:true,
+		snakeChannels:s.channels,
+		outputs:s.outputs,
+		wide:false
+	  };
+      e.dataTransfer.effectAllowed='copy';
+    });
+    t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
+    grid.appendChild(t);
+  });
+}
+
+function makeTile(icon, name, isSnake) {
+  const t = document.createElement('div');
+  t.className = 'pal-tile' + (isSnake?' snake-tile':'');
+  t.draggable = true;
+  t.innerHTML = `<div class="ti">${icon}</div><div class="tn">${name}</div>`;
+  return t;
+}
+
+function buildCableColors() {
+  const c = document.getElementById('cable-colors'); c.innerHTML = '';
+  CABLE_TYPES.forEach(ct => {
+    const r = document.createElement('div');
+    r.className = 'ccrow' + (ct.id===selectedCable?' selected':'');
+    r.id = 'cr-'+ct.id;
+    r.innerHTML = `<div class="cswatch" style="background:${ct.color}"></div><span class="clabel">${ct.label}</span>`;
+    r.onclick = () => { selectedCable=ct.id; document.querySelectorAll('.ccrow').forEach(x=>x.classList.remove('selected')); r.classList.add('selected'); };
+    c.appendChild(r);
+  });
+}
+
+function buildLegend() {
+  const l = document.getElementById('legend'); l.innerHTML = '';
+  CABLE_TYPES.forEach(ct => {
+    const i = document.createElement('div'); i.className='leg-item';
+    i.innerHTML = `<div class="leg-dot" style="background:${ct.color}"></div><span>${ct.label}</span>`;
+    l.appendChild(i);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STAGE
+// ═══════════════════════════════════════════════════════════════
+
+function updateStage(skipDirty) {
+  const prevW = stageW;
+  const prevD = stageD;
+  stageW = Math.max(2, Math.min(80, parseFloat(document.getElementById('dim-w').value)||7.5));
+  stageD = Math.max(2, Math.min(50, parseFloat(document.getElementById('dim-d').value)||4.4));
+  const wrap = document.getElementById('canvas-wrap');
+  const ww = wrap.clientWidth||800, wh = wrap.clientHeight||600;
+  pxPerM = Math.min(ww*.78/stageW, wh*.60/stageD);
+  const sw = stageW*pxPerM, sh = stageD*pxPerM;
+  const sl = (ww-sw)/2, st2 = (wh-sh)/2-18;
+  const p = document.getElementById('stage-platform');
+  p.style.width = `${sw}px`;
+  p.style.height = `${sh}px`;
+  p.style.bottom = 'unset';
+  stagePx = {left:sl,top:st2,width:sw,height:sh};
+  applyStageStairs();
+  const a = document.getElementById('audience-label');
+  a.style.width = `${sw}px`;
+  document.getElementById('stage-dims').textContent = `${stageW} m × ${stageD} m`;
+  document.getElementById('scale-d').textContent = `${pxPerM.toFixed(1)} px/m · 1px=${(1/pxPerM).toFixed(3)}m`;
+  if(!skipDirty) {
+    if(prevW !== stageW || prevD !== stageD) pushHistoryState();
+    markDirty();
+  }
+  drawRulers(); applyZoom(); render();
+}
+
+function applyStageStairs() {
+  const stairs = document.getElementById('stage-stairs');
+  if(!stairs) return;
+  if(!showStageStairs) {
+    stairs.style.display = 'none';
+    return;
+  }
+  const stairsWidth = Math.min(stagePx.width, 2 * pxPerM);
+  const stairsDepth = 0.75 * pxPerM;
+  stairs.style.display = 'block';
+  stairs.style.width = `${stairsWidth}px`;
+  stairs.style.height = `${stairsDepth}px`;
+  stairs.style.left = `${(stagePx.width - stairsWidth) / 2}px`;
+  stairs.style.bottom = '-2px';
+}
+
+function toggleStageStairs(enabled) {
+  const next = !!enabled;
+  if(showStageStairs === next) return;
+  pushHistoryState();
+  showStageStairs = next;
+  applyStageStairs();
+  markDirty();
+  render();
+}
+
+function drawRulers() {
+  const {left,top,width,height} = stagePx;
+  // H ruler
+  const rh = document.getElementById('ruler-h');
+  rh.width = Math.ceil(width); rh.height = 20;
+  Object.assign(rh.style, {width:width+'px', height:'20px'});
+  const chx = rh.getContext('2d'); chx.clearRect(0,0,rh.width,20);
+  chx.font='8px Share Tech Mono,monospace';
+  for(let m=0;m<=stageW;m++){
+    const x=Math.round(m*pxPerM), maj=m%2===0;
+    chx.beginPath(); chx.moveTo(x,maj?7:11); chx.lineTo(x,20);
+    chx.strokeStyle=maj?'#4a5060':'#282e3a'; chx.stroke();
+    if(maj){ chx.fillStyle=m===0||m===stageW?'#47c4ff':'#6b7280'; chx.textAlign=m===0?'left':m===stageW?'right':'center'; chx.fillText(m+'m',x,6); }
+  }
+  // V ruler
+  const rv = document.getElementById('ruler-v');
+  rv.width=20; rv.height=Math.ceil(height);
+  Object.assign(rv.style,{width:'20px',height:height+'px'});
+  const cvx=rv.getContext('2d'); cvx.clearRect(0,0,20,rv.height);
+  cvx.font='8px Share Tech Mono,monospace';
+  for(let m=0;m<=stageD;m++){
+    const y=Math.round(m*pxPerM), maj=m%2===0;
+    cvx.beginPath(); cvx.moveTo(maj?7:11,y); cvx.lineTo(20,y);
+    cvx.strokeStyle=maj?'#4a5060':'#282e3a'; cvx.stroke();
+    if(maj&&m>0&&m<stageD){ cvx.save(); cvx.translate(7,y); cvx.rotate(-Math.PI/2); cvx.fillStyle='#6b7280'; cvx.textAlign='center'; cvx.fillText(m+'m',0,0); cvx.restore(); }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CANVAS / RENDER
+// ═══════════════════════════════════════════════════════════════
+
+function resizeCanvas() {
+  const wrap = document.getElementById('canvas-wrap');
+  const cv = document.getElementById('conn-canvas');
+  cv.width=wrap.clientWidth; cv.height=wrap.clientHeight;
+}
+
+function getEl(id){ return document.getElementById('instr-'+id); }
+
+function getCenterOf(id, pin) {
+  if(pin !== undefined && pin !== null) {
+    // Handle regular instrument pin keys (L/R/MONO)
+    if(pin === 'L' || pin === 'R' || pin === 'MONO') {
+      const pinClass = pin === 'L' ? 'stereo-left' : pin === 'R' ? 'stereo-right' : '';
+      const selector = pinClass ? `.iconn.${pinClass}` : '.iconn';
+      const instrEl = getEl(id);
+      const el = instrEl ? instrEl.querySelector(selector) : null;
+      if(!el) return getCenterOfEl(id);
+      const wr = document.getElementById('canvas-wrap').getBoundingClientRect();
+      const er = el.getBoundingClientRect();
+      return {x: er.left-wr.left+er.width/2, y: er.top-wr.top+er.height/2};
+    }
+
+    // Get snake or dynamic pin position
+    let el = document.getElementById(`pin-${id}-${pin}`);
+    if(!el) {
+      const instrEl = getEl(id);
+      if(instrEl) {
+        el = instrEl.querySelector(`.iconn[data-pin="${pin}"]`);
+      }
+    }
+    if(!el) return getCenterOfEl(id);
+    const wr = document.getElementById('canvas-wrap').getBoundingClientRect();
+    const er = el.getBoundingClientRect();
+    return {x: er.left-wr.left+er.width/2, y: er.top-wr.top+er.height/2};
+  }
+  return getCenterOfEl(id);
+}
+
+function getCenterOfEl(id) {
+  const el = getEl(id); if(!el) return null;
+  const wr = document.getElementById('canvas-wrap').getBoundingClientRect();
+  const er = el.getBoundingClientRect();
+  return {x:er.left-wr.left+er.width/2, y:er.top-wr.top+er.height/2};
+}
+
+function pinKey(pin) {
+  return pin == null ? 'MONO' : String(pin);
+}
+
+function pinForReport(pin) {
+  const key = pinKey(pin);
+  const outMatch = key.match(/^OUT-(\d+)$/);
+  if(outMatch) {
+    const idx = parseInt(outMatch[1], 10);
+    const letter = indexToLetters(idx);
+    return `OUT-${letter} (${idx})`;
+  }
+  const inMatch = key.match(/^IN-(\d+)$/);
+  if(inMatch) {
+    return `IN-${parseInt(inMatch[1], 10)}`;
+  }
+  return key;
+}
+
+function indexToLetters(index) {
+  let n = Math.max(1, parseInt(index, 10) || 1);
+  let out = '';
+  while(n > 0) {
+    const rem = (n - 1) % 26;
+    out = String.fromCharCode(65 + rem) + out;
+    n = Math.floor((n - 1) / 26);
+  }
+  return out || 'A';
+}
+
+function isPinUsed(id, pin) {
+  const key = pinKey(pin);
+  return connections.some(c => {
+    const fromKey = pinKey(c.fromPin);
+    const toKey = pinKey(c.toPin);
+    return (c.fromId === id && fromKey === key) || (c.toId === id && toKey === key);
+  });
+}
+
+function render() {
+  const cv = document.getElementById('conn-canvas');
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  connectionHandleCache = [];
+  const selectedConnIds = selectedId
+    ? connections.filter(c => c.fromId === selectedId || c.toId === selectedId).map(c => c.id)
+    : [];
+  const focusedConnIds = selectedConnIds.length ? new Set(selectedConnIds) : null;
+  connections.forEach(conn => {
+    const a = getCenterOf(conn.fromId, conn.fromPin);
+    const b = getCenterOf(conn.toId, conn.toPin);
+    if(a&&b) {
+      const hasFocus = focusedConnIds ? focusedConnIds.has(conn.id) : false;
+      const isHovered = hoveredConnectionId === conn.id;
+      const isHighlighted = hasFocus || isHovered;
+      const isMuted = focusedConnIds ? !hasFocus : !isHovered;
+      drawCable(ctx, conn, a, b, false, isMuted, isHighlighted, isHovered);
+    }
+  });
+  if(drawingLine){
+    const col = (CABLE_TYPES.find(c=>c.id===selectedCable)||CABLE_TYPES[0]).color;
+    drawPreviewCable(ctx, drawingLine.x1, drawingLine.y1, drawingLine.x2, drawingLine.y2, col);
+  }
+  updateConnList();
+}
+
+function buildOrthogonalPoints(a, b, routeX) {
+  const midX = Number.isFinite(routeX) ? (panX + (routeX * zoomLevel)) : ((a.x + b.x) / 2);
+  return [
+    {x:a.x, y:a.y},
+    {x:midX, y:a.y},
+    {x:midX, y:b.y},
+    {x:b.x, y:b.y},
+  ];
+}
+
+function drawPolyline(ctx, points, color, dashed, muted, highlighted, hovered) {
+  if(points.length < 2) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.setLineDash(dashed ? [7,5] : []);
+  ctx.globalAlpha = dashed ? 0.55 : muted ? 0.55 : highlighted ? 1 : 0.92;
+  ctx.moveTo(points[0].x, points[0].y);
+  for(let i=1;i<points.length;i++) ctx.lineTo(points[i].x, points[i].y);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = dashed ? 2.2 : hovered ? 4.4 : highlighted ? 3.4 : muted ? 2.4 : 2.8;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = dashed ? 3 : muted ? 0 : hovered ? 12 : 6;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function brightenHex(hex, amount = 0.45) {
+  if(typeof hex !== 'string') return '#ffffff';
+  const m = hex.trim().match(/^#([0-9a-fA-F]{6})$/);
+  if(!m) return hex;
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  const mix = v => Math.round(v + ((255 - v) * amount));
+  const out = (mix(r) << 16) | (mix(g) << 8) | mix(b);
+  return `#${out.toString(16).padStart(6, '0')}`;
+}
+
+function drawCable(ctx, conn, a, b, dashed, muted = false, highlighted = false, hovered = false) {
+  const points = buildOrthogonalPoints(a, b, conn.routeX);
+  const cableColor = hovered ? '#ffffff' : (highlighted ? brightenHex(conn.color, 0.4) : conn.color);
+  drawPolyline(ctx, points, cableColor, dashed, muted, highlighted, hovered);
+
+  if(!dashed && !muted) {
+    const ends = [points[0], points[points.length-1]];
+    ctx.save();
+    ends.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, hovered ? 4.2 : 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = cableColor;
+      ctx.shadowColor = cableColor;
+      ctx.shadowBlur = hovered ? 12 : 7;
+      ctx.fill();
+    });
+    ctx.restore();
+
+    if(!dashed) {
+      const handle = { x: points[1].x, y: (points[1].y + points[2].y) / 2 };
+      connectionHandleCache.push({ id: conn.id, x: handle.x, y: handle.y });
+      ctx.save();
+      ctx.fillStyle = muted ? 'rgba(10,11,13,0.76)' : 'rgba(10,11,13,0.92)';
+      ctx.strokeStyle = hovered ? '#ffffff' : (highlighted ? cableColor : 'rgba(212,216,226,0.55)');
+      ctx.lineWidth = hovered ? 2 : 1.3;
+      ctx.beginPath();
+      ctx.rect(handle.x - 5, handle.y - 5, 10, 10);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+}
+
+function drawPreviewCable(ctx, x1, y1, x2, y2, color) {
+  const points = buildOrthogonalPoints({x:x1,y:y1}, {x:x2,y:y2}, null);
+  drawPolyline(ctx, points, color, true, false, false, false);
+}
+
+function findCableHandleAt(x, y) {
+  const radius = 8;
+  for(let i=connectionHandleCache.length-1;i>=0;i--) {
+    const h = connectionHandleCache[i];
+    if(Math.abs(h.x - x) <= radius && Math.abs(h.y - y) <= radius) return h;
+  }
+  return null;
+}
+
+function pointToSegmentDistance(px, py, ax, ay, bx, by) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  if(dx === 0 && dy === 0) return Math.hypot(px - ax, py - ay);
+  const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / ((dx * dx) + (dy * dy))));
+  const cx = ax + (t * dx);
+  const cy = ay + (t * dy);
+  return Math.hypot(px - cx, py - cy);
+}
+
+function findConnectionAtPoint(x, y) {
+  let closest = null;
+  let bestDist = Infinity;
+  for(let i=connections.length-1; i>=0; i--) {
+    const conn = connections[i];
+    const a = getCenterOf(conn.fromId, conn.fromPin);
+    const b = getCenterOf(conn.toId, conn.toPin);
+    if(!a || !b) continue;
+    const pts = buildOrthogonalPoints(a, b, conn.routeX);
+    for(let s=0; s<pts.length-1; s++) {
+      const d = pointToSegmentDistance(x, y, pts[s].x, pts[s].y, pts[s+1].x, pts[s+1].y);
+      if(d < bestDist) {
+        bestDist = d;
+        closest = conn.id;
+      }
+    }
+  }
+  return bestDist <= 8 ? closest : null;
+}
+
+function handleCanvasConnectionHover(e) {
+  const wr = canvasWrap.getBoundingClientRect();
+  const x = e.clientX - wr.left;
+  const y = e.clientY - wr.top;
+  const id = findConnectionAtPoint(x, y);
+  setHoveredConnection(id);
+}
+
+function handleCableHandleMouseDown(e) {
+  const wr = canvasWrap.getBoundingClientRect();
+  const x = e.clientX - wr.left;
+  const y = e.clientY - wr.top;
+  const hit = findCableHandleAt(x, y);
+  if(!hit) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const conn = connections.find(c => c.id === hit.id);
+  if(!conn) return;
+  const snapshot = captureSnapshot();
+
+  function onMove(ev) {
+    const nx = ev.clientX - wr.left;
+    conn.routeX = (nx - panX) / zoomLevel;
+    markDirty();
+    render();
+  }
+
+  function onUp() {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    historyStack.push(snapshot);
+    if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
+    redoStack = [];
+  }
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DROP
+// ═══════════════════════════════════════════════════════════════
+
+const canvasWrap = document.getElementById('canvas-wrap');
+canvasWrap.addEventListener('mousedown', startPanDrag);
+canvasWrap.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.effectAllowed='copy';});
+canvasWrap.addEventListener('drop',e=>{
+  e.preventDefault();
+  if(!isDraggingNew||!newDragData) return;
+  const wr=canvasWrap.getBoundingClientRect();
+  const baseSize = newDragData.wide ? 82 : 52;
+  const worldX = ((e.clientX - wr.left - panX) / zoomLevel) - (baseSize / 2);
+  const worldY = ((e.clientY - wr.top - panY) / zoomLevel) - (baseSize / 2);
+  addInstrument(newDragData, worldX, worldY);
+  isDraggingNew=false; newDragData=null;
+});
+
+// ═══════════════════════════════════════════════════════════════
+// INSTRUMENTS
+// ═══════════════════════════════════════════════════════════════
+
+function addInstrument(data, x, y) {
+  pushHistoryState();
+  const id = ++idCounter;
+  const size = data.wide ? 82 : 52;
+  instruments.push({
+    id, type:data.type, cat:data.cat||'infra', icon:data.icon,
+    label:data.name, channel:'', notes:'', x, y,
+    size, wide:!!data.wide,
+	angle: 0,
+	stereo: !!data.stereo,
+    isSnake:!!data.isSnake,
+    snakeChannels: normalizeSnakeChannels(data.snakeChannels || 16),
+    snakeOutputs: data.outputs || 0,
+    requiresOutput: !!data.requiresOutput,
+    drumMics: data.type === 'drumkit' ? [] : null,
+  });
+  renderInstrument(instruments[instruments.length-1]);
+  const newInstr = instruments[instruments.length-1];
+
+  if(newInstr.stereo){
+	newInstr.notes = 'Stereo Output (L/R)';
+  }
+  markDirty();
+  document.getElementById('stage-hint').textContent='Click item for properties · Drag to arrange · Use blue pins to connect';
+  render();
+}
+
+function renderInstrument(instr) {
+  const wrap = document.getElementById('canvas-wrap');
+  // remove old if exists
+  const old = getEl(instr.id); if(old) old.remove();
+
+  const el = document.createElement('div');
+  el.className = 'si' + (instr.isSnake?' is-snake':'');
+  el.id = 'instr-'+instr.id;
+  el.dataset.cat = instr.cat||'';
+  positionWorldElement(el, instr.x, instr.y);
+
+  const angle = parseInt(instr.angle || 0, 10);
+
+  if(instr.isSnake) {
+    el.innerHTML = `
+      <div class="iface" style="transform:rotate(${angle}deg);transform-origin:center center;">
+        ${buildSnakeHTML(instr, false)}
+      </div>
+      <div class="ilabel">${instr.label}</div>
+    `;
+  } else {
+    const bw = instr.size || 52;
+    const fontSize = Math.round(bw * 0.44);
+    const isStereo = !!instr.stereo;
+    const isDrumKit = instr.type === 'drumkit';
+    const drumPins = isDrumKit ? getDrumMicPins(instr) : [];
+    const monoUsed = !isStereo && isPinUsed(instr.id, 'MONO');
+    const leftUsed = isStereo && isPinUsed(instr.id, 'L');
+    const rightUsed = isStereo && isPinUsed(instr.id, 'R');
+    const drumPinsHTML = drumPins.map(p => `
+      <div class="drum-pin-wrap">
+        <div class="iconn drum-pin${isPinUsed(instr.id, p.key)?' used':''}" data-pin="${p.key}" title="${p.name}"></div>
+        <div class="pin-tag drum-pin-tag">${p.label}</div>
+      </div>
+    `).join('');
+    el.innerHTML = `
+      <div class="iface" style="transform:rotate(${angle}deg);transform-origin:center center;">
+        <div class="ib" style="width:${bw}px;height:${bw}px;font-size:${fontSize}px;">
+          <span>${instr.icon}</span>
+          ${instr.channel?`<div class="ich">${instr.channel}</div>`:''}
+        </div>
+        ${isDrumKit ? `
+          <div class="drum-pin-row">${drumPinsHTML}</div>
+        ` : isStereo ? `
+          <div class="iconn stereo-left${leftUsed?' used':''}" data-pin="L"></div>
+          <div class="iconn stereo-right${rightUsed?' used':''}" data-pin="R"></div>
+          <div class="pin-tag left">L</div>
+          <div class="pin-tag right">R</div>
+        ` : `<div class="iconn${monoUsed?' used':''}" data-pin="MONO"></div>`}
+      </div>
+      <div class="ilabel">${instr.label}</div>
+    `;
+  }
+
+  // Drag to move
+  el.addEventListener('mousedown', e => {
+    if(e.target.classList.contains('iconn') || e.target.classList.contains('snake-ch-pin')) return;
+    e.stopPropagation();
+    selectInstrument(instr.id);
+    startDrag(e, instr.id, el);
+  });
+
+  // Regular connector dot
+  const conn = el.querySelector('.iconn');
+  if(conn) {
+    const handleRegularPin = e => {
+      e.stopPropagation();
+      const pin = e.currentTarget.dataset.pin || 'MONO';
+      startConnectionFromPin(instr.id, pin, e);
+    };
+    el.querySelectorAll('.iconn').forEach(pinEl => {
+      pinEl.addEventListener('mousedown', handleRegularPin);
+    });
+  }
+
+  // Snake pin connectors
+  if(instr.isSnake) {
+    el.querySelectorAll('.snake-ch-pin').forEach(pin => {
+      pin.addEventListener('mousedown', e => {
+        e.stopPropagation();
+        startConnectionFromPin(instr.id, pin.dataset.pin, e);
+      });
+    });
+  }
+
+  wrap.appendChild(el);
+}
+
+function buildSnakeHTML(instr, includeLabel = true) {
+  const ch = instr.snakeChannels || 16;
+  const outputs = instr.snakeOutputs || 0;
+  const bw = Math.max(instr.size||80, 80);
+
+  let inputPins = '';
+  for(let i=1;i<=ch;i++){
+    const isUsed = connections.some(c => (c.fromId===instr.id&&c.fromPin==='IN-'+i)||(c.toId===instr.id&&c.toPin==='IN-'+i));
+    inputPins += `<div id="pin-${instr.id}-IN-${i}" class="snake-ch-pin${isUsed?' used':''}" data-pin="IN-${i}" title="Input ${i}">${i}</div>`;
+  }
+
+  let outputPins = '';
+  for(let i=1;i<=outputs;i++){
+    const isUsed = connections.some(c => (c.fromId===instr.id&&c.fromPin==='OUT-'+i)||(c.toId===instr.id&&c.toPin==='OUT-'+i));
+    const label = indexToLetters(i);
+    outputPins += `<div id="pin-${instr.id}-OUT-${i}" class="snake-ch-pin out-pin${isUsed?' used':''}" data-pin="OUT-${i}" title="Output ${label}">${label}</div>`;
+  }
+
+  return `
+    <div class="ib" style="width:${bw}px;min-height:60px;padding:4px;flex-direction:column;font-size:0;">
+      <div class="snake-label-row">
+        <span style="font-size:16px;">🐍</span>
+        <span class="snake-badge">${ch}in / ${outputs}out</span>
+        ${instr.channel?`<div class="ich" style="position:relative;top:0;right:0;">${instr.channel}</div>`:''}
+      </div>
+
+      <div style="font-size:9px;color:#c47fff;margin-top:4px;">INPUTS</div>
+      <div class="snake-channels">${inputPins}</div>
+
+      <div style="font-size:9px;color:#47ffa0;margin-top:6px;">OUTPUTS</div>
+      <div class="snake-channels">${outputPins}</div>
+    </div>
+    ${includeLabel ? `<div class="ilabel">${instr.label}</div>` : ''}
+    <div class="iconn"></div>
+  `;
+}
+
+function refreshSnakePins(id) {
+  const instr = instruments.find(i=>i.id===id); if(!instr||!instr.isSnake) return;
+  const el = getEl(id); if(!el) return;
+  el.querySelectorAll('.snake-ch-pin').forEach(pin => {
+    const p = pin.dataset.pin;
+    const used = isPinUsed(id, p);
+    pin.classList.toggle('used', used);
+  });
+}
+
+function refreshConnectorStates(id) {
+  const instr = instruments.find(i => i.id === id);
+  if(!instr) return;
+  if(instr.isSnake) {
+    refreshSnakePins(id);
+    return;
+  }
+  renderInstrument(instr);
+}
+
+function startDrag(e, id, el) {
+  const dragSnapshot = captureSnapshot();
+  const wr = document.getElementById('canvas-wrap').getBoundingClientRect();
+  const instr = instruments.find(i=>i.id===id);
+  if(!instr) return;
+  const pointerWorldStartX = (e.clientX - wr.left - panX) / zoomLevel;
+  const pointerWorldStartY = (e.clientY - wr.top - panY) / zoomLevel;
+  const offsetWorldX = pointerWorldStartX - instr.x;
+  const offsetWorldY = pointerWorldStartY - instr.y;
+  let moved = false;
+  const dz = document.getElementById('dz'); dz.classList.add('visible');
+  function onMove(e){
+    const x = ((e.clientX - wr.left - panX) / zoomLevel) - offsetWorldX;
+    const y = ((e.clientY - wr.top - panY) / zoomLevel) - offsetWorldY;
+    moved = true;
+    instr.x=x; instr.y=y;
+    positionWorldElement(el, instr.x, instr.y);
+    render();
+    const dzr=dz.getBoundingClientRect();
+    dz.style.background=(e.clientX>=dzr.left&&e.clientX<=dzr.right&&e.clientY>=dzr.top&&e.clientY<=dzr.bottom)?'rgba(255,107,71,.28)':'rgba(255,107,71,.1)';
+  }
+  function onUp(e){
+    dz.classList.remove('visible'); dz.style.background='rgba(255,107,71,.1)';
+    const dzr=dz.getBoundingClientRect();
+    if(e.clientX>=dzr.left&&e.clientX<=dzr.right&&e.clientY>=dzr.top&&e.clientY<=dzr.bottom) deleteInstrument(id);
+    else if(moved) {
+      historyStack.push(dragSnapshot);
+      if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
+      redoStack = [];
+      markDirty();
+    }
+    document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); render();
+  }
+  document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp);
+}
+
+function selectInstrument(id) {
+  selectedId=id; updateClasses();
+  hoveredConnectionId = null;
+  const instr=instruments.find(i=>i.id===id); if(!instr) return;
+  document.getElementById('no-sel').style.display='none';
+  document.getElementById('prop-fields').style.display='block';
+  document.getElementById('p-label').value=instr.label;
+  document.getElementById('p-ch').value=instr.channel;
+  document.getElementById('p-notes').value=instr.notes;
+  const sz = instr.size||52;
+  document.getElementById('p-size').value=sz;
+  document.getElementById('p-size-val').textContent=sz;
+  const ang = parseInt(instr.angle || 0, 10);
+  document.getElementById('p-angle').value=ang;
+  document.getElementById('p-angle-val').textContent=`${ang}°`;
+  // snake extras
+  const se = document.getElementById('snake-extra');
+  if(instr.isSnake){ se.style.display='block'; document.getElementById('p-snake-ch').value=instr.snakeChannels||16; }
+  else { se.style.display='none'; }
+
+  // drumkit extras
+  const drumExtra = document.getElementById('drum-extra');
+  if(instr.type === 'drumkit'){
+    drumExtra.style.display='block';
+    syncDrumMicUI(instr);
+  } else {
+    drumExtra.style.display='none';
+  }
+}
+
+function updProp(field, value) {
+  if(!selectedId) return;
+  const instr=instruments.find(i=>i.id===selectedId); if(!instr) return;
+  if(instr[field] === value) return;
+  pushHistoryState();
+  instr[field]=value;
+  markDirty();
+  refreshInstrEl(instr); render();
+}
+
+function updSize(value) {
+  const sz=parseInt(value);
+  document.getElementById('p-size-val').textContent=sz;
+  if(!selectedId) return;
+  const instr=instruments.find(i=>i.id===selectedId); if(!instr) return;
+  if((instr.size||52) === sz) return;
+  pushHistoryState();
+  instr.size=sz;
+  markDirty();
+  renderInstrument(instr); render();
+  // re-attach after re-render
+}
+
+function updAngle(value) {
+  const angle = parseInt(value, 10) || 0;
+  document.getElementById('p-angle-val').textContent = `${angle}°`;
+  if(!selectedId) return;
+  const instr = instruments.find(i=>i.id===selectedId); if(!instr) return;
+  if((instr.angle||0) === angle) return;
+  pushHistoryState();
+  instr.angle = angle;
+  markDirty();
+  renderInstrument(instr); render();
+}
+
+function updSnakeChannels(value) {
+  if(!selectedId) return;
+  const instr=instruments.find(i=>i.id===selectedId); if(!instr||!instr.isSnake) return;
+  const nextVal = normalizeSnakeChannels(value);
+  document.getElementById('p-snake-ch').value = nextVal;
+  if((instr.snakeChannels||16) === nextVal) return;
+  pushHistoryState();
+  instr.snakeChannels=nextVal;
+  markDirty();
+  renderInstrument(instr);
+  render();
+}
+
+
+function toggleDrumMic(checkbox) {
+  if(!selectedId) return;
+  const instr = instruments.find(i => i.id === selectedId);
+  if(!instr || instr.type !== 'drumkit') return;
+
+  if(!instr.drumMics) instr.drumMics = [];
+
+  if(checkbox.checked && checkbox.value === 'Overheads Stereo') {
+    instr.drumMics = instr.drumMics.filter(m => m !== 'Overhead Mono');
+    const monoToggle = document.querySelector('#drum-extra input[type=checkbox][value="Overhead Mono"]');
+    if(monoToggle) monoToggle.checked = false;
+  }
+
+  if(checkbox.checked && checkbox.value === 'Overhead Mono') {
+    instr.drumMics = instr.drumMics.filter(m => m !== 'Overheads Stereo');
+    const stereoToggle = document.querySelector('#drum-extra input[type=checkbox][value="Overheads Stereo"]');
+    if(stereoToggle) stereoToggle.checked = false;
+  }
+
+  const hadMic = instr.drumMics.includes(checkbox.value);
+  if(checkbox.checked) {
+    if(!instr.drumMics.includes(checkbox.value)) {
+      pushHistoryState();
+      instr.drumMics.push(checkbox.value);
+    }
+  } else {
+    if(hadMic) pushHistoryState();
+    instr.drumMics = instr.drumMics.filter(m => m !== checkbox.value);
+  }
+
+  markDirty();
+  updateDrumMicSummary(instr);
+  pruneInvalidDrumConnections(instr);
+  renderInstrument(instr);
+  updateClasses();
+  render();
+}
+
+function syncDrumMicUI(instr) {
+  const selected = instr.drumMics || [];
+  document.querySelectorAll('#drum-extra input[type=checkbox]').forEach(cb => {
+    cb.checked = selected.includes(cb.value);
+  });
+  updateDrumMicSummary(instr);
+}
+
+function updateDrumMicSummary(instr) {
+  const summary = document.getElementById('drum-mic-summary');
+  if(!summary) return;
+
+  const mics = instr.drumMics || [];
+  summary.innerHTML = mics.length
+    ? mics.map(m => `• ${m}`).join('<br>')
+    : 'No drum mics selected';
+
+  if(instr.type === 'drumkit') {
+    instr.notes = mics.join(', ');
+    document.getElementById('p-notes').value = instr.notes;
+  }
+}
+
+function getDrumMicPins(instr) {
+  if(!instr || instr.type !== 'drumkit' || !Array.isArray(instr.drumMics)) return [];
+
+  const mapping = {
+    'Kick': [{key:'DM-KICK', label:'K', name:'Kick'}],
+    'Hi-Hat': [{key:'DM-HH', label:'HH', name:'Hi-Hat'}],
+    'Snare': [{key:'DM-SN', label:'SN', name:'Snare'}],
+    'Tom 1': [{key:'DM-T1', label:'T1', name:'Tom 1'}],
+    'Tom 2': [{key:'DM-T2', label:'T2', name:'Tom 2'}],
+    'Tom 3': [{key:'DM-T3', label:'T3', name:'Tom 3'}],
+    'Ride': [{key:'DM-RD', label:'RD', name:'Ride'}],
+    'Crash': [{key:'DM-CR', label:'CR', name:'Crash'}],
+    'Overhead Mono': [{key:'DM-OH', label:'OH', name:'Overhead Mono'}],
+    'Overheads Stereo': [
+      {key:'DM-OHL', label:'OH-L', name:'Overhead Left'},
+      {key:'DM-OHR', label:'OH-R', name:'Overhead Right'},
+    ],
+  };
+
+  return instr.drumMics.flatMap(m => mapping[m] || []);
+}
+
+function pruneInvalidDrumConnections(instr) {
+  if(!instr || instr.type !== 'drumkit') return;
+  const validPins = new Set(getDrumMicPins(instr).map(p => p.key));
+  const before = connections.length;
+  connections = connections.filter(c => {
+    if(c.fromId === instr.id && typeof c.fromPin === 'string' && c.fromPin.startsWith('DM-')) {
+      return validPins.has(c.fromPin);
+    }
+    if(c.toId === instr.id && typeof c.toPin === 'string' && c.toPin.startsWith('DM-')) {
+      return validPins.has(c.toPin);
+    }
+    return true;
+  });
+  if(connections.length !== before) {
+    connectingFrom = null;
+    drawingLine = null;
+  }
+}
+
+function refreshInstrEl(instr) {
+  const el=getEl(instr.id); if(!el) return;
+  const lbl=el.querySelector('.ilabel'); if(lbl) lbl.textContent=instr.label;
+  if(instr.isSnake){ renderInstrument(instr); return; }
+  const body=el.querySelector('.ib');
+  const ex=body.querySelector('.ich'); if(ex) ex.remove();
+  if(instr.channel){ const b=document.createElement('div'); b.className='ich'; b.textContent=instr.channel; body.appendChild(b); }
+}
+
+function updateClasses() {
+  instruments.forEach(instr=>{
+    const el=getEl(instr.id); if(!el) return;
+    el.classList.toggle('selected', instr.id===selectedId);
+    el.classList.toggle('connecting-source', connectingFrom&&connectingFrom.id===instr.id);
+  });
+}
+
+function deleteSelected() {
+  if(!selectedId) return;
+  deleteInstrument(selectedId); selectedId=null;
+  document.getElementById('no-sel').style.display='';
+  document.getElementById('prop-fields').style.display='none';
+}
+
+function deleteInstrument(id) {
+  pushHistoryState();
+  const el=getEl(id); if(el) el.remove();
+  instruments=instruments.filter(i=>i.id!==id);
+  connections=connections.filter(c=>c.fromId!==id&&c.toId!==id);
+  if(selectedId===id){ selectedId=null; document.getElementById('no-sel').style.display=''; document.getElementById('prop-fields').style.display='none'; }
+  markDirty();
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONNECTIONS
+// ═══════════════════════════════════════════════════════════════
+
+
+function isOutputPin(pin) {
+  return typeof pin === 'string' && pin.startsWith('OUT-');
+}
+
+function isInputPin(pin) {
+  return typeof pin === 'string' && pin.startsWith('IN-');
+}
+
+function isDrumMicPin(pin) {
+  return typeof pin === 'string' && pin.startsWith('DM-');
+}
+
+function getPinTargetAtClientPoint(clientX, clientY) {
+  const target = document.elementFromPoint(clientX, clientY);
+  if(!target) return null;
+
+  const pinEl = target.closest('.iconn, .snake-ch-pin');
+  if(!pinEl) return null;
+
+  const instrEl = pinEl.closest('.si');
+  if(!instrEl || !instrEl.id || !instrEl.id.startsWith('instr-')) return null;
+
+  const id = parseInt(instrEl.id.replace('instr-', ''), 10);
+  if(!Number.isFinite(id)) return null;
+
+  const pin = pinEl.dataset.pin || 'MONO';
+  return { id, pin };
+}
+
+function startConnectionFromPin(id, pin, e) {
+  const clickedPin = pinKey(pin);
+
+  if(!connectingFrom) {
+    const sourceInstr = instruments.find(i => i.id === id);
+    if(sourceInstr && sourceInstr.stereo && clickedPin === 'MONO') {
+      alert(`${sourceInstr.label} is stereo. Start from L or R pin.`);
+      return;
+    }
+    if(isPinUsed(id, clickedPin)) {
+      alert('This pin is already connected. Remove that cable first.');
+      return;
+    }
+    connectingFrom = { id, pin: clickedPin };
+    updateClasses();
+  }
+
+  const wr = document.getElementById('canvas-wrap').getBoundingClientRect();
+  let moved = false;
+
+  function onMove(ev) {
+    const a = getCenterOf(connectingFrom.id, connectingFrom.pin);
+    if(!a) return;
+    moved = true;
+    drawingLine = { x1: a.x, y1: a.y, x2: ev.clientX - wr.left, y2: ev.clientY - wr.top };
+    render();
+  }
+
+  function onUp(ev) {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+
+    const target = getPinTargetAtClientPoint(ev.clientX, ev.clientY);
+    if(target && connectingFrom) {
+      handleConnectClick(target.id, target.pin, ev);
+      return;
+    }
+
+    if(moved) {
+      connectingFrom = null;
+      drawingLine = null;
+      updateClasses();
+      render();
+      return;
+    }
+
+    if(connectingFrom) {
+      const a = getCenterOf(connectingFrom.id, connectingFrom.pin);
+      if(a) {
+        drawingLine = { x1: a.x, y1: a.y, x2: a.x, y2: a.y };
+        render();
+      }
+    }
+  }
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+function validateConnection(fromObj, toObj) {
+  const fromInstr = instruments.find(i => i.id === fromObj.id);
+  const toInstr = instruments.find(i => i.id === toObj.id);
+
+  if(!fromInstr || !toInstr) return { valid:true };
+
+  const fromKey = pinKey(fromObj.pin);
+  const toKey = pinKey(toObj.pin);
+
+  if(isPinUsed(fromObj.id, fromKey)) {
+    return {
+      valid:false,
+      message:`${fromInstr.label} pin ${fromKey} is already connected.`
+    };
+  }
+
+  if(isPinUsed(toObj.id, toKey)) {
+    return {
+      valid:false,
+      message:`${toInstr.label} pin ${toKey} is already connected.`
+    };
+  }
+
+  if(fromInstr.stereo && fromKey === 'MONO') {
+    return {
+      valid:false,
+      message:`${fromInstr.label} is stereo. Use L or R pin.`
+    };
+  }
+
+  // Snake outputs are for output-destination devices only (monitors/PM1/etc).
+  if(isOutputPin(fromObj.pin) && !toInstr.requiresOutput) {
+    return {
+      valid:false,
+      message:`${fromInstr.label} output ${fromKey} can only connect to output devices.`
+    };
+  }
+
+  // Drum mic pins are input sources and cannot be patched to snake outputs.
+  if(isDrumMicPin(fromObj.pin) && isOutputPin(toObj.pin)) {
+    return {
+      valid:false,
+      message:'Drum mic channels cannot connect to snake outputs.'
+    };
+  }
+
+  // PM1 and monitors must connect to outputs
+  if(toInstr.requiresOutput) {
+    if(!isOutputPin(fromObj.pin)) {
+      return {
+        valid:false,
+        message:`${toInstr.label} must connect to a snake OUTPUT, not an input.`
+      };
+    }
+  }
+
+  // Prevent using snake outputs as destinations
+  if(isOutputPin(toObj.pin)) {
+    return {
+      valid:false,
+      message:'Snake outputs can only send signal, not receive it.'
+    };
+  }
+
+  return { valid:true };
+}
+
+function handleConnectClick(id, pin, e) {
+  const clickedPin = pinKey(pin);
+  if(!connectingFrom) {
+    const sourceInstr = instruments.find(i => i.id === id);
+    if(sourceInstr && sourceInstr.stereo && clickedPin === 'MONO') {
+      alert(`${sourceInstr.label} is stereo. Start from L or R pin.`);
+      return;
+    }
+    if(isPinUsed(id, clickedPin)) {
+      alert('This pin is already connected. Remove that cable first.');
+      return;
+    }
+    connectingFrom={id, pin:clickedPin};
+    updateClasses();
+    function onMove(e){
+      const wr=document.getElementById('canvas-wrap').getBoundingClientRect();
+      const a=getCenterOf(connectingFrom.id, connectingFrom.pin); if(!a) return;
+      drawingLine={x1:a.x,y1:a.y,x2:e.clientX-wr.left,y2:e.clientY-wr.top};
+      render();
+    }
+    function onUp(){ document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); }
+    document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp);
+  } else {
+    if(id!==connectingFrom.id || clickedPin!==connectingFrom.pin) {
+
+      const validation = validateConnection(connectingFrom, {id, pin: clickedPin});
+      if(!validation.valid){
+        alert(validation.message);
+        connectingFrom=null; drawingLine=null;
+        updateClasses(); render();
+        return;
+      }
+
+      const ct=CABLE_TYPES.find(c=>c.id===selectedCable)||CABLE_TYPES[0];
+      pushHistoryState();
+      connections.push({
+        id:++idCounter,
+        fromId:connectingFrom.id, fromPin:connectingFrom.pin,
+        toId:id, toPin:clickedPin,
+        cableType:ct.id, color:ct.color, label:ct.label,
+        routeX:null,
+      });
+      markDirty();
+      // mark snake pins as used
+      refreshConnectorStates(connectingFrom.id);
+      refreshConnectorStates(id);
+    }
+    connectingFrom=null; drawingLine=null;
+    updateClasses(); render();
+  }
+}
+
+canvasWrap.addEventListener('click', e=>{
+  if(suppressCanvasClick) {
+    suppressCanvasClick = false;
+    return;
+  }
+  if(!e.target.closest('.si')){
+    selectedId=null;
+    updateClasses();
+    document.getElementById('no-sel').style.display='';
+    document.getElementById('prop-fields').style.display='none';
+    hoveredConnectionId = null;
+    connectingFrom=null;
+    drawingLine=null;
+    render();
+    updateClasses();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// CONNECTIONS LIST (right panel)
+// ═══════════════════════════════════════════════════════════════
+
+function updateConnList() {
+  const list = document.getElementById('conn-list');
+  if(!connections.length) {
+    list.innerHTML = '<div class="no-conn">No connections yet</div>';
+    hoveredConnectionId = null;
+    return;
+  }
+
+  const focusedInstr = selectedId ? instruments.find(i => i.id === selectedId) : null;
+  const viewConnections = focusedInstr
+    ? connections.filter(c => c.fromId === focusedInstr.id || c.toId === focusedInstr.id)
+    : connections;
+
+  if(focusedInstr && !viewConnections.length) {
+    list.innerHTML = `<div class="conn-focus-meta">Selected: ${focusedInstr.label}</div><div class="no-conn">No connections for this item</div>`;
+    hoveredConnectionId = null;
+    return;
+  }
+
+  const meta = focusedInstr
+    ? `<div class="conn-focus-meta">Selected: ${focusedInstr.label}${focusedInstr.isSnake?' (snake pin map)':''}</div>`
+    : '';
+
+  list.innerHTML = meta + viewConnections.map(conn => {
+    const from = instruments.find(i => i.id === conn.fromId);
+    const to = instruments.find(i => i.id === conn.toId);
+    if(!from || !to) return '';
+
+    let fromLabel = conn.fromPin != null ? `${from.label} ${pinForReport(conn.fromPin)}` : from.label;
+    let toLabel = conn.toPin != null ? `${to.label} ${pinForReport(conn.toPin)}` : to.label;
+
+    if(focusedInstr && focusedInstr.isSnake) {
+      const focusedIsFrom = conn.fromId === focusedInstr.id;
+      const snakePin = focusedIsFrom ? pinForReport(conn.fromPin) : pinForReport(conn.toPin);
+      const other = focusedIsFrom ? to : from;
+      const otherPin = focusedIsFrom ? pinForReport(conn.toPin) : pinForReport(conn.fromPin);
+      fromLabel = focusedIsFrom ? snakePin : `${other.label} ${otherPin}`;
+      toLabel = focusedIsFrom ? `${other.label} ${otherPin}` : snakePin;
+    }
+
+    const activeClass = (hoveredConnectionId === conn.id) ? ' active' : '';
+    return `<div class="ci${activeClass}" data-conn-id="${conn.id}">
+      <div class="cdot" style="background:${conn.color}"></div>
+      <div class="ctext">${fromLabel} → ${toLabel}<br><span style="color:var(--muted)">${conn.label}</span></div>
+      <button class="cdel" onclick="deleteConn(${conn.id})">×</button>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.ci').forEach((row, idx) => {
+    const conn = viewConnections[idx];
+    if(!conn) return;
+    row.addEventListener('mouseenter', () => setHoveredConnection(conn.id));
+    row.addEventListener('mouseleave', () => setHoveredConnection(null));
+  });
+}
+
+function setHoveredConnection(id) {
+  if(hoveredConnectionId === id) return;
+  hoveredConnectionId = id;
+  render();
+}
+
+function deleteConn(id) {
+  const conn=connections.find(c=>c.id===id);
+  pushHistoryState();
+  connections=connections.filter(c=>c.id!==id);
+  if(hoveredConnectionId === id) hoveredConnectionId = null;
+  markDirty();
+  if(conn){ refreshConnectorStates(conn.fromId); refreshConnectorStates(conn.toId); }
+  render();
+}
+
+function autoRouteStereoSuggestion() {
+  const snakes = instruments.filter(i => i.isSnake);
+  if(!snakes.length) {
+    alert('Add at least one snake first for auto-route.');
+    return;
+  }
+
+  const freeInputs = [];
+  snakes.forEach(snake => {
+    const total = snake.snakeChannels || 0;
+    for(let i=1;i<=total;i++) {
+      const pin = `IN-${i}`;
+      if(!isPinUsed(snake.id, pin)) freeInputs.push({ snakeId: snake.id, pin, snakeLabel: snake.label });
+    }
+  });
+
+  if(!freeInputs.length) {
+    alert('No free snake inputs available for auto-route.');
+    return;
+  }
+
+  const stereoSources = instruments
+    .filter(i => !i.isSnake && i.stereo)
+    .sort((a,b) => a.id - b.id);
+
+  const plan = [];
+  const reserved = new Set();
+  for(const src of stereoSources) {
+    ['L','R'].forEach(pin => {
+      if(isPinUsed(src.id, pin)) return;
+      const next = freeInputs.find(f => !reserved.has(`${f.snakeId}:${f.pin}`));
+      if(!next) return;
+      reserved.add(`${next.snakeId}:${next.pin}`);
+      plan.push({ fromId: src.id, fromPin: pin, toId: next.snakeId, toPin: next.pin, toLabel: next.snakeLabel });
+    });
+  }
+
+  if(!plan.length) {
+    alert('No stereo pins are currently available to auto-route.');
+    return;
+  }
+
+  const preview = plan.slice(0, 14).map(p => {
+    const src = instruments.find(i => i.id === p.fromId);
+    return `${src ? src.label : 'Source'} ${p.fromPin} → ${p.toLabel} ${p.toPin}`;
+  }).join('\n');
+  const extra = plan.length > 14 ? `\n...and ${plan.length - 14} more` : '';
+  const ok = confirm(`Auto-route suggestion:\n\n${preview}${extra}\n\nApply these connections?`);
+  if(!ok) return;
+
+  const cable = CABLE_TYPES.find(c => c.id === selectedCable) || CABLE_TYPES[0];
+  pushHistoryState();
+  const touched = new Set();
+  plan.forEach(p => {
+    const check = validateConnection({id:p.fromId, pin:p.fromPin}, {id:p.toId, pin:p.toPin});
+    if(!check.valid) return;
+    connections.push({
+      id: ++idCounter,
+      fromId: p.fromId,
+      fromPin: p.fromPin,
+      toId: p.toId,
+      toPin: p.toPin,
+      cableType: cable.id,
+      color: cable.color,
+      label: cable.label,
+      routeX: null,
+    });
+    touched.add(p.fromId);
+    touched.add(p.toId);
+  });
+  touched.forEach(id => refreshConnectorStates(id));
+  markDirty();
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CLEAR
+// ═══════════════════════════════════════════════════════════════
+
+function clearAll() {
+  if(!confirm('Clear the entire stage layout?')) return;
+  pushHistoryState();
+  instruments.forEach(i=>{ const el=getEl(i.id); if(el) el.remove(); });
+  instruments=[]; connections=[]; selectedId=null; connectingFrom=null; drawingLine=null;
+  document.getElementById('no-sel').style.display=''; document.getElementById('prop-fields').style.display='none';
+  markDirty();
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORT JSON
+// ═══════════════════════════════════════════════════════════════
+
+function saveRider() {
+  const data = serializeLayout();
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = getRiderSaveFileName();
+  a.click();
+  URL.revokeObjectURL(url);
+  markClean();
+}
+
+function triggerLoadRider() {
+  if(hasUnsavedChanges && !confirm('You have unsaved changes. Loading a rider will replace the current layout. Continue?')) return;
+  const input = document.getElementById('rider-file');
+  input.value = '';
+  input.click();
+}
+
+function handleLoadRiderFile(e) {
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  pushHistoryState();
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      loadRiderFromData(data);
+      setProjectNameFromFileName(file.name);
+      markClean();
+    } catch (err) {
+      alert('Could not load rider file. Please select a valid JSON rider.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function loadRiderFromData(data) {
+  if(!data || typeof data !== 'object') throw new Error('Invalid rider data');
+  const newInstruments = Array.isArray(data.instruments) ? data.instruments : [];
+  const newConnections = Array.isArray(data.connections) ? data.connections : [];
+  const stage = data.stage || {};
+  if(typeof data.projectName === 'string' && data.projectName.trim()) {
+    projectName = data.projectName.trim();
+    updateProjectNameUI();
+  }
+
+  instruments.forEach(i => { const el = getEl(i.id); if(el) el.remove(); });
+  instruments = [];
+  connections = [];
+  selectedId = null;
+  connectingFrom = null;
+  drawingLine = null;
+
+  stageW = Math.max(2, Math.min(80, parseFloat(stage.widthM) || 7.5));
+  stageD = Math.max(2, Math.min(50, parseFloat(stage.depthM) || 4.4));
+  showStageStairs = stage.showStairs !== false;
+  document.getElementById('dim-w').value = stageW;
+  document.getElementById('dim-d').value = stageD;
+  const stairsToggle = document.getElementById('stage-stairs-toggle');
+  if(stairsToggle) stairsToggle.checked = showStageStairs;
+
+  newInstruments.forEach(raw => {
+    const instr = {
+      id: parseInt(raw.id, 10) || ++idCounter,
+      type: raw.type || 'custom',
+      cat: raw.cat || 'infra',
+      icon: raw.icon || '🎛',
+      label: raw.label || raw.type || 'Instrument',
+      channel: raw.channel || '',
+      notes: raw.notes || '',
+      x: parseFloat(raw.x) || 0,
+      y: parseFloat(raw.y) || 0,
+      size: parseInt(raw.size, 10) || 52,
+      wide: !!raw.wide,
+      angle: parseInt(raw.angle, 10) || 0,
+      stereo: !!raw.stereo,
+      isSnake: !!raw.isSnake,
+      snakeChannels: normalizeSnakeChannels(raw.snakeChannels),
+      snakeOutputs: parseInt(raw.snakeOutputs, 10) || 0,
+      requiresOutput: !!raw.requiresOutput,
+      drumMics: Array.isArray(raw.drumMics) ? raw.drumMics : (raw.type === 'drumkit' ? [] : null),
+    };
+    instruments.push(instr);
+  });
+
+  const validIds = new Set(instruments.map(i => i.id));
+  connections = newConnections
+    .filter(c => validIds.has(c.fromId) && validIds.has(c.toId))
+    .map(c => ({
+      id: parseInt(c.id, 10) || ++idCounter,
+      fromId: c.fromId,
+      toId: c.toId,
+      fromPin: c.fromPin ?? null,
+      toPin: c.toPin ?? null,
+      cableType: c.cableType || 'xlr',
+      color: c.color || (CABLE_TYPES.find(t => t.id === (c.cableType || 'xlr')) || CABLE_TYPES[0]).color,
+      label: c.label || (CABLE_TYPES.find(t => t.id === (c.cableType || 'xlr')) || CABLE_TYPES[0]).label,
+      routeX: Number.isFinite(c.routeX) ? c.routeX : (Number.isFinite(parseFloat(c.routeX)) ? parseFloat(c.routeX) : null),
+    }));
+
+  const maxInstrId = instruments.reduce((m, i) => Math.max(m, i.id), 0);
+  const maxConnId = connections.reduce((m, c) => Math.max(m, c.id), 0);
+  idCounter = Math.max(idCounter, maxInstrId, maxConnId);
+
+  instruments.forEach(renderInstrument);
+  document.getElementById('no-sel').style.display='';
+  document.getElementById('prop-fields').style.display='none';
+  updateStage(true);
+  render();
+}
+
+function exportJSON() {
+  const data = serializeLayout();
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='stage-layout.json'; a.click();
+  URL.revokeObjectURL(url);
+  markClean();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// REPORT (VIEW / PDF)
+// ═══════════════════════════════════════════════════════════════
+
+function getReportBaseName() {
+  return `${sanitizeProjectName(projectName)}_report`;
+}
+
+function buildReportHTML(autoPrint) {
+  const now = new Date().toLocaleString();
+  const safeProjectName = projectName || 'untitled-project';
+  const reportBaseName = getReportBaseName();
+
+  // Build connections rows
+  const rows = connections.map(conn => {
+    const from = instruments.find(i=>i.id===conn.fromId);
+    const to   = instruments.find(i=>i.id===conn.toId);
+    if(!from||!to) return '';
+    const fromLabel = conn.fromPin!=null ? `${from.label} — ${pinForReport(conn.fromPin)}` : from.label;
+    const toLabel   = conn.toPin!=null   ? `${to.label} — ${pinForReport(conn.toPin)}`     : to.label;
+    const fromCh    = conn.fromPin!=null ? '' : (from.channel||'—');
+    const toCh      = conn.toPin!=null   ? '' : (to.channel||'—');
+    const fromNotes = from.notes||'';
+    const toNotes   = to.notes||'';
+    return `<tr>
+      <td><span class="dot" style="background:${conn.color}"></span>${conn.label}</td>
+      <td>${fromLabel}</td>
+      <td class="mono">${fromCh}</td>
+      <td>${fromNotes}</td>
+      <td class="arrow">→</td>
+      <td>${toLabel}</td>
+      <td class="mono">${toCh}</td>
+      <td>${toNotes}</td>
+    </tr>`;
+  }).join('');
+
+  // Instrument inventory
+  const instrRows = instruments.map(instr => `<tr>
+    <td>${instr.icon}</td>
+    <td>${instr.label}</td>
+    <td>${instr.type}${instr.isSnake?' (snake '+instr.snakeChannels+'ch)':''}</td>
+    <td class="mono">${parseInt(instr.angle||0,10)}°</td>
+    <td class="mono">${instr.channel||'—'}</td>
+    <td>${instr.drumMics && instr.drumMics.length ? instr.drumMics.join(', ') : (instr.notes||'—')}</td>
+    <td>${connections.filter(c=>c.fromId===instr.id||c.toId===instr.id).length}</td>
+  </tr>`).join('');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>${reportBaseName}.pdf</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;600;700&display=swap');
+  :root{--bg:#0a0b0d;--surface:#13151a;--panel:#1a1d24;--border:#2a2e3a;--accent:#e8ff47;--accent2:#47c4ff;--text:#d4d8e2;--muted:#6b7280;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);padding:40px;min-height:100vh;}
+  .report-header{margin-bottom:36px;border-bottom:1px solid var(--border);padding-bottom:20px;}
+  .report-header h1{font-family:'Share Tech Mono',monospace;font-size:22px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;}
+  .report-header .meta{font-size:12px;color:var(--muted);margin-top:6px;font-family:'Share Tech Mono',monospace;}
+  .stage-info{display:inline-flex;align-items:center;gap:20px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 18px;margin-top:14px;}
+  .stage-info span{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--accent2);}
+  .stage-info label{font-size:11px;color:var(--muted);display:block;margin-bottom:2px;}
+  section{margin-bottom:40px;}
+  section h2{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:3px;margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead tr{background:var(--surface);}
+  thead th{padding:8px 12px;text-align:left;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+  tbody tr{border-bottom:1px solid #1e2230;}
+  tbody tr:hover{background:rgba(255,255,255,.02);}
+  tbody td{padding:8px 12px;vertical-align:middle;color:var(--text);}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:middle;flex-shrink:0;}
+  .mono{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--accent2);}
+  .arrow{color:var(--muted);text-align:center;font-weight:bold;}
+  .count-badge{display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1px 7px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent);}
+  .summary-grid{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px;}
+  .summary-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 18px;min-width:120px;}
+  .summary-card .num{font-family:'Share Tech Mono',monospace;font-size:26px;color:var(--accent);line-height:1;}
+  .summary-card .lbl{font-size:11px;color:var(--muted);margin-top:3px;}
+  .project-title{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--accent2);margin-top:8px;letter-spacing:1px;}
+  @media print{body{background:white;color:#111;padding:24px;} .report-header h1{color:#000;} section h2{color:#444;border-color:#ccc;} thead tr{background:#f5f5f5;} .mono{color:#0066aa;} tbody tr{border-color:#e0e0e0;} .summary-card{background:#f9f9f9;border-color:#ddd;} .summary-card .num{color:#000;}}
+</style>
+</head>
+<body>
+<div class="report-header">
+  <h1>Stage Layout Report</h1>
+  <div class="project-title">Project: ${safeProjectName}</div>
+  <div class="meta">Generated: ${now}</div>
+  <div class="stage-info">
+    <div><label>Stage Width</label><span>${stageW} m</span></div>
+    <div><label>Stage Depth</label><span>${stageD} m</span></div>
+    <div><label>Instruments</label><span>${instruments.length}</span></div>
+    <div><label>Connections</label><span>${connections.length}</span></div>
+  </div>
+</div>
+
+<section>
+  <h2>Summary</h2>
+  <div class="summary-grid">
+    ${CABLE_TYPES.map(ct=>{
+      const count=connections.filter(c=>c.cableType===ct.id).length;
+      if(!count) return '';
+      return `<div class="summary-card"><div class="num" style="color:${ct.color}">${count}</div><div class="lbl">${ct.label} cable${count!==1?'s':''}</div></div>`;
+    }).join('')}
+    ${instruments.filter(i=>i.isSnake).map(s=>`<div class="summary-card"><div class="num" style="color:#c47fff">${s.snakeChannels}</div><div class="lbl">ch — ${s.label}</div></div>`).join('')}
+  </div>
+</section>
+
+<section>
+  <h2>Connections (${connections.length})</h2>
+  <table>
+    <thead><tr><th>Cable</th><th>From</th><th>Ch</th><th>Notes</th><th></th><th>To</th><th>Ch</th><th>Notes</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px;">No connections</td></tr>'}</tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Instrument Inventory (${instruments.length})</h2>
+  <table>
+    <thead><tr><th></th><th>Name</th><th>Type</th><th>Angle</th><th>Input / Ch</th><th>Notes</th><th>Connections</th></tr></thead>
+    <tbody>${instrRows||'<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px;">No instruments</td></tr>'}</tbody>
+  </table>
+</section>
+
+</body>
+</html>`;
+}
+
+function openReportWindow(autoPrint) {
+  const html = buildReportHTML(autoPrint);
+  const win = window.open('', '_blank');
+  if(!win) {
+    alert('Popup blocked. Please allow popups to view/export the report.');
+    return;
+  }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  if(autoPrint) {
+    win.addEventListener('load', () => {
+      setTimeout(() => {
+        win.focus();
+        win.print();
+      }, 250);
+    });
+  }
+}
+
+function viewReport() {
+  openReportWindow(false);
+}
+
+function exportPDFReport() {
+  openReportWindow(true);
+}
+
+// Backward compatibility for older UI references
+function exportHTML() {
+  viewReport();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORT PNG
+// ═══════════════════════════════════════════════════════════════
+
+function exportPNG() {
+  const wrap=document.getElementById('canvas-wrap');
+  const wr=wrap.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  const cv=document.createElement('canvas');
+  cv.width=wr.width*dpr; cv.height=wr.height*dpr;
+  const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
+  ctx.fillStyle='#0a0b0d'; ctx.fillRect(0,0,wr.width,wr.height);
+  ctx.fillStyle='#0f1318'; ctx.strokeStyle='#2d3340'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.roundRect(stagePx.left,stagePx.top,stagePx.width,stagePx.height,9); ctx.fill(); ctx.stroke();
+  if(showStageStairs) {
+    const stairsWidth = Math.min(stagePx.width, 2 * pxPerM);
+    const stairsDepth = 0.75 * pxPerM;
+    const stairsX = stagePx.left + (stagePx.width - stairsWidth) / 2;
+    const stairsY = stagePx.top + stagePx.height - 2;
+    ctx.fillStyle = '#2d3340';
+    ctx.strokeStyle = '#2d3340';
+    ctx.beginPath();
+    ctx.roundRect(stairsX, stairsY, stairsWidth, stairsDepth, 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(10,11,13,.45)';
+    const lineH = Math.max(2, stairsDepth * 0.12);
+    ctx.fillRect(stairsX, stairsY + stairsDepth * 0.33, stairsWidth, lineH);
+    ctx.fillRect(stairsX, stairsY + stairsDepth * 0.66, stairsWidth, lineH);
+  }
+  ctx.font='9px Share Tech Mono,monospace'; ctx.fillStyle='#2d3340'; ctx.textAlign='center';
+  ctx.fillText('STAGE',stagePx.left+stagePx.width/2,stagePx.top+16);
+  ctx.fillText(`${stageW}m × ${stageD}m`,stagePx.left+stagePx.width/2,stagePx.top+28);
+  ctx.drawImage(document.getElementById('conn-canvas'),0,0,wr.width,wr.height);
+  instruments.forEach(instr=>{
+    const ex=instr.x;
+    const ey=instr.y;
+    const bw=instr.size||(instr.wide?82:52);
+    const angleRad = ((instr.angle||0) * Math.PI) / 180;
+    const cx = ex + 4 + bw / 2;
+    const cy = ey + (bw * .85) / 2;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angleRad);
+    ctx.translate(-cx, -cy);
+    ctx.fillStyle=instr.isSnake?'#120f1a':'#1a1d24';
+    ctx.strokeStyle=instr.isSnake?'#c47fff55':'#2a2e3a';
+    ctx.lineWidth=1.5; ctx.beginPath(); ctx.roundRect(ex+4,ey,bw,bw*.85,8); ctx.fill(); ctx.stroke();
+    ctx.font=Math.round(bw*.35)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(instr.icon,ex+4+bw/2,ey+bw*.4);
+    ctx.restore();
+    ctx.font='bold 8px Barlow,sans-serif'; ctx.fillStyle='#d4d8e2'; ctx.textBaseline='top'; ctx.textAlign='center';
+    ctx.fillText(instr.label,ex+4+bw/2,ey+bw*.88);
+  });
+  ctx.font='9px Share Tech Mono,monospace'; ctx.fillStyle='rgba(107,114,128,.4)'; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('◀ AUDIENCE ▶',stagePx.left+stagePx.width/2,stagePx.top+stagePx.height+26);
+  cv.toBlob(blob=>{ const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='stage-layout.png'; a.click(); URL.revokeObjectURL(url); });
+}
+
+init();
+</script>
+</body>
+</html>
