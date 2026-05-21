@@ -11,6 +11,11 @@
   --accent:#e8ff47; --accent2:#47c4ff; --accent3:#ff6b47; --accent4:#c47fff;
   --text:#d4d8e2; --muted:#6b7280; --stage-bg:#0f1318; --stage-border:#2d3340;
 }
+body[data-theme='light']{
+  --bg:#eef2f6; --surface:#ffffff; --panel:#e6ebf1; --border:#b7c1cd;
+  --accent:#6b7f00; --accent2:#0f72a8; --accent3:#b24b2d; --accent4:#7a4bb2;
+  --text:#15202b; --muted:#5f6b77;
+}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 /* HEADER */
@@ -48,6 +53,11 @@ header .sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
 .dim-input:focus{border-color:var(--accent);}
 .dim-unit{font-size:10px;color:var(--muted);flex-shrink:0;}
 .scale-d{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent2);margin-top:2px;}
+.theme-row{display:flex;align-items:center;gap:6px;margin-top:6px;}
+.theme-row .dim-label{width:auto;min-width:38px;}
+.theme-select,.stage-color-input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:3px;color:var(--text);font-size:11px;padding:3px 5px;outline:none;}
+.theme-select:focus,.stage-color-input:focus{border-color:var(--accent2);}
+.stage-color-input{padding:1px 3px;height:26px;}
 /* CATS */
 .cat-tabs{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:7px;}
 .cat-tab{padding:2px 6px;font-size:8px;font-family:'Share Tech Mono',monospace;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .12s;}
@@ -178,6 +188,14 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
 .mic-library-tools button{height:26px;padding:0 8px;}
 .mic-library-list{margin-top:6px;display:flex;gap:6px;align-items:center;}
 .mic-library-list select{flex:1;min-width:0;background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;outline:none;}
+.mode-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.io-pin-row{position:absolute;left:6px;right:6px;display:grid;gap:6px;justify-items:center;z-index:6;}
+.io-pin-row.inputs{bottom:calc(100% + 4px);}
+.io-pin-row.outputs{top:calc(100% + 4px);}
+.io-pin-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:16px;}
+.io-pin-tag{position:static;left:auto;bottom:auto;font-size:7px;line-height:1;color:var(--accent2);opacity:.9;}
+.io-pin-row .iconn{position:static;transform:none;left:auto;bottom:auto;width:9px;height:9px;border-width:1.5px;}
+.io-pin-row .iconn:hover{transform:scale(1.35);}
 /* size slider */
 .size-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
 .size-row label{font-size:10px;color:var(--muted);width:54px;flex-shrink:0;}
@@ -250,6 +268,17 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
         <input id="stage-stairs-toggle" type="checkbox" checked onchange="toggleStageStairs(this.checked)">
         <label for="stage-stairs-toggle">Show stage stairs</label>
       </div>
+      <div class="theme-row">
+        <span class="dim-label">Theme</span>
+        <select id="theme-mode" class="theme-select" onchange="setThemeMode(this.value)">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+        </select>
+      </div>
+      <div class="theme-row">
+        <span class="dim-label">Stage</span>
+        <input id="stage-color" class="stage-color-input" type="color" value="#0f1318" onchange="setStageColor(this.value)">
+      </div>
       <div class="scale-d" id="scale-d">— px/m</div>
     </div>
     <div class="ss">
@@ -321,6 +350,30 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
             <option value="both">XLR + Jack</option>
             <option value="ethernet">Ethernet</option>
           </select>
+        </div>
+        <div class="pr" id="stereo-wrap" style="display:none;"><label class="plbl">Signal Mode</label>
+          <select id="p-stereo-mode" class="pselect" onchange="updStereoMode(this.value)">
+            <option value="mono">Mono</option>
+            <option value="stereo">Stereo</option>
+          </select>
+        </div>
+        <div class="pr" id="io-mode-wrap" style="display:none;"><label class="plbl">I/O Layout</label>
+          <div class="mode-row">
+            <div>
+              <label class="plbl">Input</label>
+              <select id="p-input-mode" class="pselect" onchange="updInputMode(this.value)">
+                <option value="mono">Mono</option>
+                <option value="stereo">Stereo</option>
+              </select>
+            </div>
+            <div>
+              <label class="plbl">Output</label>
+              <select id="p-output-mode" class="pselect" onchange="updOutputMode(this.value)">
+                <option value="mono">Mono</option>
+                <option value="stereo">Stereo</option>
+              </select>
+            </div>
+          </div>
         </div>
         <div class="pr" id="mic-wrap"><label class="plbl">Mic Pickup (optional)</label>
           <div id="mic-assignment-list" class="mic-assignment-list"></div>
@@ -453,8 +506,11 @@ const INSTRUMENTS = [
   {type:'trombone',  cat:'brass',   icon:'🎺', name:'Trombone',    wide:false, size:56, connSide:'bottom'},
   {type:'sax',       cat:'brass',   icon:'🎷', name:'Sax',         wide:false, size:52, connSide:'bottom'},
   {type:'monitor',   cat:'monitoring', icon:'🔊', name:'Monitor',     wide:false, size:54, connSide:'top', requiresOutput:true},
+  {type:'iem',       cat:'monitoring', icon:'🎧', name:'In-Ears',     wide:false, size:44, connSide:'top', requiresOutput:true},
+  {type:'headphones',cat:'monitoring', icon:'🎧', name:'Headphones',  wide:false, size:44, connSide:'top', requiresOutput:true},
   {type:'p16',       cat:'monitoring', icon:'🔷', name:'P16',         wide:false, size:44, connSide:'top', requiresOutput:true},
   {type:'pm1',       cat:'monitoring', icon:'🔶', name:'PM1',         wide:false, size:44, connSide:'top', requiresOutput:true},
+  {type:'ha8000',    cat:'monitoring', icon:'🎚', name:'HA8000',      wide:true,  size:84, connSide:'bottom'},
   {type:'xr18',      cat:'mixers',  icon:'🎛', name:'XR18 Mixer',  wide:true,  size:108, connSide:'bottom', isMixer:true, mixerInputs:18, mixerAux:6, mixerMain:2, mixerP16:1},
   {type:'di',        cat:'accessories',   icon:'📦', name:'DI Box',      wide:false, size:46, connSide:'bottom'},
   {type:'amp',       cat:'infra',   icon:'🔌', name:'Amp',         wide:false, size:60, connSide:'bottom'},
@@ -509,6 +565,8 @@ let stageW = 7.5, stageD = 4.4;
 let stagePx = {left:0,top:0,width:0,height:0};
 let pxPerM = 1;
 let showStageStairs = true;
+let themeMode = 'dark';
+let stageColor = '#0f1318';
 let zoomLevel = 1;
 let gestureStartZoom = 1;
 const ZOOM_MIN = 0.5;
@@ -535,6 +593,8 @@ function init() {
   loadCustomMicOptions();
   buildCatTabs(); buildPalette('all'); buildSnakePalette(); buildMixerPalette(); buildMonitoringPalette(); buildAccessoryPalette();
   buildCableColors(); buildLegend();
+  applyThemeMode();
+  applyStageColor();
   resizeCanvas(); updateStage(true);
   window.addEventListener('resize', () => { resizeCanvas(); updateStage(true); });
   canvasWrap.addEventListener('wheel', handleStageZoomWheel, { passive: false });
@@ -767,8 +827,127 @@ function normalizeSnakeChannels(value) {
   return Math.round(n / 4) * 4;
 }
 
+function supportsStereoToggle(instrOrType) {
+  const type = typeof instrOrType === 'string' ? instrOrType : (instrOrType && instrOrType.type);
+  return type === 'acguitar' || type === 'elguitar';
+}
+
+function isCustomIOInstrument(instrOrType) {
+  const type = typeof instrOrType === 'string' ? instrOrType : (instrOrType && instrOrType.type);
+  return type === 'di' || type === 'pedals' || type === 'ha8000';
+}
+
+function supportsInputModeToggle(instr) {
+  return !!instr && instr.type === 'di';
+}
+
+function supportsOutputModeToggle(instr) {
+  return !!instr && (instr.type === 'di' || instr.type === 'pedals');
+}
+
+function getInstrumentInputPins(instr) {
+  if(!instr) return [];
+  if(instr.type === 'di') {
+    if(instr.inputStereo) return [{ key:'IO-IN-L', label:'IN-L' }, { key:'IO-IN-R', label:'IN-R' }];
+    return [{ key:'IO-IN-MONO', label:'IN' }];
+  }
+  if(instr.type === 'pedals') {
+    return [{ key:'IO-IN-MONO', label:'IN' }];
+  }
+  if(instr.type === 'ha8000') {
+    return [{ key:'HA-IN-L', label:'IN-L' }, { key:'HA-IN-R', label:'IN-R' }];
+  }
+  return [];
+}
+
+function getInstrumentOutputPins(instr) {
+  if(!instr) return [];
+  if(instr.type === 'di' || instr.type === 'pedals') {
+    if(instr.outputStereo) return [{ key:'IO-OUT-L', label:'OUT-L' }, { key:'IO-OUT-R', label:'OUT-R' }];
+    return [{ key:'IO-OUT-MONO', label:'OUT' }];
+  }
+  if(instr.type === 'ha8000') {
+    return Array.from({ length: 8 }, (_v, idx) => ({ key:`HA-OUT-${idx + 1}`, label:String(idx + 1) }));
+  }
+  return [];
+}
+
+function getValidPinsForInstrument(instr) {
+  if(!instr) return new Set();
+  if(instr.isSnake || instr.isMixer) return null;
+  if(instr.type === 'drumkit') return new Set(getDrumMicPins(instr).map(p => p.key));
+  if(isCustomIOInstrument(instr)) {
+    return new Set([...getInstrumentInputPins(instr), ...getInstrumentOutputPins(instr)].map(p => p.key));
+  }
+  if(instr.stereo) return new Set(['L', 'R']);
+  return new Set(['MONO']);
+}
+
+function pruneInvalidInstrumentPins(instr) {
+  const validPins = getValidPinsForInstrument(instr);
+  if(!validPins) return;
+  const map = normalizePinMicAssignments(instr.pinMicAssignments);
+  Object.keys(map).forEach(pin => {
+    if(!validPins.has(pin)) delete map[pin];
+  });
+  instr.pinMicAssignments = map;
+  const before = connections.length;
+  connections = connections.filter(c => {
+    if(c.fromId === instr.id && !validPins.has(pinKey(c.fromPin))) return false;
+    if(c.toId === instr.id && !validPins.has(pinKey(c.toPin))) return false;
+    return true;
+  });
+  if(connections.length !== before) {
+    connectingFrom = null;
+    drawingLine = null;
+  }
+}
+
+function getStageBorderColor(color) {
+  const hex = String(color || '').replace('#', '');
+  if(!/^[0-9a-fA-F]{6}$/.test(hex)) return '#2d3340';
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  const shade = v => Math.max(0, Math.min(255, Math.round(v * 0.62)));
+  return `rgb(${shade(r)}, ${shade(g)}, ${shade(b)})`;
+}
+
+function applyThemeMode() {
+  document.body.dataset.theme = themeMode === 'light' ? 'light' : 'dark';
+  const select = document.getElementById('theme-mode');
+  if(select) select.value = themeMode;
+}
+
+function applyStageColor() {
+  document.documentElement.style.setProperty('--stage-bg', stageColor);
+  document.documentElement.style.setProperty('--stage-border', getStageBorderColor(stageColor));
+  const input = document.getElementById('stage-color');
+  if(input) input.value = stageColor;
+}
+
+function setThemeMode(value) {
+  const next = value === 'light' ? 'light' : 'dark';
+  if(themeMode === next) return;
+  pushHistoryState();
+  themeMode = next;
+  applyThemeMode();
+  markDirty();
+  render();
+}
+
+function setStageColor(value) {
+  const next = /^#[0-9a-fA-F]{6}$/.test(String(value || '')) ? value : '#0f1318';
+  if(stageColor === next) return;
+  pushHistoryState();
+  stageColor = next;
+  applyStageColor();
+  markDirty();
+  render();
+}
+
 function getDefaultConnectorMode(type) {
-  const jackDefaults = new Set(['acguitar', 'elguitar', 'bass']);
+  const jackDefaults = new Set(['acguitar', 'elguitar', 'bass', 'iem', 'headphones', 'ha8000']);
   if(type === 'p16') return 'ethernet';
   if(jackDefaults.has(type)) return 'jack';
   return 'xlr';
@@ -779,7 +958,7 @@ function supportsMicPickup(instrOrType) {
   if(!type) return false;
   const disallowed = new Set([
     'elguitar', 'bass', 'keys', 'vox', 'bgvox', 'talkback',
-    'monitor', 'pm1', 'p16', 'di', 'amp', 'pedals', 'laptop', 'midipad', 'power',
+    'monitor', 'iem', 'headphones', 'pm1', 'p16', 'ha8000', 'di', 'amp', 'pedals', 'laptop', 'midipad', 'power',
     'snake8', 'snake16', 'snake24', 'snake32', 'xr18'
   ]);
   return !disallowed.has(type);
@@ -926,6 +1105,15 @@ function getPinAllowedCableTypes(instr, pin) {
   const p = pinKey(pin);
   if(!instr) return ['xlr', 'ts', 'ethernet'];
 
+  if(instr.type === 'di' || instr.type === 'pedals') {
+    if(p.startsWith('IO-IN-')) return ['xlr', 'ts'];
+    if(p.startsWith('IO-OUT-')) return ['xlr'];
+  }
+
+  if(instr.type === 'ha8000') {
+    if(p.startsWith('HA-IN-') || p.startsWith('HA-OUT-')) return ['ts'];
+  }
+
   if(instr.isSnake) {
     if(p.startsWith('IN-')) return instr.snakeAllowJackInputs ? ['xlr', 'ts'] : ['xlr'];
     if(p.startsWith('OUT-')) return ['xlr'];
@@ -1003,6 +1191,8 @@ function captureSnapshot() {
     stageW,
     stageD,
     showStageStairs,
+    themeMode,
+    stageColor,
     instruments: cloneInstruments(instruments),
     connections: cloneConnections(connections),
     selectedId,
@@ -1019,6 +1209,8 @@ function applySnapshot(snapshot, keepCleanState) {
   stageW = snapshot.stageW;
   stageD = snapshot.stageD;
   showStageStairs = snapshot.showStageStairs !== false;
+  themeMode = snapshot.themeMode === 'light' ? 'light' : 'dark';
+  stageColor = /^#[0-9a-fA-F]{6}$/.test(String(snapshot.stageColor || '')) ? snapshot.stageColor : '#0f1318';
   instruments = cloneInstruments(snapshot.instruments || []);
   connections = cloneConnections(snapshot.connections || []);
   selectedId = snapshot.selectedId || null;
@@ -1031,6 +1223,8 @@ function applySnapshot(snapshot, keepCleanState) {
   document.getElementById('dim-d').value = stageD;
   const stairsToggle = document.getElementById('stage-stairs-toggle');
   if(stairsToggle) stairsToggle.checked = showStageStairs;
+  applyThemeMode();
+  applyStageColor();
   updateProjectNameUI();
   instruments.forEach(renderInstrument);
   updateStage(true);
@@ -1068,8 +1262,8 @@ function serializeLayout() {
     version:3,
     created:new Date().toISOString(),
     projectName,
-    stage:{widthM:stageW, depthM:stageD, showStairs:showStageStairs},
-    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,size,wide,angle,connectorMode,pinMicAssignments,connSide,isMixer,mixerInputs,mixerAux,mixerMain,mixerP16,isSnake,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics})=>({id,type,cat,icon,image,label,channel,notes,x,y,size,wide,angle,connectorMode,pinMicAssignments,micModels:Object.values(pinMicAssignments||{}),micModel:Object.values(pinMicAssignments||{})[0]||'',connSide,isMixer,mixerInputs,mixerAux,mixerMain,mixerP16,isSnake,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics})),
+    stage:{widthM:stageW, depthM:stageD, showStairs:showStageStairs, themeMode, color:stageColor},
+    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,size,wide,angle,stereo,inputStereo,outputStereo,connectorMode,pinMicAssignments,connSide,isMixer,mixerInputs,mixerAux,mixerMain,mixerP16,isSnake,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics})=>({id,type,cat,icon,image,label,channel,notes,x,y,size,wide,angle,stereo,inputStereo,outputStereo,connectorMode,pinMicAssignments,micModels:Object.values(pinMicAssignments||{}),micModel:Object.values(pinMicAssignments||{})[0]||'',connSide,isMixer,mixerInputs,mixerAux,mixerMain,mixerP16,isSnake,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics})),
     connections:connections.map(({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX})=>({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX})),
   };
 }
@@ -1348,6 +1542,19 @@ function pinForReport(pin) {
     'DM-OHR':'DR-Overhead-R',
   };
   if(drumMap[key]) return drumMap[key];
+  const ioMap = {
+    'IO-IN-MONO':'IN',
+    'IO-IN-L':'IN-L',
+    'IO-IN-R':'IN-R',
+    'IO-OUT-MONO':'OUT',
+    'IO-OUT-L':'OUT-L',
+    'IO-OUT-R':'OUT-R',
+    'HA-IN-L':'IN-L',
+    'HA-IN-R':'IN-R',
+  };
+  if(ioMap[key]) return ioMap[key];
+  const haOutMatch = key.match(/^HA-OUT-(\d+)$/);
+  if(haOutMatch) return `HP-${parseInt(haOutMatch[1], 10)}`;
   const outMatch = key.match(/^OUT-(\d+)$/);
   if(outMatch) {
     const idx = parseInt(outMatch[1], 10);
@@ -1697,6 +1904,8 @@ function addInstrument(data, x, y) {
     size, wide:!!data.wide,
 	angle: 0,
 	stereo: !!data.stereo,
+    inputStereo: data.type === 'di' ? !!data.inputStereo : false,
+    outputStereo: (data.type === 'di' || data.type === 'pedals') ? !!data.outputStereo : false,
     connectorMode: data.connectorMode || getDefaultConnectorMode(data.type),
     pinMicAssignments: normalizePinMicAssignments(data.pinMicAssignments),
     connSide: data.connSide || 'bottom',
@@ -1759,9 +1968,12 @@ function renderInstrument(instr) {
     const fontSize = Math.round(bw * 0.44);
     const isStereo = !!instr.stereo;
     const isDrumKit = instr.type === 'drumkit';
+    const hasCustomIO = isCustomIOInstrument(instr);
     const side = instr.connSide || 'bottom';
-    const labelSide = oppositeSide(side);
+    const labelSide = hasCustomIO ? 'right' : oppositeSide(side);
     const drumPins = isDrumKit ? getDrumMicPins(instr) : [];
+    const inputPins = hasCustomIO ? getInstrumentInputPins(instr) : [];
+    const outputPins = hasCustomIO ? getInstrumentOutputPins(instr) : [];
     const monoUsed = !isStereo && isPinUsed(instr.id, 'MONO');
     const leftUsed = isStereo && isPinUsed(instr.id, 'L');
     const rightUsed = isStereo && isPinUsed(instr.id, 'R');
@@ -1771,14 +1983,29 @@ function renderInstrument(instr) {
         <div class="pin-tag drum-pin-tag">${p.label}</div>
       </div>
     `).join('');
+    const inputPinsHTML = inputPins.map(p => `
+      <div class="io-pin-wrap">
+        <div class="iconn${isPinUsed(instr.id, p.key)?' used':''}" data-pin="${p.key}" title="${p.label}"></div>
+        <div class="pin-tag io-pin-tag">${p.label}</div>
+      </div>
+    `).join('');
+    const outputPinsHTML = outputPins.map(p => `
+      <div class="io-pin-wrap">
+        <div class="iconn${isPinUsed(instr.id, p.key)?' used':''}" data-pin="${p.key}" title="${p.label}"></div>
+        <div class="pin-tag io-pin-tag">${p.label}</div>
+      </div>
+    `).join('');
     el.innerHTML = `
       <div class="iface" style="transform:rotate(${angle}deg);transform-origin:center center;">
+        ${hasCustomIO && inputPins.length ? `<div class="io-pin-row inputs" style="grid-template-columns:repeat(${Math.min(inputPins.length, 4)},minmax(0,1fr));">${inputPinsHTML}</div>` : ''}
         <div class="ib" style="width:${bw}px;height:${bw}px;font-size:${fontSize}px;">
           ${buildStageIconHTML(instr, fontSize)}
           ${instr.channel?`<div class="ich">${instr.channel}</div>`:''}
         </div>
         ${isDrumKit ? `
           <div class="drum-pin-row side-${side}">${drumPinsHTML}</div>
+        ` : hasCustomIO ? `
+          ${outputPins.length ? `<div class="io-pin-row outputs" style="grid-template-columns:repeat(${Math.min(outputPins.length, 4)},minmax(0,1fr));">${outputPinsHTML}</div>` : ''}
         ` : isStereo ? `
           <div class="iconn${leftUsed?' used':''}" style="${getMainPinStyle(side, 0, 2)}" data-pin="L"></div>
           <div class="iconn${rightUsed?' used':''}" style="${getMainPinStyle(side, 1, 2)}" data-pin="R"></div>
@@ -1999,18 +2226,34 @@ function selectInstrument(id) {
   const connTypeWrap = document.getElementById('conn-type-wrap');
   const micWrap = document.getElementById('mic-wrap');
   const sideWrap = document.getElementById('conn-side-wrap');
+  const stereoWrap = document.getElementById('stereo-wrap');
+  const ioModeWrap = document.getElementById('io-mode-wrap');
   if(instr.isSnake || instr.isMixer) {
     connTypeWrap.style.display = 'none';
     micWrap.style.display = 'none';
     sideWrap.style.display = 'none';
+    stereoWrap.style.display = 'none';
+    ioModeWrap.style.display = 'none';
   } else {
-    connTypeWrap.style.display = '';
+    connTypeWrap.style.display = isCustomIOInstrument(instr) ? 'none' : '';
     micWrap.style.display = supportsMicPickup(instr) ? '' : 'none';
     document.getElementById('p-conn-type').value = instr.connectorMode || getDefaultConnectorMode(instr.type);
+    stereoWrap.style.display = supportsStereoToggle(instr) ? '' : 'none';
+    if(supportsStereoToggle(instr)) document.getElementById('p-stereo-mode').value = instr.stereo ? 'stereo' : 'mono';
+    const showIOModeWrap = supportsInputModeToggle(instr) || supportsOutputModeToggle(instr);
+    ioModeWrap.style.display = showIOModeWrap ? '' : 'none';
+    if(showIOModeWrap) {
+      const inputSelect = document.getElementById('p-input-mode');
+      const outputSelect = document.getElementById('p-output-mode');
+      inputSelect.disabled = !supportsInputModeToggle(instr);
+      outputSelect.disabled = !supportsOutputModeToggle(instr);
+      inputSelect.value = instr.inputStereo ? 'stereo' : 'mono';
+      outputSelect.value = instr.outputStereo ? 'stereo' : 'mono';
+    }
     renderCustomMicOptionsUI();
     renderMicAssignmentsUI(instr);
     updateMicSummary(instr);
-    sideWrap.style.display = '';
+    sideWrap.style.display = isCustomIOInstrument(instr) ? 'none' : '';
     updateConnSideButtons(instr.connSide || 'bottom');
   }
   // snake extras
@@ -2159,6 +2402,51 @@ function updConnSide(value) {
   instr.connSide = next;
   markDirty();
   renderInstrument(instr);
+  updateClasses();
+  render();
+}
+
+function updStereoMode(value) {
+  if(!selectedId) return;
+  const instr = instruments.find(i => i.id === selectedId); if(!instr || !supportsStereoToggle(instr)) return;
+  const next = value === 'stereo';
+  if(!!instr.stereo === next) return;
+  pushHistoryState();
+  instr.stereo = next;
+  pruneInvalidInstrumentPins(instr);
+  markDirty();
+  renderInstrument(instr);
+  selectInstrument(instr.id);
+  updateClasses();
+  render();
+}
+
+function updInputMode(value) {
+  if(!selectedId) return;
+  const instr = instruments.find(i => i.id === selectedId); if(!instr || !supportsInputModeToggle(instr)) return;
+  const next = value === 'stereo';
+  if(!!instr.inputStereo === next) return;
+  pushHistoryState();
+  instr.inputStereo = next;
+  pruneInvalidInstrumentPins(instr);
+  markDirty();
+  renderInstrument(instr);
+  selectInstrument(instr.id);
+  updateClasses();
+  render();
+}
+
+function updOutputMode(value) {
+  if(!selectedId) return;
+  const instr = instruments.find(i => i.id === selectedId); if(!instr || !supportsOutputModeToggle(instr)) return;
+  const next = value === 'stereo';
+  if(!!instr.outputStereo === next) return;
+  pushHistoryState();
+  instr.outputStereo = next;
+  pruneInvalidInstrumentPins(instr);
+  markDirty();
+  renderInstrument(instr);
+  selectInstrument(instr.id);
   updateClasses();
   render();
 }
@@ -2432,11 +2720,20 @@ function deleteInstrument(id) {
 
 
 function isOutputPin(pin) {
-  return typeof pin === 'string' && (pin.startsWith('OUT-') || pin.startsWith('MX-AUX-') || pin.startsWith('MX-MAIN-') || pin.startsWith('MX-P16-'));
+  return typeof pin === 'string' && (pin.startsWith('OUT-') || pin.startsWith('MX-AUX-') || pin.startsWith('MX-MAIN-') || pin.startsWith('MX-P16-') || pin.startsWith('IO-OUT-') || pin.startsWith('HA-OUT-'));
 }
 
 function isInputPin(pin) {
-  return typeof pin === 'string' && (pin.startsWith('IN-') || pin.startsWith('MX-IN-'));
+  return typeof pin === 'string' && (pin.startsWith('IN-') || pin.startsWith('MX-IN-') || pin.startsWith('IO-IN-') || pin.startsWith('HA-IN-'));
+}
+
+function isEndpointOnlyOutput(instr, pin) {
+  const key = pinKey(pin);
+  if(!instr) return false;
+  if(instr.isSnake && key.startsWith('OUT-')) return true;
+  if(instr.isMixer && (key.startsWith('MX-AUX-') || key.startsWith('MX-MAIN-') || key.startsWith('MX-P16-'))) return true;
+  if(instr.type === 'ha8000' && key.startsWith('HA-OUT-')) return true;
+  return false;
 }
 
 function isDrumMicPin(pin) {
@@ -2550,8 +2847,15 @@ function validateConnection(fromObj, toObj) {
     };
   }
 
+  if(fromInstr.requiresOutput) {
+    return {
+      valid:false,
+      message:`${fromInstr.label} is a monitoring destination and cannot send signal.`
+    };
+  }
+
   // Snake outputs are for output-destination devices only (monitors/PM1/etc).
-  if(isOutputPin(fromObj.pin) && !toInstr.requiresOutput) {
+  if(isEndpointOnlyOutput(fromInstr, fromObj.pin) && !toInstr.requiresOutput) {
     return {
       valid:false,
       message:`${fromInstr.label} output ${fromKey} can only connect to output devices.`
@@ -2913,10 +3217,14 @@ function loadRiderFromData(data) {
   stageW = Math.max(2, Math.min(80, parseFloat(stage.widthM) || 7.5));
   stageD = Math.max(2, Math.min(50, parseFloat(stage.depthM) || 4.4));
   showStageStairs = stage.showStairs !== false;
+  themeMode = stage.themeMode === 'light' ? 'light' : 'dark';
+  stageColor = /^#[0-9a-fA-F]{6}$/.test(String(stage.color || '')) ? stage.color : '#0f1318';
   document.getElementById('dim-w').value = stageW;
   document.getElementById('dim-d').value = stageD;
   const stairsToggle = document.getElementById('stage-stairs-toggle');
   if(stairsToggle) stairsToggle.checked = showStageStairs;
+  applyThemeMode();
+  applyStageColor();
 
   newInstruments.forEach(raw => {
     const instr = {
@@ -2934,6 +3242,8 @@ function loadRiderFromData(data) {
       wide: !!raw.wide,
       angle: parseInt(raw.angle, 10) || 0,
       stereo: !!raw.stereo,
+      inputStereo: !!raw.inputStereo,
+      outputStereo: !!raw.outputStereo,
       connectorMode: raw.connectorMode || getDefaultConnectorMode(raw.type),
       pinMicAssignments: {},
       connSide: raw.connSide || 'bottom',
@@ -2951,6 +3261,7 @@ function loadRiderFromData(data) {
     };
     instr.pinMicAssignments = derivePinMicAssignments(raw, instr);
     if(!supportsMicPickup(instr)) instr.pinMicAssignments = {};
+    pruneInvalidInstrumentPins(instr);
     instruments.push(instr);
   });
 
@@ -3164,15 +3475,15 @@ function exportPNG() {
   cv.width=wr.width*dpr; cv.height=wr.height*dpr;
   const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
   ctx.fillStyle='#0a0b0d'; ctx.fillRect(0,0,wr.width,wr.height);
-  ctx.fillStyle='#0f1318'; ctx.strokeStyle='#2d3340'; ctx.lineWidth=2;
+  ctx.fillStyle=stageColor; ctx.strokeStyle=getStageBorderColor(stageColor); ctx.lineWidth=2;
   ctx.beginPath(); ctx.roundRect(stagePx.left,stagePx.top,stagePx.width,stagePx.height,9); ctx.fill(); ctx.stroke();
   if(showStageStairs) {
     const stairsWidth = Math.min(stagePx.width, 2 * pxPerM);
     const stairsDepth = 0.75 * pxPerM;
     const stairsX = stagePx.left + (stagePx.width - stairsWidth) / 2;
     const stairsY = stagePx.top + stagePx.height - 2;
-    ctx.fillStyle = '#2d3340';
-    ctx.strokeStyle = '#2d3340';
+    ctx.fillStyle = getStageBorderColor(stageColor);
+    ctx.strokeStyle = getStageBorderColor(stageColor);
     ctx.beginPath();
     ctx.roundRect(stairsX, stairsY, stairsWidth, stairsDepth, 2);
     ctx.fill();
