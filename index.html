@@ -9,13 +9,28 @@
 :root {
   --bg:#0a0b0d; --surface:#13151a; --panel:#1a1d24; --border:#2a2e3a;
   --accent:#e8ff47; --accent2:#47c4ff; --accent3:#ff6b47; --accent4:#c47fff;
-  --text:#d4d8e2; --muted:#6b7280; --stage-bg:#0f1318; --stage-border:#2d3340;
+  --text:#d4d8e2; --muted:#6b7280; --stage-bg:#ae8b09; --stage-border:#2d3340;
+  --stage-label-bg:rgba(10,11,13,.88); --stage-label-text:#ffffff;
 }
 body[data-theme='light']{
   --bg:#eef2f6; --surface:#ffffff; --panel:#e6ebf1; --border:#b7c1cd;
   --accent:#6b7f00; --accent2:#0f72a8; --accent3:#b24b2d; --accent4:#7a4bb2;
   --text:#15202b; --muted:#5f6b77;
 }
+body[data-theme='light'] .pal-tile.snake-tile{background:#f4edf9;border-color:#b999dc;}
+body[data-theme='light'] .pal-tile.mixer-tile{background:#eaf3fb;border-color:#9cc4e6;}
+body[data-theme='light'] .pal-tile.monitor-tile{background:#edf8f0;border-color:#9ecfaf;}
+body[data-theme='light'] .pal-tile.accessory-tile{background:#fff5e8;border-color:#e4c295;}
+body[data-theme='light'] .pal-tile.mixer-tile:hover{border-color:#4c8fbe;}
+body[data-theme='light'] .pal-tile.monitor-tile:hover{border-color:#4f9a6a;}
+body[data-theme='light'] .pal-tile.accessory-tile:hover{border-color:#c98b3f;}
+body[data-theme='light'] .si.is-snake .ib{background:#f1e8f9;border-color:#b999dc;}
+body[data-theme='light'] .snake-badge{background:rgba(122,75,178,.12);border-color:#b999dc;color:#60318f;}
+body[data-theme='light'] .si.is-snake .snake-ch-pin{background:#ffffff;border-color:#7a4bb2;color:#3f1f66;}
+body[data-theme='light'] .si.is-snake .snake-ch-pin:hover{background:#7a4bb2;color:#ffffff;}
+body[data-theme='light'] .si.is-snake .snake-ch-pin.used{background:#d8c2ef;color:#2d1649;}
+body[data-theme='light'] .si.is-snake .snake-ch-pin.out-pin{background:#ecfff4;border-color:#1f8a5a;color:#0f5e3b;}
+body[data-theme='light'] .si.is-snake .snake-ch-pin.out-pin.used{background:#a9e6c8;color:#0c4c30;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 /* HEADER */
@@ -45,6 +60,10 @@ header .sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
 /* SIDEBAR */
 .sidebar{width:208px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
 .ss{padding:9px 10px;border-bottom:1px solid var(--border);}
+.drop-delete-zone{transition:background .12s,border-color .12s,box-shadow .12s;}
+.drop-delete-zone.delete-target-active{box-shadow:inset 0 0 0 2px rgba(255,107,71,.45);background:linear-gradient(180deg, rgba(255,107,71,.12), rgba(255,107,71,.02));}
+.drop-delete-zone.delete-target-hot{background:rgba(255,107,71,.28);border-color:var(--accent3);box-shadow:inset 0 0 0 3px rgba(255,107,71,.78), 0 0 20px rgba(255,107,71,.22);}
+.sidebar.delete-target-active::before{content:'DROP ANYWHERE ON THIS SIDEBAR TO DELETE';position:sticky;top:0;z-index:50;display:block;text-align:center;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:8px 6px;color:#fff;background:rgba(255,107,71,.9);border-bottom:1px solid rgba(255,255,255,.35);}
 .st{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:7px;}
 /* DIMS */
 .dim-row{display:flex;align-items:center;gap:5px;margin-bottom:5px;}
@@ -86,6 +105,8 @@ header .sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
 /* STAGE */
 .stage-container{flex:1;background:var(--bg);overflow:hidden;position:relative;}
 .stage-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface);padding:4px 11px;border-radius:20px;border:1px solid var(--border);pointer-events:none;white-space:nowrap;z-index:10;}
+body.delete-dragging .stage-hint{display:block;color:#ffb8a6;border-color:var(--accent3);background:rgba(40,18,14,.88);}
+body.delete-dragging.delete-dragging-hot .stage-hint{color:#ffffff;background:rgba(255,107,71,.96);border-color:#ffd7cc;}
 #canvas-wrap{width:100%;height:100%;position:relative;overflow:hidden;}
 #canvas-wrap.is-panning{cursor:grabbing;}
 canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:auto;z-index:2;}
@@ -103,6 +124,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
 #audience-label{position:absolute;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:4px;opacity:.4;pointer-events:none;z-index:1;text-align:center;white-space:nowrap;}
 /* INSTRUMENTS */
 .si{position:absolute;z-index:3;cursor:move;display:flex;flex-direction:column;align-items:center;gap:2px;user-select:none;padding:4px;}
+.si.dragging .ib{border-color:var(--accent3);box-shadow:0 0 0 3px rgba(255,107,71,.28),0 8px 24px rgba(0,0,0,.35);}
 .si:hover .ib{border-color:var(--accent);}
 .si.selected .ib{border-color:var(--accent);box-shadow:0 0 0 2px rgba(232,255,71,.2);}
 .si.connecting-source .ib{border-color:var(--accent2);animation:pc 1s ease-in-out infinite;}
@@ -133,7 +155,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
 .mixer-pin.out-pin{border-color:#47ffa0;color:#9affca;}
 /* channel badge */
 .ich{position:absolute;top:-6px;right:-6px;background:var(--accent);color:#0a0b0d;font-family:'Share Tech Mono',monospace;font-size:7px;font-weight:700;min-width:15px;height:15px;border-radius:8px;padding:0 2px;display:flex;align-items:center;justify-content:center;}
-.ilabel{font-size:9px;color:var(--text);font-weight:600;text-align:center;white-space:nowrap;background:rgba(10,11,13,.88);padding:1px 5px;border-radius:3px;max-width:90px;overflow:hidden;text-overflow:ellipsis;}
+.ilabel{font-size:9px;color:var(--stage-label-text);font-weight:600;text-align:center;white-space:nowrap;background:var(--stage-label-bg);padding:1px 5px;border-radius:3px;max-width:90px;overflow:hidden;text-overflow:ellipsis;}
 .ilabel.dynamic{position:absolute;max-width:120px;z-index:4;}
 .ilabel.dynamic.side-bottom{left:50%;top:calc(100% + 4px);transform:translateX(-50%);}
 .ilabel.dynamic.side-top{left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);}
@@ -201,6 +223,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
 .size-row label{font-size:10px;color:var(--muted);width:54px;flex-shrink:0;}
 .size-row input[type=range]{flex:1;accent-color:var(--accent);}
 .size-val{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent);width:28px;text-align:right;flex-shrink:0;}
+.size-delta{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);min-width:34px;text-align:right;flex-shrink:0;}
 .angle-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
 .angle-row label{font-size:10px;color:var(--muted);width:54px;flex-shrink:0;}
 .angle-row input[type=range]{flex:1;accent-color:var(--accent2);}
@@ -259,7 +282,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
 
 <div class="workspace">
   <!-- LEFT -->
-  <div class="sidebar">
+  <div class="sidebar drop-delete-zone" id="delete-sidebar-zone">
     <div class="ss">
       <div class="st">Stage Dimensions</div>
       <div class="dim-row"><span class="dim-label">W</span><input class="dim-input" id="dim-w" type="number" value="7.5" min="3" max="80" step="0.5" oninput="updateStage()"><span class="dim-unit">m</span></div>
@@ -271,13 +294,13 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
       <div class="theme-row">
         <span class="dim-label">Theme</span>
         <select id="theme-mode" class="theme-select" onchange="setThemeMode(this.value)">
-          <option value="dark">Dark</option>
           <option value="light">Light</option>
+          <option value="dark">Dark</option>
         </select>
       </div>
       <div class="theme-row">
         <span class="dim-label">Stage</span>
-        <input id="stage-color" class="stage-color-input" type="color" value="#0f1318" onchange="setStageColor(this.value)">
+        <input id="stage-color" class="stage-color-input" type="color" value="#ae8b09" onchange="setStageColor(this.value)">
       </div>
       <div class="scale-d" id="scale-d">— px/m</div>
     </div>
@@ -295,7 +318,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
       <div class="pal-grid" id="mixer-pal"></div>
     </div>
     <div class="ss">
-      <div class="st">Monitoring</div>
+      <div class="st">PA and Monitoring</div>
       <div class="pal-grid" id="monitor-pal"></div>
     </div>
     <div class="ss">
@@ -316,7 +339,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
         <span style="color:var(--accent2);">Arrange:</span> drag from palette, drag to move.<br>
         <span style="color:var(--accent2);">Connect:</span> click a blue pin → click destination pin.<br>
         <span style="color:var(--accent4);">Snake pins:</span> click a pin to connect it.<br>
-        Drag to <span style="color:var(--accent3);">delete zone</span> to remove.
+        Drag to <span style="color:var(--accent3);">anywhere on the left sidebar</span> to remove.
       </div>
     </div>
   </div>
@@ -375,6 +398,26 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
             </div>
           </div>
         </div>
+        <div class="pr" id="speaker-io-wrap" style="display:none;"><label class="plbl">Speaker Connectors</label>
+          <div class="mode-row">
+            <div>
+              <label class="plbl">Input</label>
+              <select id="p-spk-in-mode" class="pselect" onchange="updSpeakerInputMode(this.value)">
+                <option value="xlr">XLR</option>
+                <option value="jack">Jack (TS/TRS)</option>
+                <option value="speakon">Speakon</option>
+              </select>
+            </div>
+            <div>
+              <label class="plbl">Output</label>
+              <select id="p-spk-out-mode" class="pselect" onchange="updSpeakerOutputMode(this.value)">
+                <option value="xlr">XLR</option>
+                <option value="jack">Jack (TS/TRS)</option>
+                <option value="speakon">Speakon</option>
+              </select>
+            </div>
+          </div>
+        </div>
         <div class="pr" id="mic-wrap"><label class="plbl">Mic Pickup (optional)</label>
           <div id="mic-assignment-list" class="mic-assignment-list"></div>
           <div class="mic-library-tools">
@@ -399,7 +442,8 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
           <label>Size</label>
           <input type="range" id="p-size" min="32" max="120" step="4" value="52" oninput="updSize(this.value)">
           <span class="size-val" id="p-size-val">52</span>
-          <button class="angle-reset-btn" type="button" onclick="resetSize()">Reset</button>
+          <span class="size-delta" id="p-size-delta" title="Difference from default">0</span>
+          <button class="angle-reset-btn" type="button" onclick="resetSize()">Reset Size</button>
           <span class="size-val" id="p-size-def" title="Default size" style="width:auto;min-width:44px;color:var(--muted);">Def:52</span>
         </div>
         <div class="angle-row">
@@ -420,6 +464,10 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
               Allow Jack (TS/TRS) on snake inputs
             </label>
           </div>
+        </div>
+
+        <div id="amp-extra" style="display:none;" class="snake-props">
+          <div class="pr"><label class="plbl">Speakon Outputs</label><input class="pi" id="p-amp-outs" type="number" min="1" max="16" step="1" value="4" oninput="updAmpOutputs(this.value)"></div>
         </div>
 
         <div id="drum-extra" style="display:none;" class="snake-props">
@@ -473,23 +521,24 @@ const ICON_ASSET_BY_TYPE = {
   violin:'images/violin.png',
   cello:'images/cello.png',
   viola:'images/viola.png',
+  harp:'images/harp.png',
   piano:'images/grand_piano.png',
+  keys:'images/keys.png',
   vox:'images/mic_vocal.png',
-  bgvox:'images/mic_vocal.png',
+  bgvox:'images/mic_backvocal.png',
   talkback:'images/mic_talkback.png',
   trumpet:'images/trumpet.png',
   trombone:'images/trombone.png',
+  sax:'images/sax.png',
+  monitor:'images/monitor.png',
+  ha8000:'images/ChatGPT Image May 22, 2026, 10_50_25 AM.png',
+  mainspk:'images/main_speaker.png',
+  subwoofer:'images/subwoofer.png',
   xr18:'images/xr18.png',
 };
 
 const INSTRUMENTS = [
   {type:'drumkit',   cat:'drums',   icon:'🥁', name:'Drum Kit',      wide:true,  size:92, connSide:'bottom' },
-  {type:'kick',      cat:'drums',   icon:'🥁', name:'Kick',          wide:false, size:54, connSide:'bottom'},
-  {type:'snare',     cat:'drums',   icon:'🪘', name:'Snare',         wide:false, size:50, connSide:'bottom'},
-  {type:'hihat',     cat:'drums',   icon:'🎼', name:'Hi-Hat',        wide:false, size:44, connSide:'bottom'},
-  {type:'ride',      cat:'drums',   icon:'🥁', name:'Ride',          wide:false, size:44, connSide:'bottom'},
-  {type:'crash',     cat:'drums',   icon:'🥁', name:'Crash',         wide:false, size:44, connSide:'bottom'},
-  {type:'overheads', cat:'drums',   icon:'🎙', name:'Overheads',     wide:false, size:48, connSide:'bottom'},
   {type:'acguitar',  cat:'strings', icon:'🎸', name:'Acoustic Guitar', wide:false, size:56, connSide:'bottom'},
   {type:'elguitar',  cat:'strings', icon:'🎸', name:'Electric Guitar', wide:false, size:56, connSide:'bottom'},
   {type:'bass',      cat:'strings', icon:'🎸', name:'Bass',            wide:false, size:58, connSide:'bottom'},
@@ -511,9 +560,11 @@ const INSTRUMENTS = [
   {type:'p16',       cat:'monitoring', icon:'🔷', name:'P16',         wide:false, size:44, connSide:'top', requiresOutput:true},
   {type:'pm1',       cat:'monitoring', icon:'🔶', name:'PM1',         wide:false, size:44, connSide:'top', requiresOutput:true},
   {type:'ha8000',    cat:'monitoring', icon:'🎚', name:'HA8000',      wide:true,  size:84, connSide:'bottom'},
+  {type:'mainspk',   cat:'monitoring', icon:'🔊', name:'Main Speaker', wide:false, size:58, connSide:'top', requiresOutput:true},
+  {type:'subwoofer', cat:'monitoring', icon:'🟫', name:'Subwoofer',    wide:false, size:62, connSide:'top', requiresOutput:true},
   {type:'xr18',      cat:'mixers',  icon:'🎛', name:'XR18 Mixer',  wide:true,  size:108, connSide:'bottom', isMixer:true, mixerInputs:18, mixerAux:6, mixerMain:2, mixerP16:1},
   {type:'di',        cat:'accessories',   icon:'📦', name:'DI Box',      wide:false, size:46, connSide:'bottom'},
-  {type:'amp',       cat:'infra',   icon:'🔌', name:'Amp',         wide:false, size:60, connSide:'bottom'},
+  {type:'amp',       cat:'accessories', icon:'🔌', name:'Amp',         wide:false, size:60, connSide:'bottom'},
   {type:'pedals',    cat:'accessories',   icon:'🎛', name:'Pedals',      wide:false, size:48, connSide:'bottom'},
   {type:'laptop',    cat:'infra',   icon:'💻', name:'Laptop',      wide:false, size:52, connSide:'right'},
   {type:'midipad',   cat:'infra',   icon:'🟦', name:'MIDI Pad',    wide:false, size:48, connSide:'right'},
@@ -565,8 +616,10 @@ let stageW = 7.5, stageD = 4.4;
 let stagePx = {left:0,top:0,width:0,height:0};
 let pxPerM = 1;
 let showStageStairs = true;
-let themeMode = 'dark';
-let stageColor = '#0f1318';
+const DEFAULT_THEME_MODE = 'light';
+const DEFAULT_STAGE_COLOR = '#ae8b09';
+let themeMode = DEFAULT_THEME_MODE;
+let stageColor = DEFAULT_STAGE_COLOR;
 let zoomLevel = 1;
 let gestureStartZoom = 1;
 const ZOOM_MIN = 0.5;
@@ -832,9 +885,25 @@ function supportsStereoToggle(instrOrType) {
   return type === 'acguitar' || type === 'elguitar';
 }
 
+function isSpeakerWithThru(instrOrType) {
+  const type = typeof instrOrType === 'string' ? instrOrType : (instrOrType && instrOrType.type);
+  return type === 'monitor' || type === 'mainspk' || type === 'subwoofer' || type === 'passivespk';
+}
+
+function normalizeSpeakerConnectorMode(value, fallback = 'xlr') {
+  const allowed = new Set(['xlr', 'jack', 'speakon']);
+  return allowed.has(value) ? value : fallback;
+}
+
+function speakerConnectorModeToCableTypes(mode) {
+  if(mode === 'jack') return ['ts'];
+  if(mode === 'speakon') return ['speakon'];
+  return ['xlr'];
+}
+
 function isCustomIOInstrument(instrOrType) {
   const type = typeof instrOrType === 'string' ? instrOrType : (instrOrType && instrOrType.type);
-  return type === 'di' || type === 'pedals' || type === 'ha8000';
+  return type === 'di' || type === 'pedals' || type === 'ha8000' || type === 'amp' || isSpeakerWithThru(type);
 }
 
 function supportsInputModeToggle(instr) {
@@ -847,6 +916,9 @@ function supportsOutputModeToggle(instr) {
 
 function getInstrumentInputPins(instr) {
   if(!instr) return [];
+  if(isSpeakerWithThru(instr)) {
+    return [{ key:'SPK-IN', label:'IN' }];
+  }
   if(instr.type === 'di') {
     if(instr.inputStereo) return [{ key:'IO-IN-L', label:'IN-L' }, { key:'IO-IN-R', label:'IN-R' }];
     return [{ key:'IO-IN-MONO', label:'IN' }];
@@ -855,19 +927,37 @@ function getInstrumentInputPins(instr) {
     return [{ key:'IO-IN-MONO', label:'IN' }];
   }
   if(instr.type === 'ha8000') {
-    return [{ key:'HA-IN-L', label:'IN-L' }, { key:'HA-IN-R', label:'IN-R' }];
+    const main = [{ key:'HA-IN-L', label:'MAIN-L' }, { key:'HA-IN-R', label:'MAIN-R' }];
+    const channels = Array.from({ length: 8 }, (_v, idx) => {
+      const n = idx + 1;
+      return [
+        { key:`HA-IN-${n}-L`, label:`${n}L` },
+        { key:`HA-IN-${n}-R`, label:`${n}R` },
+      ];
+    }).flat();
+    return [...main, ...channels];
+  }
+  if(instr.type === 'amp') {
+    return [{ key:'AMP-IN-L', label:'IN-L' }, { key:'AMP-IN-R', label:'IN-R' }];
   }
   return [];
 }
 
 function getInstrumentOutputPins(instr) {
   if(!instr) return [];
+  if(isSpeakerWithThru(instr)) {
+    return [{ key:'SPK-OUT', label:'OUT' }];
+  }
   if(instr.type === 'di' || instr.type === 'pedals') {
     if(instr.outputStereo) return [{ key:'IO-OUT-L', label:'OUT-L' }, { key:'IO-OUT-R', label:'OUT-R' }];
     return [{ key:'IO-OUT-MONO', label:'OUT' }];
   }
   if(instr.type === 'ha8000') {
     return Array.from({ length: 8 }, (_v, idx) => ({ key:`HA-OUT-${idx + 1}`, label:String(idx + 1) }));
+  }
+  if(instr.type === 'amp') {
+    const total = Math.max(1, Math.min(16, Number(instr.ampOutputs) || 4));
+    return Array.from({ length: total }, (_v, idx) => ({ key:`AMP-OUT-${idx + 1}`, label:`SPK-${idx + 1}` }));
   }
   return [];
 }
@@ -914,20 +1004,41 @@ function getStageBorderColor(color) {
 }
 
 function applyThemeMode() {
-  document.body.dataset.theme = themeMode === 'light' ? 'light' : 'dark';
+  document.body.dataset.theme = themeMode === 'dark' ? 'dark' : 'light';
   const select = document.getElementById('theme-mode');
   if(select) select.value = themeMode;
 }
 
 function applyStageColor() {
+  const borderColor = getStageBorderColor(stageColor);
   document.documentElement.style.setProperty('--stage-bg', stageColor);
-  document.documentElement.style.setProperty('--stage-border', getStageBorderColor(stageColor));
+  document.documentElement.style.setProperty('--stage-border', borderColor);
+  const platform = document.getElementById('stage-platform');
+  if(platform) {
+    platform.style.background = stageColor;
+    platform.style.borderColor = borderColor;
+  }
+  const stairs = document.getElementById('stage-stairs');
+  if(stairs) {
+    stairs.style.background = borderColor;
+    stairs.style.borderColor = borderColor;
+  }
+  const hex = String(stageColor || '').replace('#', '');
+  if(/^[0-9a-fA-F]{6}$/.test(hex)) {
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    const isDark = luminance < 0.52;
+    document.documentElement.style.setProperty('--stage-label-text', isDark ? '#ffffff' : '#111111');
+    document.documentElement.style.setProperty('--stage-label-bg', isDark ? 'rgba(8,12,18,.74)' : 'rgba(255,255,255,.78)');
+  }
   const input = document.getElementById('stage-color');
   if(input) input.value = stageColor;
 }
 
 function setThemeMode(value) {
-  const next = value === 'light' ? 'light' : 'dark';
+  const next = value === 'dark' ? 'dark' : 'light';
   if(themeMode === next) return;
   pushHistoryState();
   themeMode = next;
@@ -937,7 +1048,7 @@ function setThemeMode(value) {
 }
 
 function setStageColor(value) {
-  const next = /^#[0-9a-fA-F]{6}$/.test(String(value || '')) ? value : '#0f1318';
+  const next = /^#[0-9a-fA-F]{6}$/.test(String(value || '')) ? value : DEFAULT_STAGE_COLOR;
   if(stageColor === next) return;
   pushHistoryState();
   stageColor = next;
@@ -958,7 +1069,7 @@ function supportsMicPickup(instrOrType) {
   if(!type) return false;
   const disallowed = new Set([
     'elguitar', 'bass', 'keys', 'vox', 'bgvox', 'talkback',
-    'monitor', 'iem', 'headphones', 'pm1', 'p16', 'ha8000', 'di', 'amp', 'pedals', 'laptop', 'midipad', 'power',
+    'monitor', 'mainspk', 'subwoofer', 'passivespk', 'iem', 'headphones', 'pm1', 'p16', 'ha8000', 'di', 'amp', 'pedals', 'laptop', 'midipad', 'power',
     'snake8', 'snake16', 'snake24', 'snake32', 'xr18'
   ]);
   return !disallowed.has(type);
@@ -1105,6 +1216,16 @@ function getPinAllowedCableTypes(instr, pin) {
   const p = pinKey(pin);
   if(!instr) return ['xlr', 'ts', 'ethernet'];
 
+  if(isSpeakerWithThru(instr)) {
+    if(p === 'SPK-IN') return speakerConnectorModeToCableTypes(normalizeSpeakerConnectorMode(instr.spkInputMode, 'xlr'));
+    if(p === 'SPK-OUT') return speakerConnectorModeToCableTypes(normalizeSpeakerConnectorMode(instr.spkOutputMode, 'xlr'));
+  }
+
+  if(instr.type === 'amp') {
+    if(p.startsWith('AMP-IN-')) return ['xlr'];
+    if(p.startsWith('AMP-OUT-')) return ['speakon'];
+  }
+
   if(instr.type === 'di' || instr.type === 'pedals') {
     if(p.startsWith('IO-IN-')) return ['xlr', 'ts'];
     if(p.startsWith('IO-OUT-')) return ['xlr'];
@@ -1209,8 +1330,8 @@ function applySnapshot(snapshot, keepCleanState) {
   stageW = snapshot.stageW;
   stageD = snapshot.stageD;
   showStageStairs = snapshot.showStageStairs !== false;
-  themeMode = snapshot.themeMode === 'light' ? 'light' : 'dark';
-  stageColor = /^#[0-9a-fA-F]{6}$/.test(String(snapshot.stageColor || '')) ? snapshot.stageColor : '#0f1318';
+  themeMode = snapshot.themeMode === 'dark' ? 'dark' : DEFAULT_THEME_MODE;
+  stageColor = /^#[0-9a-fA-F]{6}$/.test(String(snapshot.stageColor || '')) ? snapshot.stageColor : DEFAULT_STAGE_COLOR;
   instruments = cloneInstruments(snapshot.instruments || []);
   connections = cloneConnections(snapshot.connections || []);
   selectedId = snapshot.selectedId || null;
@@ -1263,7 +1384,7 @@ function serializeLayout() {
     created:new Date().toISOString(),
     projectName,
     stage:{widthM:stageW, depthM:stageD, showStairs:showStageStairs, themeMode, color:stageColor},
-    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,size,wide,angle,stereo,inputStereo,outputStereo,connectorMode,pinMicAssignments,connSide,isMixer,mixerInputs,mixerAux,mixerMain,mixerP16,isSnake,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics})=>({id,type,cat,icon,image,label,channel,notes,x,y,size,wide,angle,stereo,inputStereo,outputStereo,connectorMode,pinMicAssignments,micModels:Object.values(pinMicAssignments||{}),micModel:Object.values(pinMicAssignments||{})[0]||'',connSide,isMixer,mixerInputs,mixerAux,mixerMain,mixerP16,isSnake,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics})),
+    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,connSide,isMixer,mixerInputs,mixerAux,mixerMain,mixerP16,isSnake,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics})=>({id,type,cat,icon,image,label,channel,notes,x,y,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,micModels:Object.values(pinMicAssignments||{}),micModel:Object.values(pinMicAssignments||{})[0]||'',connSide,isMixer,mixerInputs,mixerAux,mixerMain,mixerP16,isSnake,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics})),
     connections:connections.map(({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX})=>({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX})),
   };
 }
@@ -1298,7 +1419,10 @@ function buildPalette(cat) {
 function buildSnakePalette() {
   const grid = document.getElementById('snake-pal'); grid.innerHTML = '';
   SNAKES.forEach(s => {
-    const t = makeTile('🐍', s.name, true);
+    const snakeIcon = s.type === 'snake16'
+      ? '<img class="icon-img" src="images/snake16.png" alt="16-ch Snake" draggable="false">'
+      : '🐍';
+    const t = makeTile(snakeIcon, s.name, true, null, 'snake-tile');
     t.addEventListener('dragstart', e => {
       isDraggingNew=true;
       newDragData={
@@ -1324,7 +1448,7 @@ function buildMixerPalette() {
   grid.innerHTML = '';
   const list = INSTRUMENTS.filter(i => i.cat === 'mixers');
   list.forEach(instr => {
-    const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size);
+    const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'mixer-tile');
     t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr,isSnake:false}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
     grid.appendChild(t);
@@ -1337,7 +1461,7 @@ function buildMonitoringPalette() {
   grid.innerHTML = '';
   const list = INSTRUMENTS.filter(i => i.cat === 'monitoring');
   list.forEach(instr => {
-    const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size);
+    const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'monitor-tile');
     t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr,isSnake:false}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
     grid.appendChild(t);
@@ -1350,16 +1474,16 @@ function buildAccessoryPalette() {
   grid.innerHTML = '';
   const list = INSTRUMENTS.filter(i => i.cat === 'accessories');
   list.forEach(instr => {
-    const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size);
+    const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'accessory-tile');
     t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr,isSnake:false}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
     grid.appendChild(t);
   });
 }
 
-function makeTile(icon, name, isSnake, instrumentSize) {
+function makeTile(icon, name, isSnake, instrumentSize, variantClass = '') {
   const t = document.createElement('div');
-  t.className = 'pal-tile' + (isSnake?' snake-tile':'');
+  t.className = 'pal-tile' + (isSnake ? ' snake-tile' : '') + (variantClass ? ` ${variantClass}` : '');
   t.draggable = true;
   const base = Number(instrumentSize) || 52;
   const previewSize = Math.max(14, Math.min(34, Math.round(base * 0.33)));
@@ -1549,12 +1673,20 @@ function pinForReport(pin) {
     'IO-OUT-MONO':'OUT',
     'IO-OUT-L':'OUT-L',
     'IO-OUT-R':'OUT-R',
-    'HA-IN-L':'IN-L',
-    'HA-IN-R':'IN-R',
+    'HA-IN-L':'MAIN-L',
+    'HA-IN-R':'MAIN-R',
+    'AMP-IN-L':'IN-L',
+    'AMP-IN-R':'IN-R',
+    'SPK-IN':'IN',
+    'SPK-OUT':'OUT',
   };
   if(ioMap[key]) return ioMap[key];
+  const haInMatch = key.match(/^HA-IN-(\d+)-(L|R)$/);
+  if(haInMatch) return `IN-${parseInt(haInMatch[1], 10)}-${haInMatch[2]}`;
   const haOutMatch = key.match(/^HA-OUT-(\d+)$/);
   if(haOutMatch) return `HP-${parseInt(haOutMatch[1], 10)}`;
+  const ampOutMatch = key.match(/^AMP-OUT-(\d+)$/);
+  if(ampOutMatch) return `SPK-${parseInt(ampOutMatch[1], 10)}`;
   const outMatch = key.match(/^OUT-(\d+)$/);
   if(outMatch) {
     const idx = parseInt(outMatch[1], 10);
@@ -1906,6 +2038,9 @@ function addInstrument(data, x, y) {
 	stereo: !!data.stereo,
     inputStereo: data.type === 'di' ? !!data.inputStereo : false,
     outputStereo: (data.type === 'di' || data.type === 'pedals') ? !!data.outputStereo : false,
+    ampOutputs: data.type === 'amp' ? Math.max(1, Math.min(16, Number(data.ampOutputs) || 4)) : 0,
+    spkInputMode: isSpeakerWithThru(data.type) ? normalizeSpeakerConnectorMode(data.spkInputMode, 'xlr') : '',
+    spkOutputMode: isSpeakerWithThru(data.type) ? normalizeSpeakerConnectorMode(data.spkOutputMode, 'xlr') : '',
     connectorMode: data.connectorMode || getDefaultConnectorMode(data.type),
     pinMicAssignments: normalizePinMicAssignments(data.pinMicAssignments),
     connSide: data.connSide || 'bottom',
@@ -2176,7 +2311,26 @@ function startDrag(e, id, el) {
   const offsetWorldY = pointerWorldStartY - instr.y;
   let moved = false;
   el.classList.add('dragging');
-  const dz = document.getElementById('dz'); dz.classList.add('visible');
+  const dz = document.getElementById('dz');
+  const dropZone = document.getElementById('delete-sidebar-zone');
+  const hint = document.getElementById('stage-hint');
+  if(dz) dz.classList.add('visible');
+  if(dropZone) dropZone.classList.add('delete-target-active');
+  document.body.classList.add('delete-dragging');
+  if(hint) hint.textContent = 'DROP ON LEFT SIDEBAR TO DELETE';
+
+  function isOverDeleteZone(evt) {
+    if(dropZone) {
+      const zr = dropZone.getBoundingClientRect();
+      if(evt.clientX>=zr.left&&evt.clientX<=zr.right&&evt.clientY>=zr.top&&evt.clientY<=zr.bottom) return true;
+    }
+    if(dz) {
+      const dzr = dz.getBoundingClientRect();
+      if(evt.clientX>=dzr.left&&evt.clientX<=dzr.right&&evt.clientY>=dzr.top&&evt.clientY<=dzr.bottom) return true;
+    }
+    return false;
+  }
+
   function onMove(e){
     const x = ((e.clientX - wr.left - panX) / zoomLevel) - offsetWorldX;
     const y = ((e.clientY - wr.top - panY) / zoomLevel) - offsetWorldY;
@@ -2184,14 +2338,25 @@ function startDrag(e, id, el) {
     instr.x=x; instr.y=y;
     positionWorldElement(el, instr.x, instr.y);
     render();
-    const dzr=dz.getBoundingClientRect();
-    dz.style.background=(e.clientX>=dzr.left&&e.clientX<=dzr.right&&e.clientY>=dzr.top&&e.clientY<=dzr.bottom)?'rgba(255,107,71,.28)':'rgba(255,107,71,.1)';
+    const overDeleteZone = isOverDeleteZone(e);
+    if(dz) dz.style.background = overDeleteZone ? 'rgba(255,107,71,.28)' : 'rgba(255,107,71,.1)';
+    if(dropZone) dropZone.classList.toggle('delete-target-hot', overDeleteZone);
+    document.body.classList.toggle('delete-dragging-hot', overDeleteZone);
   }
   function onUp(e){
     el.classList.remove('dragging');
-    dz.classList.remove('visible'); dz.style.background='rgba(255,107,71,.1)';
-    const dzr=dz.getBoundingClientRect();
-    if(e.clientX>=dzr.left&&e.clientX<=dzr.right&&e.clientY>=dzr.top&&e.clientY<=dzr.bottom) deleteInstrument(id);
+    if(dz) {
+      dz.classList.remove('visible');
+      dz.style.background='rgba(255,107,71,.1)';
+    }
+    if(dropZone) {
+      dropZone.classList.remove('delete-target-hot');
+      dropZone.classList.remove('delete-target-active');
+    }
+    document.body.classList.remove('delete-dragging-hot');
+    document.body.classList.remove('delete-dragging');
+    if(hint) hint.textContent = 'Drag instruments from the palette onto the stage';
+    if(isOverDeleteZone(e)) deleteInstrument(id);
     else if(moved) {
       historyStack.push(dragSnapshot);
       if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
@@ -2228,12 +2393,16 @@ function selectInstrument(id) {
   const sideWrap = document.getElementById('conn-side-wrap');
   const stereoWrap = document.getElementById('stereo-wrap');
   const ioModeWrap = document.getElementById('io-mode-wrap');
+  const speakerIOWrap = document.getElementById('speaker-io-wrap');
+  const ampExtra = document.getElementById('amp-extra');
   if(instr.isSnake || instr.isMixer) {
     connTypeWrap.style.display = 'none';
     micWrap.style.display = 'none';
     sideWrap.style.display = 'none';
     stereoWrap.style.display = 'none';
     ioModeWrap.style.display = 'none';
+    speakerIOWrap.style.display = 'none';
+    ampExtra.style.display = 'none';
   } else {
     connTypeWrap.style.display = isCustomIOInstrument(instr) ? 'none' : '';
     micWrap.style.display = supportsMicPickup(instr) ? '' : 'none';
@@ -2250,11 +2419,24 @@ function selectInstrument(id) {
       inputSelect.value = instr.inputStereo ? 'stereo' : 'mono';
       outputSelect.value = instr.outputStereo ? 'stereo' : 'mono';
     }
+    const showSpeakerIOWrap = isSpeakerWithThru(instr);
+    speakerIOWrap.style.display = showSpeakerIOWrap ? '' : 'none';
+    if(showSpeakerIOWrap) {
+      const inSelect = document.getElementById('p-spk-in-mode');
+      const outSelect = document.getElementById('p-spk-out-mode');
+      inSelect.value = normalizeSpeakerConnectorMode(instr.spkInputMode, 'xlr');
+      outSelect.value = normalizeSpeakerConnectorMode(instr.spkOutputMode, 'xlr');
+    }
     renderCustomMicOptionsUI();
     renderMicAssignmentsUI(instr);
     updateMicSummary(instr);
     sideWrap.style.display = isCustomIOInstrument(instr) ? 'none' : '';
     updateConnSideButtons(instr.connSide || 'bottom');
+    ampExtra.style.display = instr.type === 'amp' ? 'block' : 'none';
+    if(instr.type === 'amp') {
+      const ampOutsInput = document.getElementById('p-amp-outs');
+      if(ampOutsInput) ampOutsInput.value = Math.max(1, Math.min(16, Number(instr.ampOutputs) || 4));
+    }
   }
   // snake extras
   const se = document.getElementById('snake-extra');
@@ -2288,6 +2470,13 @@ function updProp(field, value) {
 function updSize(value) {
   const sz=parseInt(value);
   document.getElementById('p-size-val').textContent=sz;
+  const instrCurrent = selectedId ? instruments.find(i=>i.id===selectedId) : null;
+  const currentDef = instrCurrent ? getDefaultSizeForType(instrCurrent.type, instrCurrent.wide ? 82 : 52) : 52;
+  const deltaEl = document.getElementById('p-size-delta');
+  if(deltaEl) {
+    const delta = sz - currentDef;
+    deltaEl.textContent = delta === 0 ? '0' : (delta > 0 ? `+${delta}` : `${delta}`);
+  }
   if(!selectedId) return;
   const instr=instruments.find(i=>i.id===selectedId); if(!instr) return;
   if((instr.size||52) === sz) return;
@@ -2443,6 +2632,55 @@ function updOutputMode(value) {
   if(!!instr.outputStereo === next) return;
   pushHistoryState();
   instr.outputStereo = next;
+  pruneInvalidInstrumentPins(instr);
+  markDirty();
+  renderInstrument(instr);
+  selectInstrument(instr.id);
+  updateClasses();
+  render();
+}
+
+function updSpeakerInputMode(value) {
+  if(!selectedId) return;
+  const instr = instruments.find(i => i.id === selectedId); if(!instr || !isSpeakerWithThru(instr)) return;
+  const next = normalizeSpeakerConnectorMode(value, 'xlr');
+  const input = document.getElementById('p-spk-in-mode');
+  if(input) input.value = next;
+  if(normalizeSpeakerConnectorMode(instr.spkInputMode, 'xlr') === next) return;
+  pushHistoryState();
+  instr.spkInputMode = next;
+  markDirty();
+  renderInstrument(instr);
+  selectInstrument(instr.id);
+  updateClasses();
+  render();
+}
+
+function updSpeakerOutputMode(value) {
+  if(!selectedId) return;
+  const instr = instruments.find(i => i.id === selectedId); if(!instr || !isSpeakerWithThru(instr)) return;
+  const next = normalizeSpeakerConnectorMode(value, 'xlr');
+  const input = document.getElementById('p-spk-out-mode');
+  if(input) input.value = next;
+  if(normalizeSpeakerConnectorMode(instr.spkOutputMode, 'xlr') === next) return;
+  pushHistoryState();
+  instr.spkOutputMode = next;
+  markDirty();
+  renderInstrument(instr);
+  selectInstrument(instr.id);
+  updateClasses();
+  render();
+}
+
+function updAmpOutputs(value) {
+  if(!selectedId) return;
+  const instr = instruments.find(i => i.id === selectedId); if(!instr || instr.type !== 'amp') return;
+  const next = Math.max(1, Math.min(16, parseInt(value, 10) || 4));
+  const input = document.getElementById('p-amp-outs');
+  if(input) input.value = next;
+  if((Number(instr.ampOutputs) || 4) === next) return;
+  pushHistoryState();
+  instr.ampOutputs = next;
   pruneInvalidInstrumentPins(instr);
   markDirty();
   renderInstrument(instr);
@@ -2720,11 +2958,11 @@ function deleteInstrument(id) {
 
 
 function isOutputPin(pin) {
-  return typeof pin === 'string' && (pin.startsWith('OUT-') || pin.startsWith('MX-AUX-') || pin.startsWith('MX-MAIN-') || pin.startsWith('MX-P16-') || pin.startsWith('IO-OUT-') || pin.startsWith('HA-OUT-'));
+  return typeof pin === 'string' && (pin.startsWith('OUT-') || pin.startsWith('MX-AUX-') || pin.startsWith('MX-MAIN-') || pin.startsWith('MX-P16-') || pin.startsWith('IO-OUT-') || pin.startsWith('HA-OUT-') || pin.startsWith('AMP-OUT-') || pin === 'SPK-OUT');
 }
 
 function isInputPin(pin) {
-  return typeof pin === 'string' && (pin.startsWith('IN-') || pin.startsWith('MX-IN-') || pin.startsWith('IO-IN-') || pin.startsWith('HA-IN-'));
+  return typeof pin === 'string' && (pin.startsWith('IN-') || pin.startsWith('MX-IN-') || pin.startsWith('IO-IN-') || pin.startsWith('HA-IN-') || pin.startsWith('AMP-IN-') || pin === 'SPK-IN');
 }
 
 function isEndpointOnlyOutput(instr, pin) {
@@ -2733,6 +2971,7 @@ function isEndpointOnlyOutput(instr, pin) {
   if(instr.isSnake && key.startsWith('OUT-')) return true;
   if(instr.isMixer && (key.startsWith('MX-AUX-') || key.startsWith('MX-MAIN-') || key.startsWith('MX-P16-'))) return true;
   if(instr.type === 'ha8000' && key.startsWith('HA-OUT-')) return true;
+  if(isSpeakerWithThru(instr) && key === 'SPK-OUT') return true;
   return false;
 }
 
@@ -2847,7 +3086,7 @@ function validateConnection(fromObj, toObj) {
     };
   }
 
-  if(fromInstr.requiresOutput) {
+  if(fromInstr.requiresOutput && !(isSpeakerWithThru(fromInstr) && fromKey === 'SPK-OUT')) {
     return {
       valid:false,
       message:`${fromInstr.label} is a monitoring destination and cannot send signal.`
@@ -3151,7 +3390,20 @@ function clearAll() {
   pushHistoryState();
   instruments.forEach(i=>{ const el=getEl(i.id); if(el) el.remove(); });
   instruments=[]; connections=[]; selectedId=null; connectingFrom=null; drawingLine=null;
+  themeMode = DEFAULT_THEME_MODE;
+  stageColor = DEFAULT_STAGE_COLOR;
+  applyThemeMode();
+  applyStageColor();
+  document.getElementById('dim-w').value = 7.5;
+  document.getElementById('dim-d').value = 4.4;
+  stageW = 7.5;
+  stageD = 4.4;
+  showStageStairs = true;
+  const stairsToggle = document.getElementById('stage-stairs-toggle');
+  if(stairsToggle) stairsToggle.checked = true;
+  applyStageStairs();
   document.getElementById('no-sel').style.display=''; document.getElementById('prop-fields').style.display='none';
+  updateStage(true);
   markDirty();
   render();
 }
@@ -3217,8 +3469,8 @@ function loadRiderFromData(data) {
   stageW = Math.max(2, Math.min(80, parseFloat(stage.widthM) || 7.5));
   stageD = Math.max(2, Math.min(50, parseFloat(stage.depthM) || 4.4));
   showStageStairs = stage.showStairs !== false;
-  themeMode = stage.themeMode === 'light' ? 'light' : 'dark';
-  stageColor = /^#[0-9a-fA-F]{6}$/.test(String(stage.color || '')) ? stage.color : '#0f1318';
+  themeMode = stage.themeMode === 'dark' ? 'dark' : DEFAULT_THEME_MODE;
+  stageColor = /^#[0-9a-fA-F]{6}$/.test(String(stage.color || '')) ? stage.color : DEFAULT_STAGE_COLOR;
   document.getElementById('dim-w').value = stageW;
   document.getElementById('dim-d').value = stageD;
   const stairsToggle = document.getElementById('stage-stairs-toggle');
@@ -3244,6 +3496,9 @@ function loadRiderFromData(data) {
       stereo: !!raw.stereo,
       inputStereo: !!raw.inputStereo,
       outputStereo: !!raw.outputStereo,
+      ampOutputs: raw.type === 'amp' ? Math.max(1, Math.min(16, Number(raw.ampOutputs) || 4)) : 0,
+      spkInputMode: isSpeakerWithThru(raw.type) ? normalizeSpeakerConnectorMode(raw.spkInputMode, 'xlr') : '',
+      spkOutputMode: isSpeakerWithThru(raw.type) ? normalizeSpeakerConnectorMode(raw.spkOutputMode, 'xlr') : '',
       connectorMode: raw.connectorMode || getDefaultConnectorMode(raw.type),
       pinMicAssignments: {},
       connSide: raw.connSide || 'bottom',
