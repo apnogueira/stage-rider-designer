@@ -276,49 +276,74 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
   }
 
   header {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     gap: 6px;
     padding: 8px 10px;
+    overflow-x: auto;
   }
 
-  .logo {
-    font-size: 12px;
-  }
+  .logo { display: none; }
 
   .mobile-menu-btn {
     display: inline-flex;
-    margin-left: auto;
+    order: 4;
+    margin-left: 0;
+    flex: 0 0 auto;
   }
 
   .sep {
     display: none;
   }
 
-  .zoom-controls {
-    order: 2;
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .zoom-range {
-    flex: 1;
-    min-width: 100px;
-  }
-
-  .project-name-wrap {
-    order: 3;
-    width: 100%;
-    margin-left: 0;
-  }
-
   .quick-left-toggle {
-    order: 4;
-    width: 100%;
+    order: 1;
+    width: auto;
+    flex: 0 0 auto;
   }
 
   .quick-left-toggle .btn {
+    width: auto;
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+
+  .project-name-wrap {
+    order: 2;
+    width: auto;
+    flex: 1 1 auto;
+    margin-left: 0;
+    min-width: 128px;
+  }
+
+  .project-name-label {
+    display: none;
+  }
+
+  .project-name-input {
     width: 100%;
+    max-width: none;
+    min-width: 110px;
+    font-size: 10px;
+    padding: 5px 6px;
+  }
+
+  .zoom-controls {
+    order: 3;
+    width: auto;
+    flex: 0 0 auto;
+    gap: 4px;
+    padding: 2px 5px;
+  }
+
+  .zoom-range {
+    width: 62px;
+    min-width: 62px;
+  }
+
+  .zoom-value {
+    width: 34px;
+    font-size: 9px;
   }
 
   .project-name-input {
@@ -836,6 +861,7 @@ let zoomLevel = 1;
 let gestureStartZoom = 1;
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 2.2;
+const PHONE_BREAKPOINT_PX = 860;
 let panX = 0;
 let panY = 0;
 let suppressCanvasClick = false;
@@ -1229,8 +1255,52 @@ function startPanDrag(e) {
   document.addEventListener('mouseup', onUp);
 }
 
+function getTouchDistance(t1, t2) {
+  const dx = t2.clientX - t1.clientX;
+  const dy = t2.clientY - t1.clientY;
+  return Math.hypot(dx, dy);
+}
+
+function getTouchMidpoint(t1, t2) {
+  return {
+    x: (t1.clientX + t2.clientX) / 2,
+    y: (t1.clientY + t2.clientY) / 2,
+  };
+}
+
 function startPanTouch(e) {
-  if(!e.touches || e.touches.length !== 1) return;
+  if(!e.touches || !e.touches.length) return;
+
+  if(e.touches.length === 2) {
+    const wrapRect = canvasWrap.getBoundingClientRect();
+    const startDistance = getTouchDistance(e.touches[0], e.touches[1]);
+    if(startDistance < 4) return;
+    const startZoom = zoomLevel;
+    if(e.cancelable) e.preventDefault();
+
+    function onMove(ev) {
+      if(!ev.touches || ev.touches.length < 2) return;
+      const d = getTouchDistance(ev.touches[0], ev.touches[1]);
+      const factor = d / startDistance;
+      const mid = getTouchMidpoint(ev.touches[0], ev.touches[1]);
+      if(ev.cancelable) ev.preventDefault();
+      setZoom(startZoom * factor, mid.x - wrapRect.left, mid.y - wrapRect.top);
+    }
+
+    function onEnd(ev) {
+      if(ev.touches && ev.touches.length >= 2) return;
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      document.removeEventListener('touchcancel', onEnd);
+    }
+
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd, { passive: false });
+    document.addEventListener('touchcancel', onEnd, { passive: false });
+    return;
+  }
+
+  if(e.touches.length !== 1) return;
   if(e.target.closest('.si, .iconn, .snake-ch-pin, .mixer-pin')) return;
 
   const t = e.touches[0];
@@ -1310,6 +1380,10 @@ function getRiderSaveFileName() {
 function normalizeSnakeChannels(value) {
   const n = Math.max(4, Math.min(64, parseInt(value, 10) || 16));
   return Math.round(n / 4) * 4;
+}
+
+function getInstrumentRenderScale() {
+  return window.matchMedia(`(max-width: ${PHONE_BREAKPOINT_PX}px)`).matches ? 0.78 : 1;
 }
 
 function supportsStereoToggle(instrOrType) {
@@ -2754,7 +2828,7 @@ function renderInstrument(instr) {
       <div class="ilabel">${instr.label}</div>
     `;
   } else if(instr.isMixer) {
-    const bw = Math.max(instr.size || 100, 88);
+    const bw = Math.max((instr.size || 100) * getInstrumentRenderScale(), 72);
     const angleDeg = parseInt(instr.angle || 0, 10);
     el.innerHTML = `
       <div class="iface" style="transform:rotate(${angleDeg}deg);transform-origin:center center;">
@@ -2763,7 +2837,7 @@ function renderInstrument(instr) {
       <div class="ilabel">${instr.label}</div>
     `;
   } else {
-    const bw = instr.size || 52;
+    const bw = (instr.size || 52) * getInstrumentRenderScale();
     const fontSize = Math.round(bw * 0.44);
     const isStereo = !!instr.stereo;
     const isDrumKit = instr.type === 'drumkit';
@@ -2884,7 +2958,7 @@ function renderInstrument(instr) {
 function buildSnakeHTML(instr, includeLabel = true) {
   const ch = instr.snakeChannels || 16;
   const outputs = instr.type === 'snake8' ? 0 : (instr.snakeOutputs || 0);
-  const bw = Math.max(instr.size||80, 80);
+  const bw = Math.max((instr.size || 80) * getInstrumentRenderScale(), 62);
   const stageMode = snakeViewMode !== 'output';
 
   let inputPins = '';
