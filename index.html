@@ -47,7 +47,11 @@ header{display:flex;align-items:center;gap:10px;padding:7px 14px;background:var(
 .logo{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--accent);letter-spacing:2px;white-space:nowrap;}
 .logo span{color:var(--muted);}
 header .sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
-.header-btns{display:flex;gap:5px;margin-left:auto;}
+.header-btns{display:flex;gap:5px;}
+.quick-left-toggle{display:flex;gap:5px;}
+.header-menu-popover{display:flex;align-items:center;gap:8px;}
+.mobile-menu-btn{display:none;width:30px;height:30px;padding:0;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:16px;line-height:1;cursor:pointer;align-items:center;justify-content:center;}
+.mobile-menu-btn:hover{border-color:var(--accent2);color:var(--accent2);}
 .project-name-wrap{display:flex;align-items:center;gap:6px;margin-left:auto;}
 .project-name-label{font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;letter-spacing:.8px;white-space:nowrap;}
 .project-name-input{width:190px;max-width:32vw;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--text);font-size:11px;font-family:'Share Tech Mono',monospace;outline:none;}
@@ -66,6 +70,8 @@ header .sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
 .zoom-value{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent2);width:40px;text-align:right;}
 /* LAYOUT */
 .workspace{display:flex;flex:1;overflow:hidden;}
+.workspace.left-collapsed .sidebar{display:none;}
+.workspace.right-collapsed .rpanel{display:none;}
 /* SIDEBAR */
 .sidebar{width:208px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
 .ss{padding:9px 10px;border-bottom:1px solid var(--border);}
@@ -280,6 +286,11 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
     font-size: 12px;
   }
 
+  .mobile-menu-btn {
+    display: inline-flex;
+    margin-left: auto;
+  }
+
   .sep {
     display: none;
   }
@@ -301,45 +312,96 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
     margin-left: 0;
   }
 
+  .quick-left-toggle {
+    order: 4;
+    width: 100%;
+  }
+
+  .quick-left-toggle .btn {
+    width: 100%;
+  }
+
   .project-name-input {
     width: 100%;
     max-width: none;
   }
 
-  .header-btns {
-    order: 4;
-    width: 100%;
-    margin-left: 0;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    -webkit-overflow-scrolling: touch;
+  .header-menu-popover {
+    display: none;
+    position: fixed;
+    top: 56px;
+    right: 8px;
+    width: min(92vw, 360px);
+    max-height: 75dvh;
+    overflow: auto;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 10px 28px rgba(0,0,0,.25);
+    padding: 10px;
+    z-index: 300;
   }
 
-  .header-btns .btn {
-    flex: 0 0 auto;
+  body.mobile-menu-open .header-menu-popover {
+    display: flex;
+  }
+
+  .header-menu-popover .header-btns {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .header-menu-popover .header-btns {
+    flex-wrap: wrap;
+    gap: 6px;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .header-menu-popover .header-btns .btn {
+    flex: 1 1 calc(50% - 3px);
+    min-width: 110px;
   }
 
   .workspace {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 112px 1fr;
+    grid-template-areas:
+      'sidebar stage'
+      'rpanel rpanel';
     overflow: visible;
+  }
+
+  .workspace.left-collapsed {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'stage'
+      'rpanel';
   }
 
   .stage-container {
-    order: 1;
-    min-height: 58dvh;
-    height: 58dvh;
+    grid-area: stage;
+    min-height: 64dvh;
+    height: 64dvh;
   }
 
   .sidebar {
-    order: 2;
-    width: 100%;
-    border-right: none;
-    border-top: 1px solid var(--border);
-    overflow: visible;
+    grid-area: sidebar;
+    width: auto;
+    border-top: none;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .sidebar .ss {
+    padding: 7px 6px;
   }
 
   .rpanel {
-    order: 3;
+    grid-area: rpanel;
     width: 100%;
     border-left: none;
     border-top: 1px solid var(--border);
@@ -363,7 +425,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
   }
 
   .pal-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   #dz {
@@ -377,6 +439,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
 <header>
   <div class="logo">STAGE<span>/</span>MAP</div>
   <div class="sep"></div>
+  <button id="mobile-menu-btn" class="mobile-menu-btn" type="button" onclick="toggleMobileMenu()" aria-label="Open menu" aria-expanded="false">☰</button>
   <div class="zoom-controls" title="Stage zoom">
     <button class="zoom-btn" onclick="changeZoom(-0.1)">-</button>
     <input id="zoom-range" class="zoom-range" type="range" min="50" max="220" step="5" value="100" oninput="setZoom(this.value/100)">
@@ -388,21 +451,26 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
     <label class="project-name-label" for="project-name">Project</label>
     <input id="project-name" class="project-name-input" type="text" value="untitled-project" oninput="updateProjectName(this.value)">
   </div>
-  <div class="header-btns">
-    <button class="btn btn-ghost" onclick="undoAction()">Undo</button>
-    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
-    <button class="btn btn-ghost" onclick="saveRider()">Save Rider</button>
-    <button class="btn btn-ghost" onclick="triggerLoadRider()">Load Rider</button>
-    <button class="btn btn-ghost" onclick="exportPNG()">Export PNG</button>
-    <button class="btn btn-ghost" onclick="viewReport()">View Report</button>
-    <button class="btn btn-ghost" onclick="exportPDFReport()">Export PDF</button>
-    <button class="btn btn-primary" onclick="exportJSON()">Export Layout</button>
+  <div class="quick-left-toggle">
+    <button id="toggle-left-panel" class="btn btn-ghost" type="button" onclick="togglePanel('left')">Hide Left</button>
+  </div>
+  <div id="header-menu-popover" class="header-menu-popover">
+    <div class="header-btns">
+      <button class="btn btn-ghost" onclick="undoAction()">Undo</button>
+      <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+      <button class="btn btn-ghost" onclick="saveRider()">Save Rider</button>
+      <button class="btn btn-ghost" onclick="triggerLoadRider()">Load Rider</button>
+      <button class="btn btn-ghost" onclick="exportPNG()">Export PNG</button>
+      <button class="btn btn-ghost" onclick="viewReport()">View Report</button>
+      <button class="btn btn-ghost" onclick="exportPDFReport()">Export PDF</button>
+      <button class="btn btn-primary" onclick="exportJSON()">Export Layout</button>
+    </div>
   </div>
 </header>
 
 <input id="rider-file" type="file" accept="application/json,.json" style="display:none;">
 
-<div class="workspace">
+<div class="workspace" id="workspace-root">
   <!-- LEFT -->
   <div class="sidebar drop-delete-zone" id="delete-sidebar-zone">
     <div class="ss">
@@ -481,7 +549,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
   </div>
 
   <!-- RIGHT -->
-  <div class="rpanel">
+  <div class="rpanel" id="properties-panel">
     <div class="pss">
       <div class="pst">Properties</div>
       <div id="no-sel" style="font-size:10px;color:var(--muted);font-style:italic;">Select an item</div>
@@ -775,6 +843,7 @@ let hasUnsavedChanges = false;
 let hasInitialized = false;
 let projectName = 'untitled-project';
 const RIDER_FILE_EXTENSION = '.rider.json';
+const PANEL_PREF_STORAGE_KEY = 'stageDesigner.panelPrefs.v1';
 const HISTORY_LIMIT = 120;
 let historyStack = [];
 let redoStack = [];
@@ -783,22 +852,30 @@ let connectionHandleCache = [];
 let hoveredConnectionId = null;
 let touchPaletteDragData = null;
 let touchPaletteGhost = null;
+let isLeftPanelCollapsed = false;
+let isRightPanelCollapsed = false;
 
 // ═══════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════
 
 function init() {
+  loadPanelPrefs();
   loadCustomMicOptions();
   buildCatTabs(); buildPalette('all'); buildSnakePalette(); buildMixerPalette(); buildMonitoringPalette(); buildAccessoryPalette();
   buildCableColors();
   applyThemeMode();
   applyStageColor();
   resizeCanvas(); updateStage(true);
-  window.addEventListener('resize', () => { resizeCanvas(); updateStage(true); });
+  window.addEventListener('resize', () => {
+    if(window.innerWidth > 860) closeMobileMenu();
+    resizeCanvas();
+    updateStage(true);
+  });
   canvasWrap.addEventListener('wheel', handleStageZoomWheel, { passive: false });
   canvasWrap.addEventListener('gesturestart', handleStageGestureStart, { passive: false });
   canvasWrap.addEventListener('gesturechange', handleStageGestureChange, { passive: false });
+  canvasWrap.addEventListener('touchstart', startPanTouch, { passive: false });
   document.getElementById('rider-file').addEventListener('change', handleLoadRiderFile);
   document.getElementById('conn-canvas').addEventListener('mousedown', handleCableHandleMouseDown);
   document.getElementById('conn-canvas').addEventListener('mousemove', handleCanvasConnectionHover);
@@ -806,6 +883,7 @@ function init() {
   document.addEventListener('touchmove', moveTouchPaletteDrag, { passive: false });
   document.addEventListener('touchend', endTouchPaletteDrag, { passive: false });
   document.addEventListener('touchcancel', endTouchPaletteDrag, { passive: false });
+  document.addEventListener('click', handleDocumentClickForMobileMenu);
   window.addEventListener('beforeunload', e => {
     if(!hasUnsavedChanges) return;
     e.preventDefault();
@@ -815,10 +893,90 @@ function init() {
   hasInitialized = true;
   markClean();
   updateProjectNameUI();
+  updateMobileMenuButton();
+  applyPanelVisibility();
   applyZoom();
   pushHistoryState();
   updateSnakeViewToggleUI();
   render();
+}
+
+function savePanelPrefs() {
+  try {
+    localStorage.setItem(PANEL_PREF_STORAGE_KEY, JSON.stringify({
+      left: !!isLeftPanelCollapsed,
+    }));
+  } catch(_err) {
+    // Ignore storage failures.
+  }
+}
+
+function loadPanelPrefs() {
+  try {
+    const raw = localStorage.getItem(PANEL_PREF_STORAGE_KEY);
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    isLeftPanelCollapsed = !!parsed.left;
+    isRightPanelCollapsed = false;
+  } catch(_err) {
+    isLeftPanelCollapsed = false;
+    isRightPanelCollapsed = false;
+  }
+}
+
+function applyPanelVisibility() {
+  const workspace = document.getElementById('workspace-root');
+  isRightPanelCollapsed = false;
+  if(workspace) {
+    workspace.classList.toggle('left-collapsed', !!isLeftPanelCollapsed);
+    workspace.classList.remove('right-collapsed');
+  }
+
+  const leftBtn = document.getElementById('toggle-left-panel');
+  if(leftBtn) leftBtn.textContent = isLeftPanelCollapsed ? 'Show Left' : 'Hide Left';
+
+  resizeCanvas();
+  updateStage(true);
+  render();
+}
+
+function togglePanel(side) {
+  if(side === 'left') {
+    isLeftPanelCollapsed = !isLeftPanelCollapsed;
+  } else {
+    return;
+  }
+  savePanelPrefs();
+  applyPanelVisibility();
+}
+
+function updateMobileMenuButton() {
+  const btn = document.getElementById('mobile-menu-btn');
+  if(!btn) return;
+  const isOpen = document.body.classList.contains('mobile-menu-open');
+  btn.textContent = isOpen ? '×' : '☰';
+  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  btn.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
+}
+
+function toggleMobileMenu() {
+  document.body.classList.toggle('mobile-menu-open');
+  updateMobileMenuButton();
+}
+
+function closeMobileMenu() {
+  if(!document.body.classList.contains('mobile-menu-open')) return;
+  document.body.classList.remove('mobile-menu-open');
+  updateMobileMenuButton();
+}
+
+function handleDocumentClickForMobileMenu(e) {
+  if(!document.body.classList.contains('mobile-menu-open')) return;
+  const btn = document.getElementById('mobile-menu-btn');
+  const pop = document.getElementById('header-menu-popover');
+  const t = e.target;
+  if((btn && btn.contains(t)) || (pop && pop.contains(t))) return;
+  closeMobileMenu();
 }
 
 function updateSnakeViewToggleUI() {
@@ -1069,6 +1227,41 @@ function startPanDrag(e) {
 
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', onUp);
+}
+
+function startPanTouch(e) {
+  if(!e.touches || e.touches.length !== 1) return;
+  if(e.target.closest('.si, .iconn, .snake-ch-pin, .mixer-pin')) return;
+
+  const t = e.touches[0];
+  const startX = t.clientX;
+  const startY = t.clientY;
+  const startPanX = panX;
+  const startPanY = panY;
+  let moved = false;
+  canvasWrap.classList.add('is-panning');
+
+  function onMove(ev) {
+    if(!ev.touches || ev.touches.length !== 1) return;
+    const mt = ev.touches[0];
+    const dx = mt.clientX - startX;
+    const dy = mt.clientY - startY;
+    if(Math.abs(dx) > 2 || Math.abs(dy) > 2) moved = true;
+    if(ev.cancelable) ev.preventDefault();
+    setPan(startPanX + dx, startPanY + dy);
+  }
+
+  function onEnd() {
+    canvasWrap.classList.remove('is-panning');
+    if(moved) suppressCanvasClick = true;
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onEnd);
+    document.removeEventListener('touchcancel', onEnd);
+  }
+
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('touchend', onEnd, { passive: false });
+  document.addEventListener('touchcancel', onEnd, { passive: false });
 }
 
 function markDirty() {
