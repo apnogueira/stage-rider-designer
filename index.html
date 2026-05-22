@@ -90,6 +90,9 @@ header .sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
 .cat-tabs{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:7px;}
 .cat-tab{padding:2px 6px;font-size:8px;font-family:'Share Tech Mono',monospace;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .12s;}
 .cat-tab.active{background:var(--accent);color:#0a0b0d;border-color:var(--accent);font-weight:700;}
+.snake-view-toggle{display:flex;gap:4px;margin-top:6px;}
+.snake-view-btn{flex:1;padding:3px 6px;font-size:8px;font-family:'Share Tech Mono',monospace;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .12s;}
+.snake-view-btn.active{background:var(--accent4);border-color:var(--accent4);color:#0a0b0d;font-weight:700;}
 /* PALETTE */
 .pal-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
 .pal-tile{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 3px;cursor:grab;text-align:center;transition:all .15s;user-select:none;display:flex;flex-direction:column;align-items:center;gap:2px;}
@@ -107,10 +110,6 @@ header .sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
 .ccrow.selected{background:var(--surface);outline:1px solid var(--border);}
 .cswatch{width:14px;height:6px;border-radius:2px;flex-shrink:0;}
 .clabel{font-size:10px;color:var(--text);}
-/* LEGEND */
-.leg-list{display:flex;flex-direction:column;gap:3px;}
-.leg-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text);}
-.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 /* STAGE */
 .stage-container{flex:1;background:var(--bg);overflow:hidden;position:relative;}
 .stage-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface);padding:4px 11px;border-radius:20px;border:1px solid var(--border);pointer-events:none;white-space:nowrap;z-index:10;}
@@ -153,6 +152,10 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
 .si.is-snake .snake-ch-pin.out-pin{color:#9affca;border-color:#47ffa0;}
 .snake-label-row{display:flex;align-items:center;gap:4px;padding:2px 4px;}
 .snake-badge{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--accent4);background:rgba(196,127,255,.1);border:1px solid #c47fff44;padding:1px 5px;border-radius:10px;white-space:nowrap;}
+.snake-mode-row{display:flex;gap:4px;align-items:center;width:100%;margin-bottom:4px;}
+.snake-mode-btn{flex:1;padding:2px 5px;border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:8px;line-height:1.2;cursor:pointer;}
+.snake-mode-btn.active{background:rgba(196,127,255,.16);border-color:var(--accent4);color:var(--accent4);}
+.snake-mode-link{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);margin:1px 0 4px;}
 .si.is-mixer .ib{border-color:#47c4ff66;background:#101722;border-radius:6px;}
 .si.is-mixer:hover .ib{border-color:#47c4ff;}
 .si.is-mixer.selected .ib{border-color:#47c4ff;box-shadow:0 0 0 2px rgba(71,196,255,.2);}
@@ -258,6 +261,116 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
 #dz{position:absolute;bottom:10px;right:226px;background:rgba(255,107,71,.1);border:2px dashed var(--accent3);border-radius:6px;padding:6px 12px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent3);pointer-events:none;opacity:0;transition:opacity .2s;z-index:20;}
 #dz.visible{opacity:1;pointer-events:all;}
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+@media (max-width: 860px) {
+  body {
+    height: auto;
+    min-height: 100dvh;
+    overflow: auto;
+  }
+
+  header {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+
+  .logo {
+    font-size: 12px;
+  }
+
+  .sep {
+    display: none;
+  }
+
+  .zoom-controls {
+    order: 2;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .zoom-range {
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .project-name-wrap {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .project-name-input {
+    width: 100%;
+    max-width: none;
+  }
+
+  .header-btns {
+    order: 4;
+    width: 100%;
+    margin-left: 0;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .header-btns .btn {
+    flex: 0 0 auto;
+  }
+
+  .workspace {
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .stage-container {
+    order: 1;
+    min-height: 58dvh;
+    height: 58dvh;
+  }
+
+  .sidebar {
+    order: 2;
+    width: 100%;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    overflow: visible;
+  }
+
+  .rpanel {
+    order: 3;
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    overflow: visible;
+  }
+
+  #canvas-wrap {
+    touch-action: none;
+  }
+
+  .stage-hint {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    transform: none;
+    text-align: center;
+    white-space: normal;
+    font-size: 10px;
+    line-height: 1.35;
+    padding: 6px 9px;
+  }
+
+  .pal-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  #dz {
+    right: 10px;
+    bottom: 10px;
+  }
+}
 </style>
 </head>
 <body>
@@ -321,6 +434,10 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
     <div class="ss">
       <div class="st">Snakes</div>
       <div class="pal-grid" id="snake-pal"></div>
+      <div class="snake-view-toggle" id="snake-view-toggle">
+        <button class="snake-view-btn active" data-mode="input" type="button" onclick="setSnakeViewMode('input')">Stage Mode</button>
+        <button class="snake-view-btn" data-mode="output" type="button" onclick="setSnakeViewMode('output')">Cable Mode</button>
+      </div>
     </div>
     <div class="ss">
       <div class="st">Mixers</div>
@@ -339,15 +456,12 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
       <div class="cable-colors" id="cable-colors"></div>
     </div>
     <div class="ss">
-      <div class="st">Legend</div>
-      <div class="leg-list" id="legend"></div>
-    </div>
-    <div class="ss">
       <div class="st">Tips</div>
       <div style="font-size:10px;color:var(--muted);line-height:1.65;">
         <span style="color:var(--accent2);">Arrange:</span> drag from palette, drag to move.<br>
-        <span style="color:var(--accent2);">Connect:</span> click a blue pin → click destination pin.<br>
-        <span style="color:var(--accent4);">Snake pins:</span> click a pin to connect it.<br>
+        <span style="color:var(--accent2);">Connect:</span> click a source pin, then a destination pin.<br>
+        <span style="color:var(--accent4);">Snakes:</span> switch Stage/Cable mode, matching channels use same number.<br>
+        <span style="color:var(--accent4);">Smart cable:</span> obvious matches auto-pick cable type.<br>
         Drag to <span style="color:var(--accent3);">anywhere on the left sidebar</span> to remove.
       </div>
     </div>
@@ -363,7 +477,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
       <div id="audience-label">◀ AUDIENCE ▶</div>
       <div id="dz">🗑 DROP TO DELETE</div>
     </div>
-    <div class="stage-hint" id="stage-hint">Drag instruments from the palette onto the stage</div>
+    <div class="stage-hint" id="stage-hint">Drag from palette · Click source pin then destination pin · Drop on left sidebar to delete</div>
   </div>
 
   <!-- RIGHT -->
@@ -469,7 +583,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
           <div class="pr"><label class="plbl">Input Connectors</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:11px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:7px 8px;">
               <input id="p-snake-jack" type="checkbox" onchange="updSnakeAllowJack(this.checked)">
-              Allow Jack (TS) on snake inputs
+              Allow Jack (TS/TRS) on snake inputs
             </label>
           </div>
         </div>
@@ -539,6 +653,8 @@ const ICON_ASSET_BY_TYPE = {
   trombone:'images/trombone.png',
   sax:'images/sax.png',
   monitor:'images/monitor.png',
+  p16:'images/p16.png',
+  pm1:'images/pm1.png',
   ha8000:'images/ChatGPT Image May 22, 2026, 10_50_25 AM.png',
   mainspk:'images/main_speaker.png',
   subwoofer:'images/subwoofer.png',
@@ -588,11 +704,10 @@ const INSTRUMENTS = [
   {type:'pedals',    cat:'accessories',   icon:'🎛', name:'Pedals',      wide:false, size:48, connSide:'bottom'},
   {type:'laptop',    cat:'infra',   icon:'💻', name:'Laptop',      wide:false, size:52, connSide:'right'},
   {type:'midipad',   cat:'infra',   icon:'🟦', name:'MIDI Pad',    wide:false, size:48, connSide:'right'},
-  {type:'power',     cat:'infra',   icon:'⚡', name:'Power Outlet',wide:false, size:40, connSide:'top'},
 ];
 
 const SNAKES = [
-  {type:'snake8',  name:'8-ch Snake',  channels:8,  outputs:2 },
+  {type:'snake8',  name:'8-ch Snake',  channels:8,  outputs:0 },
   {type:'snake16', name:'16-ch Snake', channels:16, outputs:4 },
   {type:'snake24', name:'24-ch Snake', channels:24, outputs:8 },
   {type:'snake32', name:'32-ch Snake', channels:32, outputs:8 },
@@ -600,13 +715,21 @@ const SNAKES = [
 
 const CABLE_TYPES = [
   {id:'xlr',      label:'XLR',       color:'#47c4ff'},
-  {id:'ts',       label:'TS',        color:'#e8ff47'},
+  {id:'ts',       label:'Jack TS',   color:'#e8ff47'},
+  {id:'trs',      label:'Jack TRS',  color:'#9dff47'},
   {id:'speakon',  label:'Speakon',   color:'#ff6b47'},
   {id:'ethernet', label:'Ethernet',  color:'#ff9f47'},
   {id:'midi',     label:'MIDI',      color:'#c47fff'},
   {id:'digital',  label:'Digital',   color:'#47ffa0'},
-  {id:'power',    label:'Power',     color:'#ff4747'},
 ];
+
+function isKnownCableType(typeId) {
+  return CABLE_TYPES.some(c => c.id === typeId);
+}
+
+function normalizeCableType(typeId, fallback = 'xlr') {
+  return isKnownCableType(typeId) ? typeId : fallback;
+}
 
 const MIC_OPTIONS_BASE = [
   'Shure SM58',
@@ -630,6 +753,7 @@ let selectedId = null;
 let connectingFrom = null; // {id, pin} pin=null for regular, pin=number for snake
 let isDraggingNew = false, newDragData = null;
 let selectedCable = 'xlr';
+let snakeViewMode = 'input';
 let idCounter = 0;
 let drawingLine = null;
 let stageW = 7.5, stageD = 4.4;
@@ -667,7 +791,7 @@ let touchPaletteGhost = null;
 function init() {
   loadCustomMicOptions();
   buildCatTabs(); buildPalette('all'); buildSnakePalette(); buildMixerPalette(); buildMonitoringPalette(); buildAccessoryPalette();
-  buildCableColors(); buildLegend();
+  buildCableColors();
   applyThemeMode();
   applyStageColor();
   resizeCanvas(); updateStage(true);
@@ -693,6 +817,23 @@ function init() {
   updateProjectNameUI();
   applyZoom();
   pushHistoryState();
+  updateSnakeViewToggleUI();
+  render();
+}
+
+function updateSnakeViewToggleUI() {
+  document.querySelectorAll('.snake-view-btn, .snake-mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === snakeViewMode);
+  });
+}
+
+function setSnakeViewMode(mode) {
+  const next = mode === 'output' ? 'output' : 'input';
+  normalizeAllSnakeConnectionPins();
+  if(snakeViewMode === next) return;
+  snakeViewMode = next;
+  updateSnakeViewToggleUI();
+  instruments.filter(i => i.isSnake).forEach(renderInstrument);
   render();
 }
 
@@ -812,7 +953,7 @@ function endTouchPaletteDrag(ev) {
   touchPaletteDragData = null;
   removeTouchPaletteGhost();
   const hint = document.getElementById('stage-hint');
-  if(hint) hint.textContent = 'Drag instruments from the palette onto the stage';
+  if(hint) hint.textContent = 'Drag from palette · Click source pin then destination pin · Drop on left sidebar to delete';
 }
 
 function applyZoom() {
@@ -1167,7 +1308,7 @@ function supportsMicPickup(instrOrType) {
   if(!type) return false;
   const disallowed = new Set([
     'elguitar', 'bass', 'keys', 'vox', 'bgvox', 'talkback',
-    'monitor', 'mainspk', 'subwoofer', 'passivespk', 'iem', 'headphones', 'pm1', 'p16', 'ha8000', 'di', 'amp', 'pedals', 'laptop', 'midipad', 'power',
+    'monitor', 'mainspk', 'subwoofer', 'passivespk', 'iem', 'headphones', 'pm1', 'p16', 'ha8000', 'di', 'amp', 'pedals', 'laptop', 'midipad',
     'snake8', 'snake16', 'snake24', 'snake32', 'xr18', 'x32', 'x32compact', 'x32rack', 'wing', 'wingcompact', 'wingrack'
   ]);
   return !disallowed.has(type);
@@ -1311,7 +1452,7 @@ function getPinMicNote(instr, pin) {
 
 function getPinAllowedCableTypes(instr, pin) {
   const p = pinKey(pin);
-  if(!instr) return ['xlr', 'ts', 'ethernet'];
+  if(!instr) return ['xlr', 'ts', 'trs', 'ethernet'];
 
   if(isSpeakerWithThru(instr)) {
     if(p === 'SPK-IN') return speakerConnectorModeToCableTypes(normalizeSpeakerConnectorMode(instr.spkInputMode, 'xlr'));
@@ -1329,12 +1470,13 @@ function getPinAllowedCableTypes(instr, pin) {
   }
 
   if(instr.type === 'ha8000') {
-    if(p.startsWith('HA-IN-') || p.startsWith('HA-OUT-')) return ['ts'];
+    if(p.startsWith('HA-IN-')) return ['ts'];
+    if(p.startsWith('HA-OUT-')) return ['trs'];
   }
 
   if(instr.isSnake) {
-    if(p.startsWith('IN-')) return instr.snakeAllowJackInputs ? ['xlr', 'ts'] : ['xlr'];
-    if(p.startsWith('OUT-')) return ['xlr'];
+    if(isSnakeInputPinKey(p)) return instr.snakeAllowJackInputs ? ['xlr', 'ts', 'trs'] : ['xlr'];
+    if(isSnakeOutputPinKey(p)) return ['xlr'];
   }
 
   if(instr.isMixer) {
@@ -1358,10 +1500,11 @@ function getPinAllowedCableTypes(instr, pin) {
   }
 
   if(instr.type === 'p16' && (p === 'MONO' || p === 'L' || p === 'R')) return ['ethernet'];
+  if((instr.type === 'iem' || instr.type === 'headphones') && (p === 'MONO' || p === 'L' || p === 'R')) return ['trs'];
 
   if(p.startsWith('DM-')) return ['xlr'];
   if(p === 'L' || p === 'R' || p === 'MONO') return connectorModeToCableTypes(instr.connectorMode || getDefaultConnectorMode(instr.type));
-  return ['xlr', 'ts'];
+  return ['xlr', 'ts', 'trs'];
 }
 
 function getCableTypeLabel(typeId) {
@@ -1428,7 +1571,16 @@ function cloneInstruments(list) {
 }
 
 function cloneConnections(list) {
-  return list.map(c => ({...c}));
+  return list.map(c => {
+    const normalizedCableType = normalizeCableType(c.cableType || 'xlr');
+    const cable = CABLE_TYPES.find(t => t.id === normalizedCableType) || CABLE_TYPES[0];
+    return {
+      ...c,
+      cableType: normalizedCableType,
+      color: cable.color,
+      label: cable.label,
+    };
+  });
 }
 
 function captureSnapshot() {
@@ -1459,9 +1611,10 @@ function applySnapshot(snapshot, keepCleanState) {
   stageColor = /^#[0-9a-fA-F]{6}$/.test(String(snapshot.stageColor || '')) ? snapshot.stageColor : DEFAULT_STAGE_COLOR;
   instruments = cloneInstruments(snapshot.instruments || []);
   connections = cloneConnections(snapshot.connections || []);
+  normalizeAllSnakeConnectionPins();
   selectedId = snapshot.selectedId || null;
   idCounter = snapshot.idCounter || 0;
-  selectedCable = snapshot.selectedCable || 'xlr';
+  selectedCable = normalizeCableType(snapshot.selectedCable || 'xlr');
   connectingFrom = null;
   drawingLine = null;
 
@@ -1646,15 +1799,6 @@ function buildCableColors() {
   });
 }
 
-function buildLegend() {
-  const l = document.getElementById('legend'); l.innerHTML = '';
-  CABLE_TYPES.forEach(ct => {
-    const i = document.createElement('div'); i.className='leg-item';
-    i.innerHTML = `<div class="leg-dot" style="background:${ct.color}"></div><span>${ct.label}</span>`;
-    l.appendChild(i);
-  });
-}
-
 // ═══════════════════════════════════════════════════════════════
 // STAGE
 // ═══════════════════════════════════════════════════════════════
@@ -1829,6 +1973,22 @@ function pinForReport(pin) {
   if(haOutMatch) return `HP-${parseInt(haOutMatch[1], 10)}`;
   const ampOutMatch = key.match(/^AMP-OUT-(\d+)$/);
   if(ampOutMatch) return `SPK-${parseInt(ampOutMatch[1], 10)}`;
+  const stageInMatch = key.match(/^STAGE-IN-(\d+)$/);
+  if(stageInMatch) return `STAGE-IN-${parseInt(stageInMatch[1], 10)}`;
+  const cableOutMatch = key.match(/^CABLE-OUT-(\d+)$/);
+  if(cableOutMatch) return `CABLE-OUT-${parseInt(cableOutMatch[1], 10)}`;
+  const stageOutMatch = key.match(/^STAGE-OUT-(\d+)$/);
+  if(stageOutMatch) {
+    const idx = parseInt(stageOutMatch[1], 10);
+    const letter = indexToLetters(idx);
+    return `STAGE-OUT-${letter} (${idx})`;
+  }
+  const cableInMatch = key.match(/^CABLE-IN-(\d+)$/);
+  if(cableInMatch) {
+    const idx = parseInt(cableInMatch[1], 10);
+    const letter = indexToLetters(idx);
+    return `CABLE-IN-${letter} (${idx})`;
+  }
   const outMatch = key.match(/^OUT-(\d+)$/);
   if(outMatch) {
     const idx = parseInt(outMatch[1], 10);
@@ -1851,6 +2011,52 @@ function indexToLetters(index) {
     n = Math.floor((n - 1) / 26);
   }
   return out || 'A';
+}
+
+function isSnakeInputPinKey(key) {
+  return typeof key === 'string' && (key.startsWith('IN-') || key.startsWith('STAGE-IN-') || key.startsWith('CABLE-IN-'));
+}
+
+function isSnakeOutputPinKey(key) {
+  return typeof key === 'string' && (key.startsWith('OUT-') || key.startsWith('STAGE-OUT-') || key.startsWith('CABLE-OUT-'));
+}
+
+function isSnakeStageReturnOutputPin(pin) {
+  const key = pinKey(pin);
+  return key.startsWith('STAGE-OUT-') || key.startsWith('OUT-');
+}
+
+function normalizeSnakeEndpointPinForInstrument(instr, pin) {
+  const key = pinKey(pin);
+  if(!instr || !instr.isSnake) return key;
+  const legacyIn = key.match(/^IN-(\d+)$/);
+  if(legacyIn) return `STAGE-IN-${parseInt(legacyIn[1], 10)}`;
+  const legacyOut = key.match(/^OUT-(\d+)$/);
+  if(legacyOut) return `STAGE-OUT-${parseInt(legacyOut[1], 10)}`;
+  return key;
+}
+
+function normalizeAllSnakeConnectionPins() {
+  if(!Array.isArray(connections) || !connections.length) return false;
+  const byId = new Map(instruments.map(i => [i.id, i]));
+  let changed = false;
+  connections.forEach(c => {
+    const fromInstr = byId.get(c.fromId);
+    const toInstr = byId.get(c.toId);
+    const fromCurrent = pinKey(c.fromPin);
+    const toCurrent = pinKey(c.toPin);
+    const fromNext = normalizeSnakeEndpointPinForInstrument(fromInstr, c.fromPin);
+    const toNext = normalizeSnakeEndpointPinForInstrument(toInstr, c.toPin);
+    if(fromNext !== fromCurrent) {
+      c.fromPin = fromNext;
+      changed = true;
+    }
+    if(toNext !== toCurrent) {
+      c.toPin = toNext;
+      changed = true;
+    }
+  });
+  return changed;
 }
 
 function isPinUsed(id, pin) {
@@ -1929,6 +2135,10 @@ function buildStereoSuggestion(baseConn) {
   );
   if(!validation.valid) return null;
 
+  suggestion.cableType = validation.cableType;
+  suggestion.color = validation.color;
+  suggestion.label = validation.label;
+
   return suggestion;
 }
 
@@ -1949,15 +2159,129 @@ function maybeSuggestStereoCompanion(baseConn) {
     fromPin: suggestion.fromPin,
     toId: suggestion.toId,
     toPin: suggestion.toPin,
-    cableType: baseConn.cableType,
-    color: baseConn.color,
-    label: baseConn.label,
+    cableType: suggestion.cableType || baseConn.cableType,
+    color: suggestion.color || baseConn.color,
+    label: suggestion.label || baseConn.label,
     routeX: null,
   });
 
   markDirty();
   refreshConnectorStates(suggestion.fromId);
   refreshConnectorStates(suggestion.toId);
+}
+
+function parseSnakeNumberedPin(pin) {
+  const key = pinKey(pin);
+  const m = key.match(/^(STAGE-IN|CABLE-OUT|IN)-(\d+)$/);
+  if(!m) return null;
+  return {
+    family: m[1] === 'IN' ? 'STAGE-IN' : m[1],
+    index: parseInt(m[2], 10),
+  };
+}
+
+function parseMixerInputPin(pin) {
+  const key = pinKey(pin);
+  const m = key.match(/^MX-IN-(\d+)$/);
+  if(!m) return null;
+  return { index: parseInt(m[1], 10) };
+}
+
+function maybeAutoRouteSnakeMixer(baseConn) {
+  const fromInstr = instruments.find(i => i.id === baseConn.fromId);
+  const toInstr = instruments.find(i => i.id === baseConn.toId);
+  if(!fromInstr || !toInstr) return;
+
+  const fromSnake = fromInstr.isSnake ? parseSnakeNumberedPin(baseConn.fromPin) : null;
+  const toSnake = toInstr.isSnake ? parseSnakeNumberedPin(baseConn.toPin) : null;
+  const fromMixerIn = fromInstr.isMixer ? parseMixerInputPin(baseConn.fromPin) : null;
+  const toMixerIn = toInstr.isMixer ? parseMixerInputPin(baseConn.toPin) : null;
+
+  let snakeInstr = null;
+  let mixerInstr = null;
+  let snakePinFamily = '';
+  let snakeStartIdx = 0;
+  let mixerStartIdx = 0;
+  let direction = 'snake-to-mixer';
+
+  if(fromSnake && toMixerIn) {
+    snakeInstr = fromInstr;
+    mixerInstr = toInstr;
+    snakePinFamily = fromSnake.family;
+    snakeStartIdx = fromSnake.index;
+    mixerStartIdx = toMixerIn.index;
+    direction = 'snake-to-mixer';
+  } else if(fromMixerIn && toSnake) {
+    snakeInstr = toInstr;
+    mixerInstr = fromInstr;
+    snakePinFamily = toSnake.family;
+    snakeStartIdx = toSnake.index;
+    mixerStartIdx = fromMixerIn.index;
+    direction = 'mixer-to-snake';
+  } else {
+    return;
+  }
+
+  const snakeMax = Math.max(1, Number(snakeInstr.snakeChannels) || 16);
+  const mixerMax = Math.max(0, Number(mixerInstr.mixerInputs) || 0);
+  let maxAdditional = 0;
+  while((snakeStartIdx + maxAdditional + 1) <= snakeMax && (mixerStartIdx + maxAdditional + 1) <= mixerMax) {
+    maxAdditional += 1;
+  }
+  if(maxAdditional <= 0) return;
+
+  const maxTotal = 1 + maxAdditional;
+  const ask = prompt(`Snake to mixer auto-route\n\nHow many consecutive connections do you want to make?\nStart mapping: snake ${snakeStartIdx} -> mixer IN ${mixerStartIdx}\nEnter a number from 1 to ${maxTotal}.`, String(Math.min(8, maxTotal)));
+  if(ask == null) return;
+  const requestedTotal = parseInt(String(ask).trim(), 10);
+  if(!Number.isFinite(requestedTotal) || requestedTotal < 1) {
+    alert('Auto-route cancelled: please enter a valid number.');
+    return;
+  }
+  const total = Math.min(maxTotal, requestedTotal);
+  const additionalNeeded = total - 1;
+  if(additionalNeeded <= 0) return;
+
+  let added = 0;
+  for(let step = 1; step <= additionalNeeded; step += 1) {
+    const snakeIdx = snakeStartIdx + step;
+    const mixerIdx = mixerStartIdx + step;
+    const snakePin = `${snakePinFamily}-${snakeIdx}`;
+    const mixerPin = `MX-IN-${mixerIdx}`;
+
+    const fromObj = direction === 'snake-to-mixer'
+      ? { id: snakeInstr.id, pin: snakePin }
+      : { id: mixerInstr.id, pin: mixerPin };
+    const toObj = direction === 'snake-to-mixer'
+      ? { id: mixerInstr.id, pin: mixerPin }
+      : { id: snakeInstr.id, pin: snakePin };
+
+    const validation = validateConnection(fromObj, toObj);
+    if(!validation.valid) break;
+
+    connections.push({
+      id: ++idCounter,
+      fromId: fromObj.id,
+      fromPin: fromObj.pin,
+      toId: toObj.id,
+      toPin: toObj.pin,
+      cableType: validation.cableType,
+      color: validation.color,
+      label: validation.label,
+      routeX: null,
+    });
+    added += 1;
+  }
+
+  if(added > 0) {
+    markDirty();
+    refreshConnectorStates(baseConn.fromId);
+    refreshConnectorStates(baseConn.toId);
+  }
+
+  if(added < additionalNeeded) {
+    alert(`Auto-route added ${added + 1} of ${total} requested connections. Remaining channels were not available.`);
+  }
 }
 
 function render() {
@@ -2212,7 +2536,7 @@ function addInstrument(data, x, y) {
 	newInstr.notes = 'Stereo Output (L/R)';
   }
   markDirty();
-  document.getElementById('stage-hint').textContent='Click item for properties · Drag to arrange · Use blue pins to connect';
+  document.getElementById('stage-hint').textContent='Click item for properties · Drag to arrange · Click source pin then destination pin';
   render();
 }
 
@@ -2301,13 +2625,13 @@ function renderInstrument(instr) {
 
   // Drag to move
   el.addEventListener('mousedown', e => {
-    if(e.target.classList.contains('iconn') || e.target.classList.contains('snake-ch-pin') || e.target.classList.contains('mixer-pin')) return;
+    if(e.target.classList.contains('iconn') || e.target.classList.contains('snake-ch-pin') || e.target.classList.contains('mixer-pin') || e.target.closest('.snake-mode-btn')) return;
     e.preventDefault();
     e.stopPropagation();
     startDrag(e, instr.id, el);
   });
   el.addEventListener('touchstart', e => {
-    if(e.target.classList.contains('iconn') || e.target.classList.contains('snake-ch-pin') || e.target.classList.contains('mixer-pin')) return;
+    if(e.target.classList.contains('iconn') || e.target.classList.contains('snake-ch-pin') || e.target.classList.contains('mixer-pin') || e.target.closest('.snake-mode-btn')) return;
     if(e.cancelable) e.preventDefault();
     e.stopPropagation();
     startDragTouch(e, instr.id, el);
@@ -2366,34 +2690,41 @@ function renderInstrument(instr) {
 
 function buildSnakeHTML(instr, includeLabel = true) {
   const ch = instr.snakeChannels || 16;
-  const outputs = instr.snakeOutputs || 0;
+  const outputs = instr.type === 'snake8' ? 0 : (instr.snakeOutputs || 0);
   const bw = Math.max(instr.size||80, 80);
+  const stageMode = snakeViewMode !== 'output';
 
   let inputPins = '';
   for(let i=1;i<=ch;i++){
-    const isUsed = connections.some(c => (c.fromId===instr.id&&c.fromPin==='IN-'+i)||(c.toId===instr.id&&c.toPin==='IN-'+i));
-    inputPins += `<div id="pin-${instr.id}-IN-${i}" class="snake-ch-pin${isUsed?' used':''}" data-pin="IN-${i}" title="${buildPinTitle(instr, `IN-${i}`, `Input ${i}`)}">${i}</div>`;
+    const topPinKey = stageMode ? `STAGE-IN-${i}` : `CABLE-OUT-${i}`;
+    const isUsed = connections.some(c => (c.fromId===instr.id&&c.fromPin===topPinKey)||(c.toId===instr.id&&c.toPin===topPinKey));
+    const pinClass = `snake-ch-pin${stageMode ? '' : ' out-pin'}${isUsed?' used':''}`;
+    const roleLabel = stageMode ? `Input ${i}` : `Output ${i}`;
+    inputPins += `<div id="pin-${instr.id}-${topPinKey}" class="${pinClass}" data-pin="${topPinKey}" title="${buildPinTitle(instr, topPinKey, `${roleLabel} (paired with channel ${i})`)}">${i}</div>`;
   }
 
   let outputPins = '';
   for(let i=1;i<=outputs;i++){
-    const isUsed = connections.some(c => (c.fromId===instr.id&&c.fromPin==='OUT-'+i)||(c.toId===instr.id&&c.toPin==='OUT-'+i));
+    const bottomPinKey = stageMode ? `STAGE-OUT-${i}` : `CABLE-IN-${i}`;
+    const isUsed = connections.some(c => (c.fromId===instr.id&&c.fromPin===bottomPinKey)||(c.toId===instr.id&&c.toPin===bottomPinKey));
     const label = indexToLetters(i);
-    outputPins += `<div id="pin-${instr.id}-OUT-${i}" class="snake-ch-pin out-pin${isUsed?' used':''}" data-pin="OUT-${i}" title="${buildPinTitle(instr, `OUT-${i}`, `Output ${label}`)}">${label}</div>`;
+    const pinClass = `snake-ch-pin${stageMode ? ' out-pin' : ''}${isUsed?' used':''}`;
+    const roleLabel = stageMode ? `Output ${label}` : `Input ${label}`;
+    outputPins += `<div id="pin-${instr.id}-${bottomPinKey}" class="${pinClass}" data-pin="${bottomPinKey}" title="${buildPinTitle(instr, bottomPinKey, `${roleLabel} (paired with channel ${label})`)}">${label}</div>`;
   }
+
+  const topLabel = stageMode ? 'INPUTS' : 'OUTPUTS';
+  const bottomLabel = stageMode ? 'OUTPUTS' : 'INPUTS';
 
   return `
     <div class="ib" style="width:${bw}px;min-height:60px;padding:4px;flex-direction:column;font-size:0;">
-      <div class="snake-label-row">
-        <span style="font-size:16px;">🐍</span>
-        <span class="snake-badge">${ch}in / ${outputs}out</span>
-        ${instr.channel?`<div class="ich" style="position:relative;top:0;right:0;">${instr.channel}</div>`:''}
+      <div class="snake-mode-row">
+        <button class="snake-mode-btn${stageMode?' active':''}" data-mode="input" type="button" onclick="event.stopPropagation();setSnakeViewMode('input')">STAGE</button>
+        <button class="snake-mode-btn${!stageMode?' active':''}" data-mode="output" type="button" onclick="event.stopPropagation();setSnakeViewMode('output')">CABLE</button>
       </div>
-
-      <div style="font-size:9px;color:#c47fff;margin-top:4px;">INPUTS</div>
+      <div style="font-size:9px;color:#c47fff;margin-top:2px;">${topLabel}</div>
       <div class="snake-channels">${inputPins}</div>
-
-      <div style="font-size:9px;color:#47ffa0;margin-top:6px;">OUTPUTS</div>
+      <div style="font-size:9px;color:#1f8a5a;margin-top:6px;">${bottomLabel}</div>
       <div class="snake-channels">${outputPins}</div>
     </div>
     ${includeLabel ? `<div class="ilabel">${instr.label}</div>` : ''}
@@ -2551,7 +2882,7 @@ function startDrag(e, id, el) {
     }
     document.body.classList.remove('delete-dragging-hot');
     document.body.classList.remove('delete-dragging');
-    if(hint) hint.textContent = 'Drag instruments from the palette onto the stage';
+    if(hint) hint.textContent = 'Drag from palette · Click source pin then destination pin · Drop on left sidebar to delete';
     if(isOverDeleteZone(e)) deleteInstrument(id);
     else if(moved) {
       historyStack.push(dragSnapshot);
@@ -2627,7 +2958,7 @@ function startDragTouch(e, id, el) {
     }
     document.body.classList.remove('delete-dragging-hot');
     document.body.classList.remove('delete-dragging');
-    if(hint) hint.textContent = 'Drag instruments from the palette onto the stage';
+    if(hint) hint.textContent = 'Drag from palette · Click source pin then destination pin · Drop on left sidebar to delete';
 
     if(p && isOverDeleteZone(p.clientX, p.clientY)) deleteInstrument(id);
     else if(moved) {
@@ -2996,9 +3327,9 @@ function updSnakeAllowJack(enabled) {
   if(!next) {
     const before = connections.length;
     connections = connections.filter(c => {
-      const touchesSnakeInput = (c.fromId === instr.id && typeof c.fromPin === 'string' && c.fromPin.startsWith('IN-')) || (c.toId === instr.id && typeof c.toPin === 'string' && c.toPin.startsWith('IN-'));
+      const touchesSnakeInput = (c.fromId === instr.id && isSnakeInputPinKey(pinKey(c.fromPin))) || (c.toId === instr.id && isSnakeInputPinKey(pinKey(c.toPin)));
       if(!touchesSnakeInput) return true;
-      return c.cableType !== 'ts';
+      return c.cableType !== 'ts' && c.cableType !== 'trs';
     });
     if(connections.length !== before) {
       connectingFrom = null;
@@ -3236,17 +3567,17 @@ function deleteInstrument(id) {
 
 
 function isOutputPin(pin) {
-  return typeof pin === 'string' && (pin === 'MONO' || pin === 'L' || pin === 'R' || pin.startsWith('DM-') || pin.startsWith('OUT-') || pin.startsWith('MX-AUX-') || pin.startsWith('MX-MAIN-') || pin.startsWith('MX-JACK-OUT-') || pin.startsWith('MX-P16-') || pin.startsWith('MX-AES50-') || pin.startsWith('IO-OUT-') || pin.startsWith('HA-OUT-') || pin.startsWith('AMP-OUT-') || pin === 'SPK-OUT');
+  return typeof pin === 'string' && (pin === 'MONO' || pin === 'L' || pin === 'R' || pin.startsWith('DM-') || pin.startsWith('OUT-') || pin.startsWith('STAGE-OUT-') || pin.startsWith('CABLE-OUT-') || pin.startsWith('MX-AUX-') || pin.startsWith('MX-MAIN-') || pin.startsWith('MX-JACK-OUT-') || pin.startsWith('MX-P16-') || pin.startsWith('MX-AES50-') || pin.startsWith('IO-OUT-') || pin.startsWith('HA-OUT-') || pin.startsWith('AMP-OUT-') || pin === 'SPK-OUT');
 }
 
 function isInputPin(pin) {
-  return typeof pin === 'string' && (pin.startsWith('IN-') || pin.startsWith('MX-IN-') || pin.startsWith('IO-IN-') || pin.startsWith('HA-IN-') || pin.startsWith('AMP-IN-') || pin === 'SPK-IN');
+  return typeof pin === 'string' && (pin.startsWith('IN-') || pin.startsWith('STAGE-IN-') || pin.startsWith('CABLE-IN-') || pin.startsWith('MX-IN-') || pin.startsWith('IO-IN-') || pin.startsWith('HA-IN-') || pin.startsWith('AMP-IN-') || pin === 'SPK-IN');
 }
 
 function isEndpointOnlyOutput(instr, pin) {
   const key = pinKey(pin);
   if(!instr) return false;
-  if(instr.isSnake && key.startsWith('OUT-')) return true;
+  if(instr.isSnake && (key.startsWith('STAGE-OUT-') || key.startsWith('OUT-'))) return true;
   if(instr.isMixer && (key.startsWith('MX-AUX-') || key.startsWith('MX-MAIN-') || key.startsWith('MX-JACK-OUT-') || key.startsWith('MX-P16-') || key.startsWith('MX-AES50-'))) return true;
   if(instr.type === 'ha8000' && key.startsWith('HA-OUT-')) return true;
   if(isSpeakerWithThru(instr) && key === 'SPK-OUT') return true;
@@ -3255,6 +3586,26 @@ function isEndpointOnlyOutput(instr, pin) {
 
 function isDrumMicPin(pin) {
   return typeof pin === 'string' && pin.startsWith('DM-');
+}
+
+function isSnakeInPin(instr, pin) {
+  const key = pinKey(pin);
+  return !!(instr && instr.isSnake && isSnakeInputPinKey(key));
+}
+
+function isSnakeOutPin(instr, pin) {
+  const key = pinKey(pin);
+  return !!(instr && instr.isSnake && isSnakeOutputPinKey(key));
+}
+
+function isEffectiveOutputPin(instr, pin) {
+  if(instr && instr.isSnake) return isSnakeOutPin(instr, pin);
+  return isOutputPin(pin);
+}
+
+function isEffectiveInputPin(instr, pin) {
+  if(instr && instr.isSnake) return isSnakeInPin(instr, pin);
+  return isInputPin(pin);
 }
 
 function getPinTargetAtClientPoint(clientX, clientY) {
@@ -3343,6 +3694,40 @@ function startConnectionFromPin(id, pin, e) {
   document.addEventListener('touchcancel', onUp, { passive: false });
 }
 
+function resolveCableForPins(fromInstr, fromPin, toInstr, toPin, preferredCable = selectedCable) {
+  const fromAllowed = getPinAllowedCableTypes(fromInstr, fromPin);
+  const toAllowed = getPinAllowedCableTypes(toInstr, toPin);
+  const common = fromAllowed.filter(typeId => toAllowed.includes(typeId));
+
+  if(!common.length) {
+    return {
+      valid:false,
+      message:`${fromInstr.label} ${pinKey(fromPin)} and ${toInstr.label} ${pinKey(toPin)} have no compatible cable type.`
+    };
+  }
+
+  let chosenCable = null;
+  if(common.includes(preferredCable)) {
+    chosenCable = preferredCable;
+  } else if(common.length === 1) {
+    chosenCable = common[0];
+  } else {
+    return {
+      valid:false,
+      message:`Selected ${preferredCable.toUpperCase()} cable is not valid here. Choose: ${common.map(getCableTypeLabel).join(' / ')}.`
+    };
+  }
+
+  const cable = CABLE_TYPES.find(c => c.id === chosenCable) || CABLE_TYPES[0];
+  return {
+    valid:true,
+    cableType:cable.id,
+    color:cable.color,
+    label:cable.label,
+    wasAutoChosen: chosenCable !== preferredCable,
+  };
+}
+
 function validateConnection(fromObj, toObj) {
   const fromInstr = instruments.find(i => i.id === fromObj.id);
   const toInstr = instruments.find(i => i.id === toObj.id);
@@ -3351,7 +3736,6 @@ function validateConnection(fromObj, toObj) {
 
   const fromKey = pinKey(fromObj.pin);
   const toKey = pinKey(toObj.pin);
-  const requestedCable = selectedCable;
 
   if(isPinUsed(fromObj.id, fromKey)) {
     return {
@@ -3381,8 +3765,15 @@ function validateConnection(fromObj, toObj) {
     };
   }
 
-  // Snake outputs are for output-destination devices only (monitors/PM1/etc).
-  if(isEndpointOnlyOutput(fromInstr, fromObj.pin) && !toInstr.requiresOutput) {
+  // Snake stage-return outputs are for output-destination devices only (monitors/PM1/etc).
+  if(fromInstr.isSnake && isSnakeStageReturnOutputPin(fromObj.pin) && !toInstr.requiresOutput) {
+    return {
+      valid:false,
+      message:`${fromInstr.label} output ${fromKey} can only connect to output devices.`
+    };
+  }
+
+  if(!fromInstr.isSnake && isEndpointOnlyOutput(fromInstr, fromObj.pin) && !toInstr.requiresOutput) {
     return {
       valid:false,
       message:`${fromInstr.label} output ${fromKey} can only connect to output devices.`
@@ -3390,7 +3781,7 @@ function validateConnection(fromObj, toObj) {
   }
 
   // Input pins cannot be source points.
-  if(isInputPin(fromObj.pin)) {
+  if(isEffectiveInputPin(fromInstr, fromObj.pin)) {
     return {
       valid:false,
       message:`${fromInstr.label} ${fromKey} is an input and cannot send signal.`
@@ -3405,7 +3796,7 @@ function validateConnection(fromObj, toObj) {
   }
 
   // Output pins cannot be destination points.
-  if(isOutputPin(toObj.pin)) {
+  if(isEffectiveOutputPin(toInstr, toObj.pin)) {
     const canReceiveOnMonitoringPin = !!toInstr.requiresOutput && (toKey === 'MONO' || toKey === 'L' || toKey === 'R');
     if(canReceiveOnMonitoringPin) {
       // Allowed: monitoring destinations use the regular MONO/L/R dot as a receive pin.
@@ -3418,7 +3809,7 @@ function validateConnection(fromObj, toObj) {
   }
 
   // Drum mic pins are input sources and cannot be patched to snake outputs.
-  if(isDrumMicPin(fromObj.pin) && isOutputPin(toObj.pin)) {
+  if(isDrumMicPin(fromObj.pin) && isEffectiveOutputPin(toInstr, toObj.pin)) {
     return {
       valid:false,
       message:'Drum mic channels cannot connect to snake outputs.'
@@ -3427,7 +3818,7 @@ function validateConnection(fromObj, toObj) {
 
   // PM1 and monitors must connect to outputs
   if(toInstr.requiresOutput) {
-    if(!isOutputPin(fromObj.pin)) {
+    if(!isEffectiveOutputPin(fromInstr, fromObj.pin)) {
       return {
         valid:false,
         message:`${toInstr.label} must connect to a snake OUTPUT, not an input.`
@@ -3435,22 +3826,18 @@ function validateConnection(fromObj, toObj) {
     }
   }
 
-  const fromAllowed = getPinAllowedCableTypes(fromInstr, fromObj.pin);
-  const toAllowed = getPinAllowedCableTypes(toInstr, toObj.pin);
-  if(!fromAllowed.includes(requestedCable)) {
-    return {
-      valid:false,
-      message:`${fromInstr.label} ${fromKey} does not support ${requestedCable.toUpperCase()} cable.`
-    };
-  }
-  if(!toAllowed.includes(requestedCable)) {
-    return {
-      valid:false,
-      message:`${toInstr.label} ${toKey} does not support ${requestedCable.toUpperCase()} cable.`
-    };
+  const cableResolution = resolveCableForPins(fromInstr, fromObj.pin, toInstr, toObj.pin, selectedCable);
+  if(!cableResolution.valid) {
+    return cableResolution;
   }
 
-  return { valid:true };
+  return {
+    valid:true,
+    cableType:cableResolution.cableType,
+    color:cableResolution.color,
+    label:cableResolution.label,
+    wasAutoChosen:cableResolution.wasAutoChosen,
+  };
 }
 
 function handleConnectClick(id, pin, e) {
@@ -3478,7 +3865,19 @@ function handleConnectClick(id, pin, e) {
   } else {
     if(id!==connectingFrom.id || clickedPin!==connectingFrom.pin) {
 
-      const validation = validateConnection(connectingFrom, {id, pin: clickedPin});
+      let resolvedFrom = { id: connectingFrom.id, pin: connectingFrom.pin };
+      let resolvedTo = { id, pin: clickedPin };
+      let validation = validateConnection(resolvedFrom, resolvedTo);
+      if(!validation.valid) {
+        const reverseValidation = validateConnection(resolvedTo, resolvedFrom);
+        if(reverseValidation.valid) {
+          const tmp = resolvedFrom;
+          resolvedFrom = resolvedTo;
+          resolvedTo = tmp;
+          validation = reverseValidation;
+        }
+      }
+
       if(!validation.valid){
         alert(validation.message);
         connectingFrom=null; drawingLine=null;
@@ -3486,20 +3885,25 @@ function handleConnectClick(id, pin, e) {
         return;
       }
 
-      const ct=CABLE_TYPES.find(c=>c.id===selectedCable)||CABLE_TYPES[0];
+      const ct = {
+        id: validation.cableType,
+        color: validation.color,
+        label: validation.label,
+      };
       pushHistoryState();
       const firstConn = {
         id:++idCounter,
-        fromId:connectingFrom.id, fromPin:connectingFrom.pin,
-        toId:id, toPin:clickedPin,
+        fromId:resolvedFrom.id, fromPin:resolvedFrom.pin,
+        toId:resolvedTo.id, toPin:resolvedTo.pin,
         cableType:ct.id, color:ct.color, label:ct.label,
         routeX:null,
       };
       connections.push(firstConn);
       markDirty();
       // mark snake pins as used
-      refreshConnectorStates(connectingFrom.id);
-      refreshConnectorStates(id);
+      refreshConnectorStates(resolvedFrom.id);
+      refreshConnectorStates(resolvedTo.id);
+      maybeAutoRouteSnakeMixer(firstConn);
       maybeSuggestStereoCompanion(firstConn);
     }
     connectingFrom=null; drawingLine=null;
@@ -3656,7 +4060,6 @@ function autoRouteStereoSuggestion() {
   const ok = confirm(`Auto-route suggestion:\n\n${preview}${extra}\n\nApply these connections?`);
   if(!ok) return;
 
-  const cable = CABLE_TYPES.find(c => c.id === selectedCable) || CABLE_TYPES[0];
   pushHistoryState();
   const touched = new Set();
   plan.forEach(p => {
@@ -3668,9 +4071,9 @@ function autoRouteStereoSuggestion() {
       fromPin: p.fromPin,
       toId: p.toId,
       toPin: p.toPin,
-      cableType: cable.id,
-      color: cable.color,
-      label: cable.label,
+      cableType: check.cableType,
+      color: check.color,
+      label: check.label,
       routeX: null,
     });
     touched.add(p.fromId);
@@ -3834,11 +4237,12 @@ function loadRiderFromData(data) {
       toId: c.toId,
       fromPin: c.fromPin ?? null,
       toPin: c.toPin ?? null,
-      cableType: c.cableType || 'xlr',
-      color: c.color || (CABLE_TYPES.find(t => t.id === (c.cableType || 'xlr')) || CABLE_TYPES[0]).color,
-      label: c.label || (CABLE_TYPES.find(t => t.id === (c.cableType || 'xlr')) || CABLE_TYPES[0]).label,
+      cableType: normalizeCableType(c.cableType || 'xlr'),
+      color: c.color || (CABLE_TYPES.find(t => t.id === normalizeCableType(c.cableType || 'xlr')) || CABLE_TYPES[0]).color,
+      label: c.label || (CABLE_TYPES.find(t => t.id === normalizeCableType(c.cableType || 'xlr')) || CABLE_TYPES[0]).label,
       routeX: Number.isFinite(c.routeX) ? c.routeX : (Number.isFinite(parseFloat(c.routeX)) ? parseFloat(c.routeX) : null),
     }));
+  normalizeAllSnakeConnectionPins();
 
   const maxInstrId = instruments.reduce((m, i) => Math.max(m, i.id), 0);
   const maxConnId = connections.reduce((m, c) => Math.max(m, c.id), 0);
