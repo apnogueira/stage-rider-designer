@@ -31,6 +31,15 @@ body[data-theme='light'] .si.is-snake .snake-ch-pin:hover{background:#7a4bb2;col
 body[data-theme='light'] .si.is-snake .snake-ch-pin.used{background:#d8c2ef;color:#2d1649;}
 body[data-theme='light'] .si.is-snake .snake-ch-pin.out-pin{background:#ecfff4;border-color:#1f8a5a;color:#0f5e3b;}
 body[data-theme='light'] .si.is-snake .snake-ch-pin.out-pin.used{background:#a9e6c8;color:#0c4c30;}
+body[data-theme='light'] .si.is-mixer .ib{background:#edf5fb;border-color:#7eb0d2;}
+body[data-theme='light'] .si.is-mixer:hover .ib{border-color:#2f7fb0;}
+body[data-theme='light'] .si.is-mixer.selected .ib{border-color:#256f9d;box-shadow:0 0 0 2px rgba(37,111,157,.22);}
+body[data-theme='light'] .si.is-mixer .mixer-row-label{color:#2f4e63;font-weight:700;}
+body[data-theme='light'] .si.is-mixer .mixer-pin{background:#ffffff;border-color:#1f6fa0;color:#163b55;font-size:8px;}
+body[data-theme='light'] .si.is-mixer .mixer-pin:hover{background:#165d89;color:#ffffff;}
+body[data-theme='light'] .si.is-mixer .mixer-pin.used{background:#b9ddf5;color:#0f2c40;}
+body[data-theme='light'] .si.is-mixer .mixer-pin.out-pin{background:#effaf2;border-color:#1f8a5a;color:#0f5e3b;}
+body[data-theme='light'] .si.is-mixer .mixer-pin.out-pin.used{background:#b6e8cb;color:#0d4f33;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 /* HEADER */
@@ -369,8 +378,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
         <div class="pr" id="conn-type-wrap"><label class="plbl">Connection Type</label>
           <select id="p-conn-type" class="pselect" onchange="updConnectorMode(this.value)">
             <option value="xlr">XLR</option>
-            <option value="jack">Jack (TS/TRS)</option>
-            <option value="both">XLR + Jack</option>
+            <option value="jack">Jack (TS)</option>
             <option value="ethernet">Ethernet</option>
           </select>
         </div>
@@ -404,7 +412,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
               <label class="plbl">Input</label>
               <select id="p-spk-in-mode" class="pselect" onchange="updSpeakerInputMode(this.value)">
                 <option value="xlr">XLR</option>
-                <option value="jack">Jack (TS/TRS)</option>
+                <option value="jack">Jack (TS)</option>
                 <option value="speakon">Speakon</option>
               </select>
             </div>
@@ -412,7 +420,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
               <label class="plbl">Output</label>
               <select id="p-spk-out-mode" class="pselect" onchange="updSpeakerOutputMode(this.value)">
                 <option value="xlr">XLR</option>
-                <option value="jack">Jack (TS/TRS)</option>
+                <option value="jack">Jack (TS)</option>
                 <option value="speakon">Speakon</option>
               </select>
             </div>
@@ -461,7 +469,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
           <div class="pr"><label class="plbl">Input Connectors</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:11px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:7px 8px;">
               <input id="p-snake-jack" type="checkbox" onchange="updSnakeAllowJack(this.checked)">
-              Allow Jack (TS/TRS) on snake inputs
+              Allow Jack (TS) on snake inputs
             </label>
           </div>
         </div>
@@ -535,6 +543,12 @@ const ICON_ASSET_BY_TYPE = {
   mainspk:'images/main_speaker.png',
   subwoofer:'images/subwoofer.png',
   xr18:'images/xr18.png',
+  x32:'images/x32_full.png',
+  x32compact:'images/x32_compact.png',
+  x32rack:'images/x32_rack.png',
+  wing:'images/wing_full.png',
+  wingcompact:'images/wing_compact.png',
+  wingrack:'images/wing_rack.png',
 };
 
 const INSTRUMENTS = [
@@ -562,7 +576,13 @@ const INSTRUMENTS = [
   {type:'ha8000',    cat:'monitoring', icon:'🎚', name:'HA8000',      wide:true,  size:84, connSide:'bottom'},
   {type:'mainspk',   cat:'monitoring', icon:'🔊', name:'Main Speaker', wide:false, size:58, connSide:'top', requiresOutput:true},
   {type:'subwoofer', cat:'monitoring', icon:'🟫', name:'Subwoofer',    wide:false, size:62, connSide:'top', requiresOutput:true},
-  {type:'xr18',      cat:'mixers',  icon:'🎛', name:'XR18 Mixer',  wide:true,  size:108, connSide:'bottom', isMixer:true, mixerInputs:18, mixerAux:6, mixerMain:2, mixerP16:1},
+  {type:'xr18',        cat:'mixers',  icon:'🎛', name:'XR18 Mixer',      wide:true,  size:108, connSide:'bottom', isMixer:true, mixerInputs:18, mixerInputXlrOnly:0, mixerInputCombo:16, mixerInputJackOnly:2, mixerAux:6,  mixerMain:2, mixerJackOut:0, mixerP16:1, mixerAes50:0},
+  {type:'x32',         cat:'mixers',  icon:'🎚', name:'X32 Full',        wide:true,  size:114, connSide:'bottom', isMixer:true, mixerInputs:38, mixerInputXlrOnly:32, mixerInputCombo:0,  mixerInputJackOnly:6, mixerAux:14, mixerMain:2, mixerJackOut:6, mixerP16:1, mixerAes50:2},
+  {type:'x32compact',  cat:'mixers',  icon:'🎚', name:'X32 Compact',     wide:true,  size:108, connSide:'bottom', isMixer:true, mixerInputs:22, mixerInputXlrOnly:16, mixerInputCombo:0,  mixerInputJackOnly:6, mixerAux:6,  mixerMain:2, mixerJackOut:6, mixerP16:1, mixerAes50:2},
+  {type:'x32rack',     cat:'mixers',  icon:'🎚', name:'X32 Rack',        wide:true,  size:104, connSide:'bottom', isMixer:true, mixerInputs:22, mixerInputXlrOnly:16, mixerInputCombo:0,  mixerInputJackOnly:6, mixerAux:6,  mixerMain:2, mixerJackOut:6, mixerP16:1, mixerAes50:2},
+  {type:'wing',        cat:'mixers',  icon:'🪽', name:'WING Full',       wide:true,  size:116, connSide:'bottom', isMixer:true, mixerInputs:16, mixerInputXlrOnly:0,  mixerInputCombo:8,  mixerInputJackOnly:8, mixerAux:6,  mixerMain:2, mixerJackOut:8, mixerP16:0, mixerAes50:3},
+  {type:'wingcompact', cat:'mixers',  icon:'🪽', name:'WING Compact',    wide:true,  size:110, connSide:'bottom', isMixer:true, mixerInputs:24, mixerInputXlrOnly:0,  mixerInputCombo:24, mixerInputJackOnly:0, mixerAux:6,  mixerMain:2, mixerJackOut:0, mixerP16:0, mixerAes50:3},
+  {type:'wingrack',    cat:'mixers',  icon:'🪽', name:'WING Rack',       wide:true,  size:106, connSide:'bottom', isMixer:true, mixerInputs:24, mixerInputXlrOnly:0,  mixerInputCombo:24, mixerInputJackOnly:0, mixerAux:6,  mixerMain:2, mixerJackOut:0, mixerP16:0, mixerAes50:3},
   {type:'di',        cat:'accessories',   icon:'📦', name:'DI Box',      wide:false, size:46, connSide:'bottom'},
   {type:'amp',       cat:'accessories', icon:'🔌', name:'Amp',         wide:false, size:60, connSide:'bottom'},
   {type:'pedals',    cat:'accessories',   icon:'🎛', name:'Pedals',      wide:false, size:48, connSide:'bottom'},
@@ -580,7 +600,7 @@ const SNAKES = [
 
 const CABLE_TYPES = [
   {id:'xlr',      label:'XLR',       color:'#47c4ff'},
-  {id:'ts',       label:'TS / TRS',  color:'#e8ff47'},
+  {id:'ts',       label:'TS',        color:'#e8ff47'},
   {id:'speakon',  label:'Speakon',   color:'#ff6b47'},
   {id:'ethernet', label:'Ethernet',  color:'#ff9f47'},
   {id:'midi',     label:'MIDI',      color:'#c47fff'},
@@ -637,6 +657,8 @@ let redoStack = [];
 let isRestoringHistory = false;
 let connectionHandleCache = [];
 let hoveredConnectionId = null;
+let touchPaletteDragData = null;
+let touchPaletteGhost = null;
 
 // ═══════════════════════════════════════════════════════════════
 // INIT
@@ -657,6 +679,9 @@ function init() {
   document.getElementById('conn-canvas').addEventListener('mousedown', handleCableHandleMouseDown);
   document.getElementById('conn-canvas').addEventListener('mousemove', handleCanvasConnectionHover);
   document.getElementById('conn-canvas').addEventListener('mouseleave', () => setHoveredConnection(null));
+  document.addEventListener('touchmove', moveTouchPaletteDrag, { passive: false });
+  document.addEventListener('touchend', endTouchPaletteDrag, { passive: false });
+  document.addEventListener('touchcancel', endTouchPaletteDrag, { passive: false });
   window.addEventListener('beforeunload', e => {
     if(!hasUnsavedChanges) return;
     e.preventDefault();
@@ -715,6 +740,79 @@ function positionWorldElement(el, x, y) {
   el.style.top = `${panY + (y * zoomLevel)}px`;
   el.style.transformOrigin = 'top left';
   el.style.transform = `scale(${zoomLevel})`;
+}
+
+function getClientPointFromEvent(ev) {
+  if(!ev) return null;
+  if(Number.isFinite(ev.clientX) && Number.isFinite(ev.clientY)) {
+    return { clientX: ev.clientX, clientY: ev.clientY };
+  }
+  const t = (ev.touches && ev.touches[0]) || (ev.changedTouches && ev.changedTouches[0]);
+  if(t && Number.isFinite(t.clientX) && Number.isFinite(t.clientY)) {
+    return { clientX: t.clientX, clientY: t.clientY };
+  }
+  return null;
+}
+
+function removeTouchPaletteGhost() {
+  if(touchPaletteGhost && touchPaletteGhost.parentNode) touchPaletteGhost.parentNode.removeChild(touchPaletteGhost);
+  touchPaletteGhost = null;
+}
+
+function updateTouchPaletteGhost(clientX, clientY) {
+  if(!touchPaletteGhost) return;
+  touchPaletteGhost.style.left = `${clientX + 10}px`;
+  touchPaletteGhost.style.top = `${clientY + 10}px`;
+}
+
+function startTouchPaletteDrag(ev, data) {
+  const p = getClientPointFromEvent(ev);
+  if(!p) return;
+  touchPaletteDragData = { ...data };
+  removeTouchPaletteGhost();
+  const ghost = document.createElement('div');
+  ghost.style.position = 'fixed';
+  ghost.style.zIndex = '9999';
+  ghost.style.pointerEvents = 'none';
+  ghost.style.background = 'rgba(20,24,32,.9)';
+  ghost.style.border = '1px solid rgba(255,255,255,.3)';
+  ghost.style.color = '#ffffff';
+  ghost.style.borderRadius = '8px';
+  ghost.style.padding = '6px 8px';
+  ghost.style.fontFamily = "'Share Tech Mono',monospace";
+  ghost.style.fontSize = '10px';
+  ghost.textContent = String(data.name || data.type || 'item');
+  document.body.appendChild(ghost);
+  touchPaletteGhost = ghost;
+  updateTouchPaletteGhost(p.clientX, p.clientY);
+  const hint = document.getElementById('stage-hint');
+  if(hint) hint.textContent = 'Drag on stage and release to place item';
+}
+
+function moveTouchPaletteDrag(ev) {
+  if(!touchPaletteDragData) return;
+  const p = getClientPointFromEvent(ev);
+  if(!p) return;
+  if(ev.cancelable) ev.preventDefault();
+  updateTouchPaletteGhost(p.clientX, p.clientY);
+}
+
+function endTouchPaletteDrag(ev) {
+  if(!touchPaletteDragData) return;
+  const p = getClientPointFromEvent(ev);
+  if(p) {
+    const wr = canvasWrap.getBoundingClientRect();
+    if(p.clientX>=wr.left && p.clientX<=wr.right && p.clientY>=wr.top && p.clientY<=wr.bottom) {
+      const baseSize = touchPaletteDragData.wide ? 82 : 52;
+      const worldX = ((p.clientX - wr.left - panX) / zoomLevel) - (baseSize / 2);
+      const worldY = ((p.clientY - wr.top - panY) / zoomLevel) - (baseSize / 2);
+      addInstrument(touchPaletteDragData, worldX, worldY);
+    }
+  }
+  touchPaletteDragData = null;
+  removeTouchPaletteGhost();
+  const hint = document.getElementById('stage-hint');
+  if(hint) hint.textContent = 'Drag instruments from the palette onto the stage';
 }
 
 function applyZoom() {
@@ -1070,14 +1168,13 @@ function supportsMicPickup(instrOrType) {
   const disallowed = new Set([
     'elguitar', 'bass', 'keys', 'vox', 'bgvox', 'talkback',
     'monitor', 'mainspk', 'subwoofer', 'passivespk', 'iem', 'headphones', 'pm1', 'p16', 'ha8000', 'di', 'amp', 'pedals', 'laptop', 'midipad', 'power',
-    'snake8', 'snake16', 'snake24', 'snake32', 'xr18'
+    'snake8', 'snake16', 'snake24', 'snake32', 'xr18', 'x32', 'x32compact', 'x32rack', 'wing', 'wingcompact', 'wingrack'
   ]);
   return !disallowed.has(type);
 }
 
 function connectorModeToCableTypes(mode) {
   if(mode === 'jack') return ['ts'];
-  if(mode === 'both') return ['xlr', 'ts'];
   if(mode === 'ethernet') return ['ethernet'];
   return ['xlr'];
 }
@@ -1243,15 +1340,43 @@ function getPinAllowedCableTypes(instr, pin) {
   if(instr.isMixer) {
     if(p.startsWith('MX-IN-')) {
       const idx = parseInt(p.replace('MX-IN-', ''), 10) || 1;
+      const xlrOnly = Math.max(0, Number(instr.mixerInputXlrOnly) || 0);
+      const combo = Math.max(0, Number(instr.mixerInputCombo) || 0);
+      const jackOnly = Math.max(0, Number(instr.mixerInputJackOnly) || 0);
+      const totalTagged = xlrOnly + combo + jackOnly;
+      if(totalTagged > 0) {
+        if(idx <= xlrOnly) return ['xlr'];
+        if(idx <= (xlrOnly + combo)) return ['xlr', 'ts'];
+        return ['ts'];
+      }
       return idx <= 16 ? ['xlr', 'ts'] : ['ts'];
     }
     if(p.startsWith('MX-AUX-') || p.startsWith('MX-MAIN-')) return ['xlr'];
+    if(p.startsWith('MX-JACK-OUT-')) return ['ts'];
     if(p.startsWith('MX-P16-')) return ['ethernet'];
+    if(p.startsWith('MX-AES50-')) return ['ethernet'];
   }
+
+  if(instr.type === 'p16' && (p === 'MONO' || p === 'L' || p === 'R')) return ['ethernet'];
 
   if(p.startsWith('DM-')) return ['xlr'];
   if(p === 'L' || p === 'R' || p === 'MONO') return connectorModeToCableTypes(instr.connectorMode || getDefaultConnectorMode(instr.type));
   return ['xlr', 'ts'];
+}
+
+function getCableTypeLabel(typeId) {
+  const hit = CABLE_TYPES.find(c => c.id === typeId);
+  return hit ? hit.label : String(typeId || '').toUpperCase();
+}
+
+function getPinConnectionTypeLabel(instr, pin) {
+  const types = getPinAllowedCableTypes(instr, pin);
+  if(!Array.isArray(types) || !types.length) return 'Unknown';
+  return types.map(getCableTypeLabel).join(' / ');
+}
+
+function buildPinTitle(instr, pin, baseLabel) {
+  return `${baseLabel} - ${getPinConnectionTypeLabel(instr, pin)}`;
 }
 
 function getInstrumentImage(type) {
@@ -1384,7 +1509,7 @@ function serializeLayout() {
     created:new Date().toISOString(),
     projectName,
     stage:{widthM:stageW, depthM:stageD, showStairs:showStageStairs, themeMode, color:stageColor},
-    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,connSide,isMixer,mixerInputs,mixerAux,mixerMain,mixerP16,isSnake,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics})=>({id,type,cat,icon,image,label,channel,notes,x,y,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,micModels:Object.values(pinMicAssignments||{}),micModel:Object.values(pinMicAssignments||{})[0]||'',connSide,isMixer,mixerInputs,mixerAux,mixerMain,mixerP16,isSnake,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics})),
+    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,connSide,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,isSnake,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics})=>({id,type,cat,icon,image,label,channel,notes,x,y,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,micModels:Object.values(pinMicAssignments||{}),micModel:Object.values(pinMicAssignments||{})[0]||'',connSide,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,isSnake,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics})),
     connections:connections.map(({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX})=>({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX})),
   };
 }
@@ -1412,6 +1537,7 @@ function buildPalette(cat) {
     const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size);
     t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr,isSnake:false}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
+    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr,isSnake:false}); }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -1438,6 +1564,19 @@ function buildSnakePalette() {
       e.dataTransfer.effectAllowed='copy';
     });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
+    t.addEventListener('touchstart', e => {
+      if(e.cancelable) e.preventDefault();
+      startTouchPaletteDrag(e, {
+        type:s.type,
+        cat:'snake',
+        icon:'🐍',
+        name:s.name,
+        isSnake:true,
+        snakeChannels:s.channels,
+        outputs:s.outputs,
+        wide:false
+      });
+    }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -1451,6 +1590,7 @@ function buildMixerPalette() {
     const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'mixer-tile');
     t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr,isSnake:false}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
+    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr,isSnake:false}); }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -1464,6 +1604,7 @@ function buildMonitoringPalette() {
     const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'monitor-tile');
     t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr,isSnake:false}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
+    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr,isSnake:false}); }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -1477,6 +1618,7 @@ function buildAccessoryPalette() {
     const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'accessory-tile');
     t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr,isSnake:false}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
+    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr,isSnake:false}); }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -2046,9 +2188,14 @@ function addInstrument(data, x, y) {
     connSide: data.connSide || 'bottom',
   isMixer: !!data.isMixer,
   mixerInputs: Number(data.mixerInputs) || 0,
+  mixerInputXlrOnly: Number(data.mixerInputXlrOnly) || 0,
+  mixerInputCombo: Number(data.mixerInputCombo) || 0,
+  mixerInputJackOnly: Number(data.mixerInputJackOnly) || 0,
   mixerAux: Number(data.mixerAux) || 0,
   mixerMain: Number(data.mixerMain) || 0,
+  mixerJackOut: Number(data.mixerJackOut) || 0,
   mixerP16: Number(data.mixerP16) || 0,
+  mixerAes50: Number(data.mixerAes50) || 0,
     isSnake:!!data.isSnake,
     snakeChannels: normalizeSnakeChannels(data.snakeChannels || 16),
     snakeAllowJackInputs: !!data.snakeAllowJackInputs,
@@ -2075,7 +2222,7 @@ function renderInstrument(instr) {
   const old = getEl(instr.id); if(old) old.remove();
 
   const el = document.createElement('div');
-  el.className = 'si' + (instr.isSnake?' is-snake':'');
+  el.className = 'si' + (instr.isSnake?' is-snake':'') + (instr.isMixer?' is-mixer':'');
   el.id = 'instr-'+instr.id;
   el.dataset.cat = instr.cat||'';
   positionWorldElement(el, instr.x, instr.y);
@@ -2114,19 +2261,19 @@ function renderInstrument(instr) {
     const rightUsed = isStereo && isPinUsed(instr.id, 'R');
     const drumPinsHTML = drumPins.map(p => `
       <div class="drum-pin-wrap">
-        <div class="iconn drum-pin${isPinUsed(instr.id, p.key)?' used':''}" data-pin="${p.key}" title="${p.name}"></div>
+        <div class="iconn drum-pin${isPinUsed(instr.id, p.key)?' used':''}" data-pin="${p.key}" title="${buildPinTitle(instr, p.key, p.name)}"></div>
         <div class="pin-tag drum-pin-tag">${p.label}</div>
       </div>
     `).join('');
     const inputPinsHTML = inputPins.map(p => `
       <div class="io-pin-wrap">
-        <div class="iconn${isPinUsed(instr.id, p.key)?' used':''}" data-pin="${p.key}" title="${p.label}"></div>
+        <div class="iconn${isPinUsed(instr.id, p.key)?' used':''}" data-pin="${p.key}" title="${buildPinTitle(instr, p.key, p.label)}"></div>
         <div class="pin-tag io-pin-tag">${p.label}</div>
       </div>
     `).join('');
     const outputPinsHTML = outputPins.map(p => `
       <div class="io-pin-wrap">
-        <div class="iconn${isPinUsed(instr.id, p.key)?' used':''}" data-pin="${p.key}" title="${p.label}"></div>
+        <div class="iconn${isPinUsed(instr.id, p.key)?' used':''}" data-pin="${p.key}" title="${buildPinTitle(instr, p.key, p.label)}"></div>
         <div class="pin-tag io-pin-tag">${p.label}</div>
       </div>
     `).join('');
@@ -2142,11 +2289,11 @@ function renderInstrument(instr) {
         ` : hasCustomIO ? `
           ${outputPins.length ? `<div class="io-pin-row outputs" style="grid-template-columns:repeat(${Math.min(outputPins.length, 4)},minmax(0,1fr));">${outputPinsHTML}</div>` : ''}
         ` : isStereo ? `
-          <div class="iconn${leftUsed?' used':''}" style="${getMainPinStyle(side, 0, 2)}" data-pin="L"></div>
-          <div class="iconn${rightUsed?' used':''}" style="${getMainPinStyle(side, 1, 2)}" data-pin="R"></div>
+          <div class="iconn${leftUsed?' used':''}" style="${getMainPinStyle(side, 0, 2)}" data-pin="L" title="${buildPinTitle(instr, 'L', 'Left Output')}"></div>
+          <div class="iconn${rightUsed?' used':''}" style="${getMainPinStyle(side, 1, 2)}" data-pin="R" title="${buildPinTitle(instr, 'R', 'Right Output')}"></div>
           <div class="pin-tag" style="${getPinTagStyle(side, 0, 2)}">L</div>
           <div class="pin-tag" style="${getPinTagStyle(side, 1, 2)}">R</div>
-        ` : `<div class="iconn${monoUsed?' used':''}" style="${getMainPinStyle(side, 0, 1)}" data-pin="MONO"></div>`}
+        ` : `<div class="iconn${monoUsed?' used':''}" style="${getMainPinStyle(side, 0, 1)}" data-pin="MONO" title="${buildPinTitle(instr, 'MONO', 'Output')}"></div>`}
       </div>
       <div class="ilabel dynamic side-${labelSide}">${instr.label}</div>
     `;
@@ -2159,6 +2306,12 @@ function renderInstrument(instr) {
     e.stopPropagation();
     startDrag(e, instr.id, el);
   });
+  el.addEventListener('touchstart', e => {
+    if(e.target.classList.contains('iconn') || e.target.classList.contains('snake-ch-pin') || e.target.classList.contains('mixer-pin')) return;
+    if(e.cancelable) e.preventDefault();
+    e.stopPropagation();
+    startDragTouch(e, instr.id, el);
+  }, { passive: false });
 
   // Regular connector dot
   const conn = el.querySelector('.iconn');
@@ -2170,6 +2323,12 @@ function renderInstrument(instr) {
     };
     el.querySelectorAll('.iconn').forEach(pinEl => {
       pinEl.addEventListener('mousedown', handleRegularPin);
+      pinEl.addEventListener('touchstart', e => {
+        if(e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        const pin = e.currentTarget.dataset.pin || 'MONO';
+        startConnectionFromPin(instr.id, pin, e);
+      }, { passive: false });
     });
   }
 
@@ -2180,6 +2339,11 @@ function renderInstrument(instr) {
         e.stopPropagation();
         startConnectionFromPin(instr.id, pin.dataset.pin, e);
       });
+      pin.addEventListener('touchstart', e => {
+        if(e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        startConnectionFromPin(instr.id, pin.dataset.pin, e);
+      }, { passive: false });
     });
   }
 
@@ -2189,6 +2353,11 @@ function renderInstrument(instr) {
         e.stopPropagation();
         startConnectionFromPin(instr.id, pin.dataset.pin, e);
       });
+      pin.addEventListener('touchstart', e => {
+        if(e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        startConnectionFromPin(instr.id, pin.dataset.pin, e);
+      }, { passive: false });
     });
   }
 
@@ -2203,14 +2372,14 @@ function buildSnakeHTML(instr, includeLabel = true) {
   let inputPins = '';
   for(let i=1;i<=ch;i++){
     const isUsed = connections.some(c => (c.fromId===instr.id&&c.fromPin==='IN-'+i)||(c.toId===instr.id&&c.toPin==='IN-'+i));
-    inputPins += `<div id="pin-${instr.id}-IN-${i}" class="snake-ch-pin${isUsed?' used':''}" data-pin="IN-${i}" title="Input ${i}">${i}</div>`;
+    inputPins += `<div id="pin-${instr.id}-IN-${i}" class="snake-ch-pin${isUsed?' used':''}" data-pin="IN-${i}" title="${buildPinTitle(instr, `IN-${i}`, `Input ${i}`)}">${i}</div>`;
   }
 
   let outputPins = '';
   for(let i=1;i<=outputs;i++){
     const isUsed = connections.some(c => (c.fromId===instr.id&&c.fromPin==='OUT-'+i)||(c.toId===instr.id&&c.toPin==='OUT-'+i));
     const label = indexToLetters(i);
-    outputPins += `<div id="pin-${instr.id}-OUT-${i}" class="snake-ch-pin out-pin${isUsed?' used':''}" data-pin="OUT-${i}" title="Output ${label}">${label}</div>`;
+    outputPins += `<div id="pin-${instr.id}-OUT-${i}" class="snake-ch-pin out-pin${isUsed?' used':''}" data-pin="OUT-${i}" title="${buildPinTitle(instr, `OUT-${i}`, `Output ${label}`)}">${label}</div>`;
   }
 
   return `
@@ -2236,20 +2405,23 @@ function buildMixerHTML(instr, widthPx) {
   const inputs = Math.max(0, Number(instr.mixerInputs) || 18);
   const auxCount = Math.max(0, Number(instr.mixerAux) || 6);
   const mainCount = Math.max(0, Number(instr.mixerMain) || 2);
-  const hasP16 = (Number(instr.mixerP16) || 0) > 0;
+  const jackOutCount = Math.max(0, Number(instr.mixerJackOut) || 0);
+  const pmCount = Math.max(0, Number(instr.mixerP16) || 0);
+  const aes50Count = Math.max(0, Number(instr.mixerAes50) || 0);
+  const xlrOutCount = auxCount + mainCount;
 
   let inPins = '';
   for(let i=1;i<=inputs;i++) {
     const key = `MX-IN-${i}`;
     const used = isPinUsed(instr.id, key);
-    inPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin${used?' used':''}" data-pin="${key}" title="Input ${i}">${i}</div>`;
+    inPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, `Input ${i}`)}">${i}</div>`;
   }
 
   let outPins = '';
   for(let i=1;i<=auxCount;i++) {
     const key = `MX-AUX-${i}`;
     const used = isPinUsed(instr.id, key);
-    outPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin out-pin${used?' used':''}" data-pin="${key}" title="Aux Out ${i}">A${i}</div>`;
+    outPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin out-pin${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, `Aux Out ${i}`)}">A${i}</div>`;
   }
 
   const mainLabels = ['L', 'R'];
@@ -2257,24 +2429,48 @@ function buildMixerHTML(instr, widthPx) {
     const key = `MX-MAIN-${i}`;
     const used = isPinUsed(instr.id, key);
     const lbl = mainLabels[i-1] || String(i);
-    outPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin out-pin${used?' used':''}" data-pin="${key}" title="Main Out ${lbl}">M${lbl}</div>`;
+    outPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin out-pin${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, `Main Out ${lbl}`)}">M${lbl}</div>`;
   }
 
-  if(hasP16) {
-    const key = 'MX-P16-1';
+  for(let i=1;i<=jackOutCount;i++) {
+    const key = `MX-JACK-OUT-${i}`;
     const used = isPinUsed(instr.id, key);
-    outPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin out-pin${used?' used':''}" data-pin="${key}" title="P16 Ethernet">P16</div>`;
+    outPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin out-pin${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, `Jack Out ${i}`)}">J${i}</div>`;
   }
+
+  for(let i=1;i<=pmCount;i++) {
+    const key = `MX-P16-${i}`;
+    const used = isPinUsed(instr.id, key);
+    outPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin out-pin${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, `Personal Monitoring Ethernet ${i}`)}">PM${i}</div>`;
+  }
+
+  for(let i=1;i<=aes50Count;i++) {
+    const key = `MX-AES50-${i}`;
+    const used = isPinUsed(instr.id, key);
+    outPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin out-pin${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, `AES50 Ethernet ${i}`)}">A5${i}</div>`;
+  }
+
+  const outputLabelParts = [];
+  if(xlrOutCount) outputLabelParts.push(`XLR ${xlrOutCount}`);
+  if(jackOutCount) outputLabelParts.push(`JACK ${jackOutCount}`);
+  if(pmCount) outputLabelParts.push(`PM ${pmCount}`);
+  if(aes50Count) outputLabelParts.push(`AES50 ${aes50Count}`);
+  const outputLabel = outputLabelParts.length ? outputLabelParts.join(' · ') : 'NONE';
+
+  const summaryEthParts = [];
+  if(pmCount) summaryEthParts.push(`PM:${pmCount}`);
+  if(aes50Count) summaryEthParts.push(`AES50:${aes50Count}`);
+  const summaryEth = summaryEthParts.length ? ` / ETH ${summaryEthParts.join('+')}` : '';
 
   return `
     <div class="ib" style="width:${widthPx}px;min-height:84px;padding:5px;flex-direction:column;font-size:0;">
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:15px;line-height:1;">${buildStageIconHTML(instr, 14)}</span>
-        <span class="snake-badge" style="color:#47c4ff;border-color:#47c4ff55;background:rgba(71,196,255,.12);">18 IN / 8 OUT / P16</span>
+        <span class="snake-badge" style="color:#47c4ff;border-color:#47c4ff55;background:rgba(71,196,255,.12);">${inputs} IN / ${xlrOutCount + jackOutCount} OUT${summaryEth}</span>
       </div>
-      <div class="mixer-row-label">INPUTS (1-18)</div>
+      <div class="mixer-row-label">INPUTS (1-${inputs})</div>
       <div class="mixer-pin-grid">${inPins}</div>
-      <div class="mixer-row-label">OUTPUTS (AUX, MAIN, P16)</div>
+      <div class="mixer-row-label">OUTPUTS (${outputLabel})</div>
       <div class="mixer-pin-grid">${outPins}</div>
     </div>
   `;
@@ -2368,6 +2564,88 @@ function startDrag(e, id, el) {
     document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); render();
   }
   document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp);
+}
+
+function startDragTouch(e, id, el) {
+  const p0 = getClientPointFromEvent(e);
+  if(!p0) return;
+  const dragSnapshot = captureSnapshot();
+  const wr = document.getElementById('canvas-wrap').getBoundingClientRect();
+  const instr = instruments.find(i=>i.id===id);
+  if(!instr) return;
+  const pointerWorldStartX = (p0.clientX - wr.left - panX) / zoomLevel;
+  const pointerWorldStartY = (p0.clientY - wr.top - panY) / zoomLevel;
+  const offsetWorldX = pointerWorldStartX - instr.x;
+  const offsetWorldY = pointerWorldStartY - instr.y;
+  let moved = false;
+  el.classList.add('dragging');
+  const dz = document.getElementById('dz');
+  const dropZone = document.getElementById('delete-sidebar-zone');
+  const hint = document.getElementById('stage-hint');
+  if(dz) dz.classList.add('visible');
+  if(dropZone) dropZone.classList.add('delete-target-active');
+  document.body.classList.add('delete-dragging');
+  if(hint) hint.textContent = 'DROP ON LEFT SIDEBAR TO DELETE';
+
+  function isOverDeleteZone(clientX, clientY) {
+    if(dropZone) {
+      const zr = dropZone.getBoundingClientRect();
+      if(clientX>=zr.left&&clientX<=zr.right&&clientY>=zr.top&&clientY<=zr.bottom) return true;
+    }
+    if(dz) {
+      const dzr = dz.getBoundingClientRect();
+      if(clientX>=dzr.left&&clientX<=dzr.right&&clientY>=dzr.top&&clientY<=dzr.bottom) return true;
+    }
+    return false;
+  }
+
+  function onMove(ev){
+    const p = getClientPointFromEvent(ev);
+    if(!p) return;
+    if(ev.cancelable) ev.preventDefault();
+    const x = ((p.clientX - wr.left - panX) / zoomLevel) - offsetWorldX;
+    const y = ((p.clientY - wr.top - panY) / zoomLevel) - offsetWorldY;
+    moved = true;
+    instr.x=x; instr.y=y;
+    positionWorldElement(el, instr.x, instr.y);
+    render();
+    const overDeleteZone = isOverDeleteZone(p.clientX, p.clientY);
+    if(dz) dz.style.background = overDeleteZone ? 'rgba(255,107,71,.28)' : 'rgba(255,107,71,.1)';
+    if(dropZone) dropZone.classList.toggle('delete-target-hot', overDeleteZone);
+    document.body.classList.toggle('delete-dragging-hot', overDeleteZone);
+  }
+  function onUp(ev){
+    const p = getClientPointFromEvent(ev);
+    el.classList.remove('dragging');
+    if(dz) {
+      dz.classList.remove('visible');
+      dz.style.background='rgba(255,107,71,.1)';
+    }
+    if(dropZone) {
+      dropZone.classList.remove('delete-target-hot');
+      dropZone.classList.remove('delete-target-active');
+    }
+    document.body.classList.remove('delete-dragging-hot');
+    document.body.classList.remove('delete-dragging');
+    if(hint) hint.textContent = 'Drag instruments from the palette onto the stage';
+
+    if(p && isOverDeleteZone(p.clientX, p.clientY)) deleteInstrument(id);
+    else if(moved) {
+      historyStack.push(dragSnapshot);
+      if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
+      redoStack = [];
+      markDirty();
+    } else {
+      selectInstrument(id);
+    }
+    document.removeEventListener('touchmove',onMove);
+    document.removeEventListener('touchend',onUp);
+    document.removeEventListener('touchcancel',onUp);
+    render();
+  }
+  document.addEventListener('touchmove',onMove, { passive: false });
+  document.addEventListener('touchend',onUp, { passive: false });
+  document.addEventListener('touchcancel',onUp, { passive: false });
 }
 
 function selectInstrument(id) {
@@ -2736,7 +3014,7 @@ function updSnakeAllowJack(enabled) {
 function updConnectorMode(value) {
   if(!selectedId) return;
   const instr = instruments.find(i=>i.id===selectedId); if(!instr || instr.isSnake || instr.isMixer) return;
-  const allowed = new Set(['xlr','jack','both','ethernet']);
+  const allowed = new Set(['xlr','jack','ethernet']);
   let next = allowed.has(value) ? value : 'xlr';
   if(hasAnyAssignedMic(instr) && next !== 'xlr') {
     alert('Mic pickups are XLR only. Connector type set to XLR.');
@@ -2958,7 +3236,7 @@ function deleteInstrument(id) {
 
 
 function isOutputPin(pin) {
-  return typeof pin === 'string' && (pin.startsWith('OUT-') || pin.startsWith('MX-AUX-') || pin.startsWith('MX-MAIN-') || pin.startsWith('MX-P16-') || pin.startsWith('IO-OUT-') || pin.startsWith('HA-OUT-') || pin.startsWith('AMP-OUT-') || pin === 'SPK-OUT');
+  return typeof pin === 'string' && (pin === 'MONO' || pin === 'L' || pin === 'R' || pin.startsWith('DM-') || pin.startsWith('OUT-') || pin.startsWith('MX-AUX-') || pin.startsWith('MX-MAIN-') || pin.startsWith('MX-JACK-OUT-') || pin.startsWith('MX-P16-') || pin.startsWith('MX-AES50-') || pin.startsWith('IO-OUT-') || pin.startsWith('HA-OUT-') || pin.startsWith('AMP-OUT-') || pin === 'SPK-OUT');
 }
 
 function isInputPin(pin) {
@@ -2969,7 +3247,7 @@ function isEndpointOnlyOutput(instr, pin) {
   const key = pinKey(pin);
   if(!instr) return false;
   if(instr.isSnake && key.startsWith('OUT-')) return true;
-  if(instr.isMixer && (key.startsWith('MX-AUX-') || key.startsWith('MX-MAIN-') || key.startsWith('MX-P16-'))) return true;
+  if(instr.isMixer && (key.startsWith('MX-AUX-') || key.startsWith('MX-MAIN-') || key.startsWith('MX-JACK-OUT-') || key.startsWith('MX-P16-') || key.startsWith('MX-AES50-'))) return true;
   if(instr.type === 'ha8000' && key.startsWith('HA-OUT-')) return true;
   if(isSpeakerWithThru(instr) && key === 'SPK-OUT') return true;
   return false;
@@ -3017,18 +3295,25 @@ function startConnectionFromPin(id, pin, e) {
   let moved = false;
 
   function onMove(ev) {
+    const p = getClientPointFromEvent(ev);
+    if(!p) return;
+    if(ev.cancelable) ev.preventDefault();
     const a = getCenterOf(connectingFrom.id, connectingFrom.pin);
     if(!a) return;
     moved = true;
-    drawingLine = { x1: a.x, y1: a.y, x2: ev.clientX - wr.left, y2: ev.clientY - wr.top };
+    drawingLine = { x1: a.x, y1: a.y, x2: p.clientX - wr.left, y2: p.clientY - wr.top };
     render();
   }
 
   function onUp(ev) {
+    const p = getClientPointFromEvent(ev);
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+    document.removeEventListener('touchcancel', onUp);
 
-    const target = getPinTargetAtClientPoint(ev.clientX, ev.clientY);
+    const target = p ? getPinTargetAtClientPoint(p.clientX, p.clientY) : null;
     if(target && connectingFrom) {
       handleConnectClick(target.id, target.pin, ev);
       return;
@@ -3053,6 +3338,9 @@ function startConnectionFromPin(id, pin, e) {
 
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('touchend', onUp, { passive: false });
+  document.addEventListener('touchcancel', onUp, { passive: false });
 }
 
 function validateConnection(fromObj, toObj) {
@@ -3109,12 +3397,24 @@ function validateConnection(fromObj, toObj) {
     };
   }
 
+  if(toInstr.type === 'p16' && !(fromInstr.isMixer && fromKey.startsWith('MX-P16-'))) {
+    return {
+      valid:false,
+      message:'P16 only accepts Personal Monitoring Ethernet from mixer PM outputs.'
+    };
+  }
+
   // Output pins cannot be destination points.
   if(isOutputPin(toObj.pin)) {
+    const canReceiveOnMonitoringPin = !!toInstr.requiresOutput && (toKey === 'MONO' || toKey === 'L' || toKey === 'R');
+    if(canReceiveOnMonitoringPin) {
+      // Allowed: monitoring destinations use the regular MONO/L/R dot as a receive pin.
+    } else {
     return {
       valid:false,
       message:'Output pins cannot receive signal.'
     };
+    }
   }
 
   // Drum mic pins are input sources and cannot be patched to snake outputs.
@@ -3503,10 +3803,15 @@ function loadRiderFromData(data) {
       pinMicAssignments: {},
       connSide: raw.connSide || 'bottom',
       isMixer: !!raw.isMixer,
-      mixerInputs: Number(raw.mixerInputs) || (raw.type === 'xr18' ? 18 : 0),
-      mixerAux: Number(raw.mixerAux) || (raw.type === 'xr18' ? 6 : 0),
-      mixerMain: Number(raw.mixerMain) || (raw.type === 'xr18' ? 2 : 0),
-      mixerP16: Number(raw.mixerP16) || (raw.type === 'xr18' ? 1 : 0),
+      mixerInputs: Number(raw.mixerInputs) || (raw.type === 'xr18' ? 18 : (raw.type === 'x32' ? 38 : ((raw.type === 'x32compact' || raw.type === 'x32rack') ? 22 : ((raw.type === 'wingcompact' || raw.type === 'wingrack') ? 24 : (raw.type === 'wing' ? 16 : 0))))),
+      mixerInputXlrOnly: Number(raw.mixerInputXlrOnly) || (raw.type === 'x32' ? 32 : ((raw.type === 'x32compact' || raw.type === 'x32rack') ? 16 : 0)),
+      mixerInputCombo: Number(raw.mixerInputCombo) || (raw.type === 'xr18' ? 16 : ((raw.type === 'wingcompact' || raw.type === 'wingrack') ? 24 : (raw.type === 'wing' ? 8 : 0))),
+      mixerInputJackOnly: Number(raw.mixerInputJackOnly) || (raw.type === 'xr18' ? 2 : (raw.type === 'wing' ? 8 : ((raw.type === 'x32' || raw.type === 'x32compact' || raw.type === 'x32rack') ? 6 : 0))),
+      mixerAux: Number(raw.mixerAux) || (raw.type === 'x32' ? 14 : (raw.type === 'xr18' ? 6 : ((raw.type === 'x32compact' || raw.type === 'x32rack' || raw.type === 'wing' || raw.type === 'wingcompact' || raw.type === 'wingrack') ? 6 : 0))),
+      mixerMain: Number(raw.mixerMain) || (raw.type === 'xr18' ? 2 : ((raw.type === 'x32' || raw.type === 'x32compact' || raw.type === 'x32rack' || raw.type === 'wing' || raw.type === 'wingcompact' || raw.type === 'wingrack') ? 2 : 0)),
+      mixerJackOut: Number(raw.mixerJackOut) || (raw.type === 'x32' ? 6 : ((raw.type === 'x32compact' || raw.type === 'x32rack') ? 6 : (raw.type === 'wing' ? 8 : 0))),
+      mixerP16: Number(raw.mixerP16) || ((raw.type === 'xr18' || raw.type === 'x32' || raw.type === 'x32compact' || raw.type === 'x32rack') ? 1 : 0),
+      mixerAes50: Number(raw.mixerAes50) || ((raw.type === 'x32' || raw.type === 'x32compact' || raw.type === 'x32rack') ? 2 : ((raw.type === 'wing' || raw.type === 'wingcompact' || raw.type === 'wingrack') ? 3 : 0)),
       isSnake: !!raw.isSnake,
       snakeChannels: normalizeSnakeChannels(raw.snakeChannels),
       snakeAllowJackInputs: !!raw.snakeAllowJackInputs,
