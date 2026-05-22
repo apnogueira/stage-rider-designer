@@ -766,11 +766,11 @@ const INSTRUMENTS = [
   {type:'elguitar',  cat:'strings', icon:'🎸', name:'Electric Guitar', wide:false, size:56, connSide:'bottom'},
   {type:'bass',      cat:'strings', icon:'🎸', name:'Bass',            wide:false, size:58, connSide:'bottom'},
   {type:'violin',    cat:'strings', icon:'🎻', name:'Violin',          wide:false, size:48, connSide:'bottom'},
-  {type:'cello',     cat:'strings', icon:'🎻', name:'Cello',           wide:false, size:62, connSide:'bottom'},
+  {type:'cello',     cat:'strings', icon:'🎻', name:'Cello',           wide:false, size:62, footprintAspect:0.52, connSide:'bottom'},
   {type:'viola',     cat:'strings', icon:'🎻', name:'Viola',           wide:false, size:50, connSide:'bottom'},
-  {type:'harp',      cat:'strings', icon:'🎻', name:'Harp',            wide:false, size:66, connSide:'bottom'},
-  {type:'piano',     cat:'keys',    icon:'🎹', name:'Grand Piano',   wide:true,  size:110, stereo:true, connSide:'bottom' },
-  {type:'keys',      cat:'keys',    icon:'🎹', name:'Keys',          wide:false, size:68, stereo:true, connSide:'bottom' },
+  {type:'harp',      cat:'strings', icon:'🎻', name:'Harp',            wide:false, size:66, footprintAspect:0.56, connSide:'bottom'},
+  {type:'piano',     cat:'keys',    icon:'🎹', name:'Grand Piano',   wide:true,  size:110, footprintAspect:1.62, stereo:true, connSide:'bottom' },
+  {type:'keys',      cat:'keys',    icon:'🎹', name:'Keys',          wide:false, size:68, footprintAspect:1.9, stereo:true, connSide:'bottom' },
   {type:'vox',       cat:'vocals',  icon:'🎤', name:'Vocal',         wide:false, size:46, connSide:'bottom'},
   {type:'bgvox',     cat:'vocals',  icon:'🎙', name:'BG Vox',        wide:false, size:46, connSide:'bottom'},
   {type:'talkback',  cat:'vocals',  icon:'📢', name:'Talkback Mic',  wide:false, size:46, connSide:'bottom'},
@@ -1393,14 +1393,50 @@ function legacySizePxToMeters(sizePx, fallbackPx) {
   return px / LEGACY_SIZE_PX_PER_M;
 }
 
-function getRenderedWorldSizePx(sizePx, fallbackPx, minPx) {
+function getInstrumentDefinitionByType(type) {
+  return INSTRUMENTS.find(i => i.type === type) || null;
+}
+
+function getInstrumentFootprintAspect(item) {
+  const ownAspect = Number(item && item.footprintAspect);
+  if(Number.isFinite(ownAspect) && ownAspect > 0) return ownAspect;
+
+  const def = getInstrumentDefinitionByType(item && item.type);
+  const defAspect = Number(def && def.footprintAspect);
+  if(Number.isFinite(defAspect) && defAspect > 0) return defAspect;
+
+  return (item && item.wide) ? 1.62 : 1;
+}
+
+function isWideFootprintInstrument(item) {
+  return getInstrumentFootprintAspect(item) > 1.02;
+}
+
+function getFootprintScaleForType(type) {
+  if(type === 'drumkit' || type === 'piano') return 1;
+  if(type === 'keys') return 0.86;
+
+  const compactTypes = new Set([
+    'acguitar', 'elguitar', 'bass', 'violin', 'viola', 'vox', 'bgvox', 'talkback',
+    'trumpet', 'trombone', 'sax', 'iem', 'headphones', 'p16', 'pm1', 'di', 'pedals',
+    'laptop', 'midipad'
+  ]);
+  if(compactTypes.has(type)) return 0.64;
+
+  const mediumTypes = new Set(['cello', 'harp', 'monitor', 'mainspk', 'subwoofer', 'amp', 'ha8000']);
+  if(mediumTypes.has(type)) return 0.74;
+
+  return 0.7;
+}
+
+function getRenderedWorldSizePx(sizePx, fallbackPx, minPx, footprintScale = 1) {
   const meters = legacySizePxToMeters(sizePx, fallbackPx);
-  const px = meters * pxPerM * getDeviceVisualScaleCompensation();
+  const px = meters * pxPerM * getDeviceVisualScaleCompensation() * (Number(footprintScale) || 1);
   return Math.max(Number(minPx) || 24, px);
 }
 
 function getInstrumentBodyDimensionsPx(item) {
-  const fallback = item && item.wide ? 82 : 52;
+  const fallback = isWideFootprintInstrument(item) ? 82 : 52;
   const baseSize = Number(item && item.size) || getDefaultSizeForType(item && item.type, fallback);
 
   if(item && item.isSnake) {
@@ -1417,8 +1453,18 @@ function getInstrumentBodyDimensionsPx(item) {
     };
   }
 
-  const width = getRenderedWorldSizePx(baseSize, fallback, 28);
-  const height = (item && item.wide) ? Math.max(22, width * 0.62) : width;
+  const typeScale = getFootprintScaleForType(item && item.type);
+  const aspect = Math.max(0.25, Math.min(4, getInstrumentFootprintAspect(item)));
+  const base = getRenderedWorldSizePx(baseSize, fallback, 28, typeScale);
+
+  let width = base;
+  let height = base;
+  if(aspect > 1) {
+    height = Math.max(22, base / aspect);
+  } else if(aspect < 1) {
+    width = Math.max(22, base * aspect);
+  }
+
   return { width, height };
 }
 
@@ -2864,7 +2910,8 @@ function renderInstrument(instr) {
       <div class="ilabel">${instr.label}</div>
     `;
   } else if(instr.isMixer) {
-    const bw = getRenderedWorldSizePx(instr.size, 100, 72);
+    const body = getInstrumentBodyDimensionsPx(instr);
+    const bw = body.width;
     const angleDeg = parseInt(instr.angle || 0, 10);
     el.innerHTML = `
       <div class="iface" style="transform:rotate(${angleDeg}deg);transform-origin:center center;">
@@ -2873,8 +2920,9 @@ function renderInstrument(instr) {
       <div class="ilabel">${instr.label}</div>
     `;
   } else {
-    const bw = getRenderedWorldSizePx(instr.size, 52, 28);
-    const bh = instr.wide ? Math.max(22, bw * 0.62) : bw;
+    const body = getInstrumentBodyDimensionsPx(instr);
+    const bw = body.width;
+    const bh = body.height;
     const fontSize = Math.round(Math.min(bw, bh) * 0.52);
     const isStereo = !!instr.stereo;
     const isDrumKit = instr.type === 'drumkit';
