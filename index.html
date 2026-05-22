@@ -280,7 +280,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
     align-items: center;
     gap: 6px;
     padding: 8px 10px;
-    overflow-x: auto;
+    overflow-x: hidden;
   }
 
   .logo { display: none; }
@@ -337,13 +337,12 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
   }
 
   .zoom-range {
-    width: 62px;
-    min-width: 62px;
+    width: 56px;
+    min-width: 56px;
   }
 
   .zoom-value {
-    width: 34px;
-    font-size: 9px;
+    display: none;
   }
 
   .project-name-input {
@@ -395,7 +394,8 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
     grid-template-columns: 112px 1fr;
     grid-template-areas:
       'sidebar stage'
-      'rpanel rpanel';
+      'sidebar rpanel';
+    grid-template-rows: 64dvh auto;
     overflow: visible;
   }
 
@@ -404,12 +404,13 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
     grid-template-areas:
       'stage'
       'rpanel';
+    grid-template-rows: 64dvh auto;
   }
 
   .stage-container {
     grid-area: stage;
-    min-height: 64dvh;
-    height: 64dvh;
+    min-height: 100%;
+    height: 100%;
   }
 
   .sidebar {
@@ -430,7 +431,7 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
     width: 100%;
     border-left: none;
     border-top: 1px solid var(--border);
-    overflow: visible;
+    overflow-y: auto;
   }
 
   #canvas-wrap {
@@ -960,7 +961,7 @@ function applyPanelVisibility() {
   }
 
   const leftBtn = document.getElementById('toggle-left-panel');
-  if(leftBtn) leftBtn.textContent = isLeftPanelCollapsed ? 'Show Left' : 'Hide Left';
+  if(leftBtn) leftBtn.textContent = isLeftPanelCollapsed ? '->' : '<-';
 
   resizeCanvas();
   updateStage(true);
