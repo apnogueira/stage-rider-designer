@@ -862,6 +862,7 @@ let gestureStartZoom = 1;
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 2.2;
 const PHONE_BREAKPOINT_PX = 860;
+const LEGACY_SIZE_PX_PER_M = 61;
 let panX = 0;
 let panY = 0;
 let suppressCanvasClick = false;
@@ -1128,9 +1129,9 @@ function endTouchPaletteDrag(ev) {
   if(p) {
     const wr = canvasWrap.getBoundingClientRect();
     if(p.clientX>=wr.left && p.clientX<=wr.right && p.clientY>=wr.top && p.clientY<=wr.bottom) {
-      const baseSize = touchPaletteDragData.wide ? 82 : 52;
-      const worldX = ((p.clientX - wr.left - panX) / zoomLevel) - (baseSize / 2);
-      const worldY = ((p.clientY - wr.top - panY) / zoomLevel) - (baseSize / 2);
+      const body = getInstrumentBodyDimensionsPx(touchPaletteDragData);
+      const worldX = ((p.clientX - wr.left - panX) / zoomLevel) - (body.width / 2);
+      const worldY = ((p.clientY - wr.top - panY) / zoomLevel) - (body.height / 2);
       addInstrument(touchPaletteDragData, worldX, worldY);
     }
   }
@@ -1382,8 +1383,43 @@ function normalizeSnakeChannels(value) {
   return Math.round(n / 4) * 4;
 }
 
-function getInstrumentRenderScale() {
-  return window.matchMedia(`(max-width: ${PHONE_BREAKPOINT_PX}px)`).matches ? 0.78 : 1;
+function getDeviceVisualScaleCompensation() {
+  // Keep visual sizing aligned across desktop and mobile while allowing separate tuning per device class.
+  return window.matchMedia(`(max-width: ${PHONE_BREAKPOINT_PX}px)`).matches ? 0.98 : 1;
+}
+
+function legacySizePxToMeters(sizePx, fallbackPx) {
+  const px = Math.max(12, Number(sizePx) || Number(fallbackPx) || 52);
+  return px / LEGACY_SIZE_PX_PER_M;
+}
+
+function getRenderedWorldSizePx(sizePx, fallbackPx, minPx) {
+  const meters = legacySizePxToMeters(sizePx, fallbackPx);
+  const px = meters * pxPerM * getDeviceVisualScaleCompensation();
+  return Math.max(Number(minPx) || 24, px);
+}
+
+function getInstrumentBodyDimensionsPx(item) {
+  const fallback = item && item.wide ? 82 : 52;
+  const baseSize = Number(item && item.size) || getDefaultSizeForType(item && item.type, fallback);
+
+  if(item && item.isSnake) {
+    return {
+      width: getRenderedWorldSizePx(baseSize, 80, 62),
+      height: 68,
+    };
+  }
+
+  if(item && item.isMixer) {
+    return {
+      width: getRenderedWorldSizePx(baseSize, 100, 72),
+      height: 84,
+    };
+  }
+
+  const width = getRenderedWorldSizePx(baseSize, fallback, 28);
+  const height = (item && item.wide) ? Math.max(22, width * 0.62) : width;
+  return { width, height };
 }
 
 function supportsStereoToggle(instrOrType) {
@@ -2747,9 +2783,9 @@ canvasWrap.addEventListener('drop',e=>{
   e.preventDefault();
   if(!isDraggingNew||!newDragData) return;
   const wr=canvasWrap.getBoundingClientRect();
-  const baseSize = newDragData.wide ? 82 : 52;
-  const worldX = ((e.clientX - wr.left - panX) / zoomLevel) - (baseSize / 2);
-  const worldY = ((e.clientY - wr.top - panY) / zoomLevel) - (baseSize / 2);
+  const body = getInstrumentBodyDimensionsPx(newDragData);
+  const worldX = ((e.clientX - wr.left - panX) / zoomLevel) - (body.width / 2);
+  const worldY = ((e.clientY - wr.top - panY) / zoomLevel) - (body.height / 2);
   addInstrument(newDragData, worldX, worldY);
   isDraggingNew=false; newDragData=null;
 });
@@ -2828,7 +2864,7 @@ function renderInstrument(instr) {
       <div class="ilabel">${instr.label}</div>
     `;
   } else if(instr.isMixer) {
-    const bw = Math.max((instr.size || 100) * getInstrumentRenderScale(), 72);
+    const bw = getRenderedWorldSizePx(instr.size, 100, 72);
     const angleDeg = parseInt(instr.angle || 0, 10);
     el.innerHTML = `
       <div class="iface" style="transform:rotate(${angleDeg}deg);transform-origin:center center;">
@@ -2837,8 +2873,9 @@ function renderInstrument(instr) {
       <div class="ilabel">${instr.label}</div>
     `;
   } else {
-    const bw = (instr.size || 52) * getInstrumentRenderScale();
-    const fontSize = Math.round(bw * 0.44);
+    const bw = getRenderedWorldSizePx(instr.size, 52, 28);
+    const bh = instr.wide ? Math.max(22, bw * 0.62) : bw;
+    const fontSize = Math.round(Math.min(bw, bh) * 0.52);
     const isStereo = !!instr.stereo;
     const isDrumKit = instr.type === 'drumkit';
     const hasCustomIO = isCustomIOInstrument(instr);
@@ -2871,7 +2908,7 @@ function renderInstrument(instr) {
     el.innerHTML = `
       <div class="iface" style="transform:rotate(${angle}deg);transform-origin:center center;">
         ${hasCustomIO && inputPins.length ? `<div class="io-pin-row inputs" style="grid-template-columns:repeat(${Math.min(inputPins.length, 4)},minmax(0,1fr));">${inputPinsHTML}</div>` : ''}
-        <div class="ib" style="width:${bw}px;height:${bw}px;font-size:${fontSize}px;">
+        <div class="ib" style="width:${bw}px;height:${bh}px;font-size:${fontSize}px;">
           ${buildStageIconHTML(instr, fontSize)}
           ${instr.channel?`<div class="ich">${instr.channel}</div>`:''}
         </div>
@@ -2958,7 +2995,7 @@ function renderInstrument(instr) {
 function buildSnakeHTML(instr, includeLabel = true) {
   const ch = instr.snakeChannels || 16;
   const outputs = instr.type === 'snake8' ? 0 : (instr.snakeOutputs || 0);
-  const bw = Math.max((instr.size || 80) * getInstrumentRenderScale(), 62);
+  const bw = getRenderedWorldSizePx(instr.size, 80, 62);
   const stageMode = snakeViewMode !== 'output';
 
   let inputPins = '';
