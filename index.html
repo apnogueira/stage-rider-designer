@@ -7,10 +7,11 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700&display=swap');
 :root {
-  --bg:#0a0b0d; --surface:#13151a; --panel:#1a1d24; --border:#2a2e3a;
+  --bg:#070d19; --surface:#0d1628; --panel:#14203a; --border:#2a3652;
   --accent:#e8ff47; --accent2:#47c4ff; --accent3:#ff6b47; --accent4:#c47fff;
   --text:#d4d8e2; --muted:#6b7280; --stage-bg:#fdca72; --stage-border:#2d3340;
-  --stage-label-bg:rgba(10,11,13,.88); --stage-label-text:#ffffff;
+  --stage-label-bg:rgba(7,13,25,.9); --stage-label-text:#ffffff;
+  --rack-ui-scale:1;
 }
 body[data-theme='light']{
   --bg:#eef2f6; --surface:#ffffff; --panel:#e6ebf1; --border:#b7c1cd;
@@ -56,6 +57,12 @@ header .sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
 .header-submenu{position:absolute;top:calc(100% + 6px);right:0;min-width:170px;display:none;flex-direction:column;gap:4px;padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.24);z-index:220;}
 .header-menu-group[open] .header-submenu{display:flex;}
 .header-submenu .btn{width:100%;text-align:left;}
+.mode-builder-only{display:none;}
+body.stage-builder-mode .mode-live-only{display:none !important;}
+body.stage-builder-mode .mode-builder-only{display:block;}
+body.stage-builder-mode #conn-canvas{display:none;pointer-events:none;}
+body.stage-builder-mode .si{display:none !important;}
+.mobile-only{display:none !important;}
 .mobile-menu-btn{display:none;width:30px;height:30px;padding:0;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:16px;line-height:1;cursor:pointer;align-items:center;justify-content:center;}
 .mobile-menu-btn:hover{border-color:var(--accent2);color:var(--accent2);}
 .project-name-wrap{display:flex;align-items:center;gap:6px;margin-left:auto;}
@@ -178,23 +185,23 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
 .si.is-snake .ib{border-color:#c47fff55;background:#120f1a;border-radius:4px;}
 .si.is-snake:hover .ib{border-color:var(--accent4);}
 .si.is-snake.selected .ib{border-color:var(--accent4);box-shadow:0 0 0 2px rgba(196,127,255,.25);}
-.si.is-snake .snake-channels{display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:calc(3px * var(--ui-scale, 1));padding:calc(3px * var(--ui-scale, 1));justify-content:center;width:100%;max-width:calc(120px * var(--ui-scale, 1));margin:0 auto;}
-.si.is-snake .snake-ch-pin{width:calc(14px * var(--ui-scale, 1));height:calc(14px * var(--ui-scale, 1));border-radius:50%;border:calc(1.5px * var(--ui-scale, 1)) solid var(--accent4);cursor:crosshair;position:relative;transition:all .12s;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:calc(7px * var(--ui-scale, 1));line-height:1;color:#d9b8ff;font-weight:700;}
+.si.is-snake .snake-channels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:calc(5px * var(--rack-ui-scale));padding:calc(3px * var(--rack-ui-scale));justify-content:center;width:100%;max-width:calc(154px * var(--rack-ui-scale));margin:0 auto;}
+.si.is-snake .snake-ch-pin{width:calc(16px * var(--rack-ui-scale));height:calc(16px * var(--rack-ui-scale));border-radius:50%;border:calc(1.5px * var(--rack-ui-scale)) solid var(--accent4);cursor:crosshair;position:relative;transition:all .12s;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:calc(8px * var(--rack-ui-scale));line-height:1;color:#d9b8ff;font-weight:700;}
 .si.is-snake .snake-ch-pin:hover{background:var(--accent4);transform:scale(1.3);}
 .si.is-snake .snake-ch-pin.used{background:rgba(196,127,255,.4);}
 .si.is-snake .snake-ch-pin.out-pin{color:#9affca;border-color:#47ffa0;}
 .snake-label-row{display:flex;align-items:center;gap:calc(4px * var(--ui-scale, 1));padding:calc(2px * var(--ui-scale, 1)) calc(4px * var(--ui-scale, 1));}
 .snake-badge{font-family:'Share Tech Mono',monospace;font-size:calc(8px * var(--ui-scale, 1));color:var(--accent4);background:rgba(196,127,255,.1);border:1px solid #c47fff44;padding:calc(1px * var(--ui-scale, 1)) calc(5px * var(--ui-scale, 1));border-radius:10px;white-space:nowrap;}
-.snake-mode-row{display:flex;gap:calc(4px * var(--ui-scale, 1));align-items:center;width:100%;margin-bottom:calc(4px * var(--ui-scale, 1));}
-.snake-mode-btn{flex:1;padding:calc(2px * var(--ui-scale, 1)) calc(5px * var(--ui-scale, 1));border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:calc(8px * var(--ui-scale, 1));line-height:1.2;cursor:pointer;}
+.snake-mode-row{display:flex;justify-content:center;gap:calc(5px * var(--rack-ui-scale));align-items:center;width:100%;margin-bottom:calc(4px * var(--ui-scale, 1));}
+.snake-mode-btn{flex:0 0 auto;min-width:calc(48px * var(--rack-ui-scale));padding:calc(2px * var(--rack-ui-scale)) calc(4px * var(--rack-ui-scale));border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:calc(8px * var(--rack-ui-scale));line-height:1.2;cursor:pointer;}
 .snake-mode-btn.active{background:rgba(196,127,255,.16);border-color:var(--accent4);color:var(--accent4);}
 .snake-mode-link{font-family:'Share Tech Mono',monospace;font-size:calc(8px * var(--ui-scale, 1));color:var(--muted);margin:calc(1px * var(--ui-scale, 1)) 0 calc(4px * var(--ui-scale, 1));}
 .si.is-mixer .ib{border-color:#47c4ff66;background:#101722;border-radius:6px;}
 .si.is-mixer:hover .ib{border-color:#47c4ff;}
 .si.is-mixer.selected .ib{border-color:#47c4ff;box-shadow:0 0 0 2px rgba(71,196,255,.2);}
 .mixer-row-label{font-size:calc(8px * var(--ui-scale, 1));font-family:'Share Tech Mono',monospace;line-height:1;color:var(--muted);margin-top:calc(2px * var(--ui-scale, 1));}
-.mixer-pin-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:calc(3px * var(--ui-scale, 1));width:100%;max-width:calc(132px * var(--ui-scale, 1));margin:calc(3px * var(--ui-scale, 1)) auto 0;}
-.mixer-pin{width:calc(16px * var(--ui-scale, 1));height:calc(16px * var(--ui-scale, 1));border-radius:50%;border:calc(1.5px * var(--ui-scale, 1)) solid var(--accent2);cursor:crosshair;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:calc(7px * var(--ui-scale, 1));line-height:1;color:#b8e6ff;font-weight:700;transition:all .12s;}
+.mixer-pin-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:calc(7px * var(--rack-ui-scale));width:100%;max-width:calc(194px * var(--rack-ui-scale));margin:calc(5px * var(--rack-ui-scale)) auto 0;}
+.mixer-pin{width:calc(16px * var(--rack-ui-scale));height:calc(16px * var(--rack-ui-scale));border-radius:50%;border:calc(1.5px * var(--rack-ui-scale)) solid var(--accent2);cursor:crosshair;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:calc(8px * var(--rack-ui-scale));line-height:1;color:#b8e6ff;font-weight:700;transition:all .12s;}
 .mixer-pin:hover{background:var(--accent2);color:#0a0b0d;transform:scale(1.2);}
 .mixer-pin.used{background:rgba(71,196,255,.35);}
 .mixer-pin.out-pin{border-color:#47ffa0;color:#9affca;}
@@ -225,6 +232,13 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
 .iface{display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;}
 .elem-collapse-btn{position:absolute;top:-4px;left:-4px;z-index:8;width:16px;height:16px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:10px;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;}
 .elem-collapse-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+.stage-part{position:absolute;z-index:2;cursor:move;user-select:none;border:2px solid rgba(10,11,13,.45);box-shadow:0 2px 10px rgba(0,0,0,.22);background:var(--part-color,#7da7c8);overflow:hidden;}
+.stage-part.selected{outline:2px solid var(--accent2);outline-offset:2px;}
+.stage-part.shape-circle{border-radius:50%;}
+.stage-part.has-steps::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(to bottom, rgba(10,11,13,.22) 0 2px, rgba(10,11,13,0) 2px 7px),linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.06));pointer-events:none;}
+.stage-part .part-label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:'Share Tech Mono',monospace;font-size:9px;padding:2px 5px;background:rgba(10,11,13,.42);color:#f5f7fb;border-radius:3px;pointer-events:none;white-space:nowrap;opacity:.82;}
+body:not(.stage-builder-mode) .stage-part{pointer-events:none;}
+body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgba(10,11,13,.28);color:rgba(255,255,255,.82);} 
 /* RIGHT PANEL */
 .rpanel{width:216px;flex-shrink:0;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
 .pss{padding:10px;border-bottom:1px solid var(--border);}
@@ -374,6 +388,14 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
     display: none;
   }
 
+  #mode-toggle-btn {
+    display: none;
+  }
+
+  .mobile-only {
+    display: block !important;
+  }
+
   .project-name-input {
     width: 100%;
     max-width: none;
@@ -517,6 +539,7 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
     <button class="zoom-btn" style="width:auto;padding:0 5px;font-size:10px;" onclick="resetZoom()">1:1</button>
     <span id="zoom-value" class="zoom-value">100%</span>
   </div>
+  <button id="mode-toggle-btn" class="btn btn-ghost" type="button" onclick="toggleStageBuilderMode()">Stage Builder: OFF</button>
   <div class="quick-left-toggle">
     <button id="toggle-left-panel" class="btn btn-ghost" type="button" onclick="togglePanel('left')">Hide Left</button>
   </div>
@@ -526,6 +549,7 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
   </div>
   <div id="header-menu-popover" class="header-menu-popover">
     <div class="header-btns">
+      <button id="mode-toggle-mobile" class="btn btn-ghost mobile-only" type="button" onclick="toggleStageBuilderMode()">Stage Builder: OFF</button>
       <button class="btn btn-ghost" onclick="undoAction()">Undo</button>
       <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
       <button class="btn btn-ghost" onclick="saveRider()">Save Rider</button>
@@ -549,12 +573,10 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
   <div class="sidebar drop-delete-zone" id="delete-sidebar-zone">
     <div class="ss">
       <div class="st">Stage Dimensions</div>
-      <div class="dim-row"><span class="dim-label">W</span><input class="dim-input" id="dim-w" type="number" value="7.5" min="3" max="80" step="0.5" oninput="updateStage()"><span class="dim-unit">m</span></div>
-      <div class="dim-row"><span class="dim-label">D</span><input class="dim-input" id="dim-d" type="number" value="4.4" min="2" max="50" step="0.5" oninput="updateStage()"><span class="dim-unit">m</span></div>
-      <div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:10px;color:var(--muted);">
-        <input id="stage-stairs-toggle" type="checkbox" checked onchange="toggleStageStairs(this.checked)">
-        <label for="stage-stairs-toggle">Show stage stairs</label>
-      </div>
+      <div style="font-size:10px;color:var(--muted);line-height:1.55;">Main stage size and steps are now edited in Stage Builder mode from shape properties.</div>
+      <input id="dim-w" type="hidden" value="7.5">
+      <input id="dim-d" type="hidden" value="4.4">
+      <input id="stage-stairs-toggle" type="hidden" value="1">
       <div class="theme-row">
         <span class="dim-label">Theme</span>
         <select id="theme-mode" class="theme-select" onchange="setThemeMode(this.value)">
@@ -566,14 +588,21 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
         <span class="dim-label">Stage</span>
         <input id="stage-color" class="stage-color-input" type="color" value="#ae8b09" onchange="setStageColor(this.value)">
       </div>
+      <div class="theme-row mode-builder-only">
+        <span class="dim-label">Main</span>
+        <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text);">
+          <input id="stage-grid-toggle" type="checkbox" checked onchange="setStageGridVisible(this.checked)">
+          Show Stage Grid
+        </label>
+      </div>
       <div class="scale-d" id="scale-d">— px/m</div>
     </div>
-    <div class="ss">
+    <div class="ss mode-live-only">
       <div class="st">Instruments</div>
       <div class="cat-tabs" id="cat-tabs"></div>
       <div class="pal-grid" id="pal"></div>
     </div>
-    <div class="ss">
+    <div class="ss mode-live-only">
       <div class="st">Snakes</div>
       <div class="pal-grid" id="snake-pal"></div>
       <div class="snake-view-toggle" id="snake-view-toggle">
@@ -584,33 +613,41 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
         <button id="snake-collapse-all-btn" class="collapse-toggle-btn" type="button" onclick="toggleCategoryCollapse('snake')">Collapse All</button>
       </div>
     </div>
-    <div class="ss">
+    <div class="ss mode-live-only">
       <div class="st">Mixers</div>
       <div class="pal-grid" id="mixer-pal"></div>
       <div class="collapse-toggle-row">
         <button id="mixer-collapse-all-btn" class="collapse-toggle-btn" type="button" onclick="toggleCategoryCollapse('mixers')">Collapse All</button>
       </div>
     </div>
-    <div class="ss">
+    <div class="ss mode-live-only">
       <div class="st">Stageboxes</div>
       <div class="pal-grid" id="stagebox-pal"></div>
       <div class="collapse-toggle-row">
         <button id="stagebox-collapse-all-btn" class="collapse-toggle-btn" type="button" onclick="toggleCategoryCollapse('stageboxes')">Collapse All</button>
       </div>
     </div>
-    <div class="ss">
+    <div class="ss mode-live-only">
       <div class="st">PA and Monitoring</div>
       <div class="pal-grid" id="monitor-pal"></div>
     </div>
-    <div class="ss">
+    <div class="ss mode-live-only">
       <div class="st">Accessories</div>
       <div class="pal-grid" id="accessory-pal"></div>
     </div>
-    <div class="ss">
+    <div class="ss mode-live-only">
       <div class="st">Cable Type</div>
       <div class="cable-colors" id="cable-colors"></div>
     </div>
-    <div class="ss">
+    <div class="ss mode-builder-only" id="stage-builder-shapes">
+      <div class="st">Stage Shapes</div>
+      <div class="pal-grid">
+        <button class="pal-tile" type="button" onclick="addStagePart('rect')"><div class="ti">▭</div><div class="tn">Rectangle</div></button>
+        <button class="pal-tile" type="button" onclick="addStagePart('circle')"><div class="ti">◯</div><div class="tn">Circle</div></button>
+      </div>
+      <div style="font-size:10px;color:var(--muted);line-height:1.55;margin-top:7px;">Add rooms as shapes, then set dimensions and color on the right panel.</div>
+    </div>
+    <div class="ss mode-live-only">
       <div class="st">Tips</div>
       <div style="font-size:10px;color:var(--muted);line-height:1.65;">
         <span style="color:var(--accent2);">Arrange:</span> drag from palette, drag to move.<br>
@@ -779,8 +816,22 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
 
         <button class="btn btn-danger" style="width:100%;margin-top:3px;" onclick="deleteSelected()">Remove</button>
       </div>
+      <div id="stage-part-fields" style="display:none;">
+        <div class="pr"><label class="plbl">Label</label><input class="pi" id="sp-label" type="text" oninput="updStagePartLabel(this.value)"></div>
+        <div class="pr"><label class="plbl">Shape</label><input class="pi" id="sp-shape" type="text" readonly></div>
+        <div class="pr"><label class="plbl">Width (m)</label><input class="pi" id="sp-width" type="number" min="0.5" max="120" step="0.1" oninput="updStagePartDimension('widthM', this.value)"></div>
+        <div class="pr"><label class="plbl">Depth (m)</label><input class="pi" id="sp-depth" type="number" min="0.5" max="120" step="0.1" oninput="updStagePartDimension('depthM', this.value)"></div>
+        <div class="pr"><label class="plbl">Color</label><input class="stage-color-input" id="sp-color" type="color" onchange="updStagePartColor(this.value)"></div>
+        <div class="pr" id="sp-steps-wrap"><label class="plbl">Rectangle Options</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:7px 8px;">
+            <input id="sp-steps" type="checkbox" onchange="updStagePartSteps(this.checked)">
+            Is steps
+          </label>
+        </div>
+        <button class="btn btn-danger" style="width:100%;margin-top:3px;" onclick="deleteSelected()">Remove Shape</button>
+      </div>
     </div>
-    <div class="clist">
+    <div class="clist mode-live-only">
       <div class="pst">Connections</div>
       <div id="conn-list"><div class="no-conn">No connections yet</div></div>
     </div>
@@ -828,6 +879,10 @@ const ICON_ASSET_BY_TYPE = {
   wing:'images/wing_full.png',
   wingcompact:'images/wing_compact.png',
   wingrack:'images/wing_rack.png',
+  snake8:'images/snake8.png',
+  snake16:'images/snake16.png',
+  snake24:'images/snake24.png',
+  snake32:'images/snake32.png',
   s32:'images/s32.png',
   s16:'images/s16.png',
   di:'images/di.png',
@@ -860,12 +915,12 @@ const INSTRUMENTS = [
   {type:'mainspk',   cat:'monitoring', icon:'🔊', name:'Main Speaker', wide:false, size:58, connSide:'top', requiresOutput:true},
   {type:'subwoofer', cat:'monitoring', icon:'🟫', name:'Subwoofer',    wide:false, size:62, connSide:'top', requiresOutput:true},
   {type:'xr18',        cat:'mixers',  icon:'🎛', name:'XR18 Mixer',      wide:true,  size:108, connSide:'bottom', isMixer:true, mixerInputs:18, mixerInputXlrOnly:0, mixerInputCombo:16, mixerInputJackOnly:2, mixerAux:6,  mixerMain:2, mixerJackOut:0, mixerP16:1, mixerAes50:0},
-  {type:'x32',         cat:'mixers',  icon:'🎚', name:'X32 Full',        wide:true,  size:114, connSide:'bottom', isMixer:true, mixerInputs:38, mixerInputXlrOnly:32, mixerInputCombo:0,  mixerInputJackOnly:6, mixerAux:14, mixerMain:2, mixerJackOut:6, mixerP16:1, mixerAes50:2},
-  {type:'x32compact',  cat:'mixers',  icon:'🎚', name:'X32 Compact',     wide:true,  size:108, connSide:'bottom', isMixer:true, mixerInputs:22, mixerInputXlrOnly:16, mixerInputCombo:0,  mixerInputJackOnly:6, mixerAux:6,  mixerMain:2, mixerJackOut:6, mixerP16:1, mixerAes50:2},
-  {type:'x32rack',     cat:'mixers',  icon:'🎚', name:'X32 Rack',        wide:true,  size:104, connSide:'bottom', isMixer:true, mixerInputs:22, mixerInputXlrOnly:16, mixerInputCombo:0,  mixerInputJackOnly:6, mixerAux:6,  mixerMain:2, mixerJackOut:6, mixerP16:1, mixerAes50:2},
-  {type:'wing',        cat:'mixers',  icon:'🪽', name:'WING Full',       wide:true,  size:116, connSide:'bottom', isMixer:true, mixerInputs:16, mixerInputXlrOnly:0,  mixerInputCombo:8,  mixerInputJackOnly:8, mixerAux:6,  mixerMain:2, mixerJackOut:8, mixerP16:0, mixerAes50:3},
-  {type:'wingcompact', cat:'mixers',  icon:'🪽', name:'WING Compact',    wide:true,  size:110, connSide:'bottom', isMixer:true, mixerInputs:24, mixerInputXlrOnly:0,  mixerInputCombo:24, mixerInputJackOnly:0, mixerAux:6,  mixerMain:2, mixerJackOut:0, mixerP16:0, mixerAes50:3},
-  {type:'wingrack',    cat:'mixers',  icon:'🪽', name:'WING Rack',       wide:true,  size:106, connSide:'bottom', isMixer:true, mixerInputs:24, mixerInputXlrOnly:0,  mixerInputCombo:24, mixerInputJackOnly:0, mixerAux:6,  mixerMain:2, mixerJackOut:0, mixerP16:0, mixerAes50:3},
+  {type:'x32',         cat:'mixers',  icon:'🎚', name:'X32 Full',        wide:true,  size:114, connSide:'bottom', isMixer:true, mixerInputs:38, mixerInputXlrOnly:32, mixerInputCombo:0,  mixerInputJackOnly:6, mixerAux:16, mixerMain:0, mixerJackOut:6, mixerP16:1, mixerAes50:2},
+  {type:'x32compact',  cat:'mixers',  icon:'🎚', name:'X32 Compact',     wide:true,  size:108, connSide:'bottom', isMixer:true, mixerInputs:22, mixerInputXlrOnly:16, mixerInputCombo:0,  mixerInputJackOnly:6, mixerAux:8,  mixerMain:0, mixerJackOut:6, mixerP16:1, mixerAes50:2},
+  {type:'x32rack',     cat:'mixers',  icon:'🎚', name:'X32 Rack',        wide:true,  size:104, connSide:'bottom', isMixer:true, mixerInputs:22, mixerInputXlrOnly:16, mixerInputCombo:0,  mixerInputJackOnly:6, mixerAux:8,  mixerMain:0, mixerJackOut:6, mixerP16:1, mixerAes50:2},
+  {type:'wing',        cat:'mixers',  icon:'🪽', name:'WING Full',       wide:true,  size:116, connSide:'bottom', isMixer:true, mixerInputs:16, mixerInputXlrOnly:0,  mixerInputCombo:8,  mixerInputJackOnly:8, mixerAux:8,  mixerMain:0, mixerJackOut:8, mixerP16:0, mixerAes50:3},
+  {type:'wingcompact', cat:'mixers',  icon:'🪽', name:'WING Compact',    wide:true,  size:110, connSide:'bottom', isMixer:true, mixerInputs:24, mixerInputXlrOnly:0,  mixerInputCombo:24, mixerInputJackOnly:0, mixerAux:8,  mixerMain:0, mixerJackOut:0, mixerP16:0, mixerAes50:3},
+  {type:'wingrack',    cat:'mixers',  icon:'🪽', name:'WING Rack',       wide:true,  size:106, connSide:'bottom', isMixer:true, mixerInputs:24, mixerInputXlrOnly:0,  mixerInputCombo:24, mixerInputJackOnly:0, mixerAux:8,  mixerMain:0, mixerJackOut:0, mixerP16:0, mixerAes50:3},
   {type:'s32',         cat:'stageboxes', icon:'📦', name:'S32 Stagebox', wide:true,  size:102, connSide:'bottom', isMixer:true, mixerInputs:32, mixerInputXlrOnly:32, mixerInputCombo:0, mixerInputJackOnly:0, mixerAux:16, mixerMain:0, mixerJackOut:0, mixerP16:1, mixerAes50:2},
   {type:'s16',         cat:'stageboxes', icon:'📦', name:'S16 Stagebox', wide:true,  size:96,  connSide:'bottom', isMixer:true, mixerInputs:16, mixerInputXlrOnly:16, mixerInputCombo:0, mixerInputJackOnly:0, mixerAux:8,  mixerMain:0, mixerJackOut:0, mixerP16:1, mixerAes50:2},
   {type:'di',        cat:'accessories',   icon:'📦', name:'DI',      wide:false, size:22, connSide:'bottom'},
@@ -918,16 +973,21 @@ let customMicOptions = [];
 
 let instruments = [];   // {id, type, cat, icon, label, channel, notes, x, y, size, wide, isSnake, snakeChannels}
 let connections = [];   // {id, fromId, toId, fromPin, toPin, cableType, color, label}
+let stageParts = [];    // {id, shape, x, y, stageNX, stageNY, widthM, depthM, color, hasSteps}
 let selectedId = null;
+let selectedStagePartId = null;
 let connectingFrom = null; // {id, pin} pin=null for regular, pin=number for snake
 let isDraggingNew = false, newDragData = null;
 let selectedCable = 'xlr';
 let idCounter = 0;
+let stagePartIdCounter = 0;
 let drawingLine = null;
 let stageW = 7.5, stageD = 4.4;
 let stagePx = {left:0,top:0,width:0,height:0};
 let pxPerM = 1;
-let showStageStairs = true;
+let showStageStairs = false;
+let showMainStage = true;
+let showStageGrid = true;
 const DEFAULT_THEME_MODE = 'light';
 const DEFAULT_STAGE_COLOR = '#fdca72';
 let themeMode = DEFAULT_THEME_MODE;
@@ -958,6 +1018,7 @@ let isLeftPanelCollapsed = false;
 let isRightPanelCollapsed = false;
 let riderFileHandle = null;
 let isLoadRiderPickerOpen = false;
+let isStageBuilderMode = false;
 
 // ═══════════════════════════════════════════════════════════════
 // INIT
@@ -970,9 +1031,11 @@ function init() {
   buildCableColors();
   applyThemeMode();
   applyStageColor();
+  syncRackVisualScale();
   resizeCanvas(); updateStage(true);
   window.addEventListener('resize', () => {
     if(window.innerWidth > 860) closeMobileMenu();
+    syncRackVisualScale();
     resizeCanvas();
     updateStage(true);
   });
@@ -980,6 +1043,23 @@ function init() {
   canvasWrap.addEventListener('gesturestart', handleStageGestureStart, { passive: false });
   canvasWrap.addEventListener('gesturechange', handleStageGestureChange, { passive: false });
   canvasWrap.addEventListener('touchstart', startPanTouch, { passive: false });
+  const stagePlatformEl = document.getElementById('stage-platform');
+  if(stagePlatformEl) {
+    stagePlatformEl.addEventListener('click', e => {
+      if(!isStageBuilderMode) return;
+      const primary = getPrimaryStagePart();
+      if(!primary) return;
+      e.stopPropagation();
+      selectStagePart(primary.id);
+    });
+    stagePlatformEl.addEventListener('touchstart', e => {
+      if(!isStageBuilderMode) return;
+      const primary = getPrimaryStagePart();
+      if(!primary) return;
+      e.stopPropagation();
+      selectStagePart(primary.id);
+    }, { passive: true });
+  }
   document.getElementById('rider-file').addEventListener('change', handleLoadRiderFile);
   document.getElementById('conn-canvas').addEventListener('mousedown', handleCableHandleMouseDown);
   document.getElementById('conn-canvas').addEventListener('touchstart', handleCableHandleTouchStart, { passive: false });
@@ -999,8 +1079,11 @@ function init() {
   markClean();
   updateProjectNameUI();
   updateMobileMenuButton();
+  applyModeUI();
   applyPanelVisibility();
   applyZoom();
+  ensureDefaultMainStagePart(stagePx);
+  updateStage(true);
   pushHistoryState();
   updateSnakeViewToggleUI();
   refreshCategoryCollapseButtons();
@@ -1093,6 +1176,374 @@ function handleDocumentClickForMobileMenu(e) {
   if(exportMenu && exportMenu.open && !exportMenu.contains(t)) closeExportMenu();
 }
 
+function getModeHintText() {
+  if(isStageBuilderMode) return 'Stage Builder: add shapes, drag to position, and edit size/color on the right panel';
+  return 'Drag from palette · Click source pin then destination pin · Drop on left sidebar to delete';
+}
+
+function getPrimaryStagePart() {
+  return stageParts.find(p => !!p.isPrimary) || null;
+}
+
+function ensureDefaultMainStagePart(frame = stagePx) {
+  if(!showMainStage) return null;
+  const existing = getPrimaryStagePart();
+  if(existing) return existing;
+  const f = normalizeStageFrame(frame);
+  if(!f) return null;
+  const part = {
+    id: ++stagePartIdCounter,
+    shape: 'rect',
+    isPrimary: true,
+    label: 'WORK STAGE',
+    x: f.left,
+    y: f.top,
+    stageNX: 0,
+    stageNY: 0,
+    widthM: Math.max(2, Math.min(80, Number(stageW) || 7.5)),
+    depthM: Math.max(2, Math.min(50, Number(stageD) || 4.4)),
+    color: /^#[0-9a-fA-F]{6}$/.test(String(stageColor || '')) ? stageColor : DEFAULT_STAGE_COLOR,
+    hasSteps: !!showStageStairs,
+  };
+  stageParts.unshift(part);
+  return part;
+}
+
+function syncPrimaryPartFromStageSettings(part, frame = stagePx) {
+  if(!part) return;
+  const f = normalizeStageFrame(frame);
+  if(!f) return;
+  part.isPrimary = true;
+  part.shape = 'rect';
+  part.label = String(part.label || 'WORK STAGE');
+  part.widthM = Math.max(2, Math.min(80, Number(stageW) || 7.5));
+  part.depthM = Math.max(2, Math.min(50, Number(stageD) || 4.4));
+  part.color = /^#[0-9a-fA-F]{6}$/.test(String(stageColor || '')) ? stageColor : DEFAULT_STAGE_COLOR;
+  part.hasSteps = !!showStageStairs;
+  part.x = f.left;
+  part.y = f.top;
+  part.stageNX = 0;
+  part.stageNY = 0;
+}
+
+function syncStageSettingsFromPrimaryPart(part) {
+  if(!part) return;
+  stageW = Math.max(2, Math.min(80, parseFloat(part.widthM) || stageW || 7.5));
+  stageD = Math.max(2, Math.min(50, parseFloat(part.depthM) || stageD || 4.4));
+  if(/^#[0-9a-fA-F]{6}$/.test(String(part.color || ''))) stageColor = part.color;
+  showStageStairs = !!part.hasSteps;
+}
+
+function updateModeToggleButton() {
+  const labels = isStageBuilderMode ? 'Stage Builder: ON' : 'Stage Builder: OFF';
+  const ids = ['mode-toggle-btn', 'mode-toggle-mobile'];
+  ids.forEach(id => {
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.textContent = labels;
+    btn.classList.toggle('btn-primary', isStageBuilderMode);
+    btn.classList.toggle('btn-ghost', !isStageBuilderMode);
+  });
+}
+
+function updateSelectionPanels() {
+  const noSel = document.getElementById('no-sel');
+  const propFields = document.getElementById('prop-fields');
+  const stagePartFields = document.getElementById('stage-part-fields');
+  if(!noSel || !propFields || !stagePartFields) return;
+
+  if(isStageBuilderMode) {
+    propFields.style.display = 'none';
+    if(selectedStagePartId) {
+      noSel.style.display = 'none';
+      stagePartFields.style.display = 'block';
+    } else {
+      noSel.style.display = '';
+      noSel.textContent = 'Select a stage shape';
+      stagePartFields.style.display = 'none';
+    }
+    return;
+  }
+
+  stagePartFields.style.display = 'none';
+  noSel.textContent = 'Select an item';
+  if(selectedId) {
+    noSel.style.display = 'none';
+    propFields.style.display = 'block';
+  } else {
+    noSel.style.display = '';
+    propFields.style.display = 'none';
+  }
+}
+
+function applyModeUI() {
+  document.body.classList.toggle('stage-builder-mode', !!isStageBuilderMode);
+  updateModeToggleButton();
+  const hint = document.getElementById('stage-hint');
+  if(hint) hint.textContent = getModeHintText();
+  if(isStageBuilderMode) {
+    selectedId = null;
+    connectingFrom = null;
+    drawingLine = null;
+    hoveredConnectionId = null;
+  } else {
+    selectedStagePartId = null;
+  }
+  updateSelectionPanels();
+  updateClasses();
+  render();
+}
+
+function toggleStageBuilderMode() {
+  pushHistoryState();
+  isStageBuilderMode = !isStageBuilderMode;
+  markDirty();
+  applyModeUI();
+}
+
+function addStagePart(shape) {
+  const nextShape = shape === 'circle' ? 'circle' : 'rect';
+  pushHistoryState();
+  const baseWidth = nextShape === 'circle' ? 2.2 : 3.4;
+  const baseDepth = nextShape === 'circle' ? 2.2 : 2.2;
+  const id = ++stagePartIdCounter;
+  const part = {
+    id,
+    shape: nextShape,
+    x: stagePx.left + (stagePx.width * 0.5) - ((baseWidth * pxPerM) / 2),
+    y: stagePx.top + (stagePx.height * 0.5) - ((baseDepth * pxPerM) / 2),
+    stageNX: null,
+    stageNY: null,
+    widthM: baseWidth,
+    depthM: baseDepth,
+    label: nextShape === 'circle' ? 'ROOM CIRCLE' : 'ROOM',
+    color: '#7da7c8',
+    hasSteps: false,
+    isPrimary: false,
+  };
+  syncStagePartNormFromWorld(part, stagePx);
+  stageParts.push(part);
+  renderStagePart(part);
+  selectStagePart(id);
+  markDirty();
+  render();
+}
+
+function renderStagePart(part) {
+  if(!part || part.isPrimary) {
+    const oldPrimaryEl = part ? getStagePartEl(part.id) : null;
+    if(oldPrimaryEl) oldPrimaryEl.remove();
+    return;
+  }
+  const wrap = document.getElementById('canvas-wrap');
+  const old = getStagePartEl(part.id);
+  if(old) old.remove();
+  const el = document.createElement('div');
+  el.className = `stage-part shape-${part.shape}`;
+  el.id = `stage-part-${part.id}`;
+  el.dataset.id = String(part.id);
+  const widthPx = Math.max(16, (Math.max(0.5, Number(part.widthM) || 1) * pxPerM));
+  const depthPx = Math.max(16, (Math.max(0.5, Number(part.depthM) || 1) * pxPerM));
+  el.style.width = `${widthPx}px`;
+  el.style.height = `${depthPx}px`;
+  el.style.setProperty('--part-color', String(part.color || '#7da7c8'));
+  el.classList.toggle('has-steps', !!part.hasSteps);
+  positionWorldElement(el, part.x, part.y);
+  const label = String(part.label || (part.shape === 'circle' ? 'ROOM CIRCLE' : 'ROOM'));
+  el.innerHTML = `<div class="part-label">${label}</div>`;
+
+  el.addEventListener('mousedown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    startStagePartDrag(e, part.id, el);
+  });
+  el.addEventListener('touchstart', e => {
+    if(e.cancelable) e.preventDefault();
+    e.stopPropagation();
+    startStagePartDrag(e, part.id, el);
+  }, { passive: false });
+
+  wrap.appendChild(el);
+}
+
+function populateStagePartFields(part) {
+  const label = document.getElementById('sp-label');
+  const shape = document.getElementById('sp-shape');
+  const width = document.getElementById('sp-width');
+  const depth = document.getElementById('sp-depth');
+  const color = document.getElementById('sp-color');
+  const steps = document.getElementById('sp-steps');
+  const stepsWrap = document.getElementById('sp-steps-wrap');
+  if(!label || !shape || !width || !depth || !color || !steps || !stepsWrap) return;
+  label.value = String(part.label || '');
+  shape.value = part.shape === 'circle' ? 'Circle' : 'Rectangle';
+  width.value = Number(part.widthM || 1).toFixed(2);
+  depth.value = Number(part.depthM || 1).toFixed(2);
+  color.value = /^#[0-9a-fA-F]{6}$/.test(String(part.color || '')) ? part.color : '#7da7c8';
+  steps.checked = !!part.hasSteps;
+  stepsWrap.style.display = part.shape === 'rect' ? '' : 'none';
+}
+
+function selectStagePart(id) {
+  selectedStagePartId = id;
+  selectedId = null;
+  const part = stageParts.find(p => p.id === id);
+  if(!part) {
+    updateSelectionPanels();
+    updateClasses();
+    return;
+  }
+  populateStagePartFields(part);
+  updateSelectionPanels();
+  updateClasses();
+}
+
+function updStagePartDimension(field, value) {
+  if(!selectedStagePartId) return;
+  const part = stageParts.find(p => p.id === selectedStagePartId);
+  if(!part) return;
+  const next = Math.max(0.5, Math.min(120, parseFloat(value) || 0));
+  if(!Number.isFinite(next)) return;
+  if(Math.abs((Number(part[field]) || 0) - next) < 0.001) return;
+  pushHistoryState();
+  part[field] = next;
+  if(part.isPrimary) {
+    syncStageSettingsFromPrimaryPart(part);
+    const dimW = document.getElementById('dim-w');
+    const dimD = document.getElementById('dim-d');
+    if(dimW) dimW.value = String(stageW);
+    if(dimD) dimD.value = String(stageD);
+    updateStage(true);
+    return;
+  }
+  markDirty();
+  renderStagePart(part);
+  updateClasses();
+}
+
+function updStagePartColor(value) {
+  if(!selectedStagePartId) return;
+  const part = stageParts.find(p => p.id === selectedStagePartId);
+  if(!part) return;
+  const next = /^#[0-9a-fA-F]{6}$/.test(String(value || '')) ? String(value) : '#7da7c8';
+  if(part.color === next) return;
+  pushHistoryState();
+  part.color = next;
+  if(part.isPrimary) {
+    stageColor = next;
+    applyStageColor();
+    updateStage(true);
+    markDirty();
+    return;
+  }
+  markDirty();
+  renderStagePart(part);
+  updateClasses();
+}
+
+function updStagePartSteps(enabled) {
+  if(!selectedStagePartId) return;
+  const part = stageParts.find(p => p.id === selectedStagePartId);
+  if(!part || part.shape !== 'rect') return;
+  const next = !!enabled;
+  if(!!part.hasSteps === next) return;
+  pushHistoryState();
+  part.hasSteps = next;
+  if(part.isPrimary) {
+    showStageStairs = next;
+    applyStageStairs();
+    updateStage(true);
+    markDirty();
+    return;
+  }
+  markDirty();
+  renderStagePart(part);
+  updateClasses();
+}
+
+function updStagePartLabel(value) {
+  if(!selectedStagePartId) return;
+  const part = stageParts.find(p => p.id === selectedStagePartId);
+  if(!part) return;
+  const next = String(value || '').trim() || (part.isPrimary ? 'WORK STAGE' : (part.shape === 'circle' ? 'ROOM CIRCLE' : 'ROOM'));
+  if(String(part.label || '') === next) return;
+  pushHistoryState();
+  part.label = next;
+  if(part.isPrimary) {
+    const stageName = document.getElementById('stage-name');
+    if(stageName) stageName.textContent = next;
+    markDirty();
+    return;
+  }
+  markDirty();
+  renderStagePart(part);
+  updateClasses();
+}
+
+function deleteStagePart(id) {
+  const targetId = Number(id);
+  const target = stageParts.find(p => p.id === targetId);
+  if(target && target.isPrimary) {
+    showMainStage = false;
+  }
+  const el = getStagePartEl(targetId);
+  if(el) el.remove();
+  stageParts = stageParts.filter(p => p.id !== targetId);
+  if(selectedStagePartId === targetId) selectedStagePartId = null;
+  updateSelectionPanels();
+  updateClasses();
+  updateStage(true);
+  markDirty();
+}
+
+function startStagePartDrag(ev, id, el) {
+  if(!isStageBuilderMode) return;
+  const part = stageParts.find(p => p.id === id);
+  if(!part) return;
+  const dragSnapshot = captureSnapshot();
+  const wr = document.getElementById('canvas-wrap').getBoundingClientRect();
+  const p0 = getClientPointFromEvent(ev);
+  if(!p0) return;
+  const pointerWorldStartX = (p0.clientX - wr.left - panX) / zoomLevel;
+  const pointerWorldStartY = (p0.clientY - wr.top - panY) / zoomLevel;
+  const offsetWorldX = pointerWorldStartX - part.x;
+  const offsetWorldY = pointerWorldStartY - part.y;
+  let moved = false;
+
+  function onMove(e) {
+    const p = getClientPointFromEvent(e);
+    if(!p) return;
+    if(e.cancelable) e.preventDefault();
+    part.x = ((p.clientX - wr.left - panX) / zoomLevel) - offsetWorldX;
+    part.y = ((p.clientY - wr.top - panY) / zoomLevel) - offsetWorldY;
+    syncStagePartNormFromWorld(part, stagePx);
+    positionWorldElement(el, part.x, part.y);
+    moved = true;
+  }
+
+  function onUp() {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+    document.removeEventListener('touchcancel', onUp);
+    if(moved) {
+      historyStack.push(dragSnapshot);
+      if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
+      redoStack = [];
+      markDirty();
+    }
+    selectStagePart(id);
+    render();
+  }
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('touchend', onUp, { passive: false });
+  document.addEventListener('touchcancel', onUp, { passive: false });
+}
+
 function runExportAction(action) {
   closeExportMenu();
   if(action === 'png') {
@@ -1171,10 +1622,18 @@ function setSnakeViewModeForSnake(id, mode) {
 
 function handleKeyboardShortcuts(e) {
   const key = (e.key || '').toLowerCase();
-  const ctrlOrMeta = e.ctrlKey || e.metaKey;
-  if(!ctrlOrMeta) return;
   const ae = document.activeElement;
   const isEditable = !!(ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable));
+
+  if(key === 'delete' || (key === 'backspace' && !isEditable)) {
+    if(!selectedId && !selectedStagePartId) return;
+    e.preventDefault();
+    deleteSelected();
+    return;
+  }
+
+  const ctrlOrMeta = e.ctrlKey || e.metaKey;
+  if(!ctrlOrMeta) return;
 
   if(key === 's') {
     e.preventDefault();
@@ -1258,6 +1717,41 @@ function ensureAllInstrumentsStageNorm(frame) {
 
 function syncAllInstrumentsWorldFromStageNorm(frame) {
   instruments.forEach(instr => syncInstrumentWorldFromStageNorm(instr, frame));
+}
+
+function getStagePartEl(id) {
+  return document.getElementById(`stage-part-${id}`);
+}
+
+function syncStagePartNormFromWorld(part, frame) {
+  if(!part) return;
+  const f = normalizeStageFrame(frame);
+  if(!f) return;
+  part.stageNX = (Number(part.x) - f.left) / f.width;
+  part.stageNY = (Number(part.y) - f.top) / f.height;
+}
+
+function ensureStagePartNorm(part, frame) {
+  if(!part) return;
+  if(Number.isFinite(part.stageNX) && Number.isFinite(part.stageNY)) return;
+  syncStagePartNormFromWorld(part, frame);
+}
+
+function syncStagePartWorldFromNorm(part, frame) {
+  if(!part) return;
+  const f = normalizeStageFrame(frame);
+  if(!f) return;
+  if(!Number.isFinite(part.stageNX) || !Number.isFinite(part.stageNY)) return;
+  part.x = f.left + (part.stageNX * f.width);
+  part.y = f.top + (part.stageNY * f.height);
+}
+
+function ensureAllStagePartsNorm(frame) {
+  stageParts.forEach(part => ensureStagePartNorm(part, frame));
+}
+
+function syncAllStagePartsWorldFromNorm(frame) {
+  stageParts.forEach(part => syncStagePartWorldFromNorm(part, frame));
 }
 
 function syncConnectionRouteNormFromWorld(conn, frame) {
@@ -1358,7 +1852,7 @@ function endTouchPaletteDrag(ev) {
   touchPaletteDragData = null;
   removeTouchPaletteGhost();
   const hint = document.getElementById('stage-hint');
-  if(hint) hint.textContent = 'Drag from palette · Click source pin then destination pin · Drop on left sidebar to delete';
+  if(hint) hint.textContent = getModeHintText();
 }
 
 function applyZoom() {
@@ -1370,6 +1864,10 @@ function applyZoom() {
   instruments.forEach(instr => {
     const el = getEl(instr.id);
     if(el) positionWorldElement(el, instr.x, instr.y);
+  });
+  stageParts.forEach(part => {
+    const el = getStagePartEl(part.id);
+    if(el) positionWorldElement(el, part.x, part.y);
   });
 
   const zr = document.getElementById('zoom-range');
@@ -1450,7 +1948,7 @@ function handleStageGestureChange(e) {
 
 function startPanDrag(e) {
   if(e.button !== 0) return;
-  if(e.target.closest('.si')) return;
+  if(e.target.closest('.si, .stage-part')) return;
   const startX = e.clientX;
   const startY = e.clientY;
   const startPanX = panX;
@@ -1522,7 +2020,7 @@ function startPanTouch(e) {
   }
 
   if(e.touches.length !== 1) return;
-  if(e.target.closest('.si, .iconn, .snake-ch-pin, .mixer-pin')) return;
+  if(e.target.closest('.si, .stage-part, .iconn, .snake-ch-pin, .mixer-pin')) return;
 
   const t = e.touches[0];
   const startX = t.clientX;
@@ -1608,6 +2106,14 @@ function getDeviceVisualScaleCompensation() {
   return window.matchMedia(`(max-width: ${PHONE_BREAKPOINT_PX}px)`).matches ? 0.98 : 1;
 }
 
+function syncRackVisualScale() {
+  const root = document.documentElement;
+  if(!root) return;
+  const base = getDeviceVisualScaleCompensation();
+  const safe = Math.max(0.94, Math.min(1.06, base));
+  root.style.setProperty('--rack-ui-scale', safe.toFixed(3));
+}
+
 function legacySizePxToMeters(sizePx, fallbackPx) {
   const px = Math.max(12, Number(sizePx) || Number(fallbackPx) || 52);
   return px / LEGACY_SIZE_PX_PER_M;
@@ -1666,21 +2172,23 @@ function getInstrumentBodyDimensionsPx(item) {
   const baseSize = Number(item && item.size) || getDefaultSizeForType(item && item.type, fallback);
 
   if(item && item.isSnake) {
-    const width = getRenderedWorldSizePx(baseSize, 80, 62);
-    const uiScale = getRackUIScale(width, 80);
+    const normalizedRackSize = Math.max(40, Math.min(52, baseSize * 0.78));
+    const width = getRenderedWorldSizePx(normalizedRackSize, 58, 44);
+    const uiScale = getRackUIScale(width, 58, 0.62, 1.04);
     return {
       width,
-      height: Math.max(50, 68 * uiScale),
+      height: Math.max(40, 58 * uiScale),
       uiScale,
     };
   }
 
   if(item && item.isMixer) {
-    const width = getRenderedWorldSizePx(baseSize, 100, 72);
-    const uiScale = getRackUIScale(width, 100);
+    const normalizedRackSize = Math.max(56, Math.min(80, baseSize * 0.62));
+    const width = getRenderedWorldSizePx(normalizedRackSize, 86, 64);
+    const uiScale = getRackUIScale(width, 86, 0.82, 1.22);
     return {
       width,
-      height: Math.max(62, 84 * uiScale),
+      height: Math.max(52, 66 * uiScale),
       uiScale,
     };
   }
@@ -1883,9 +2391,20 @@ function setStageColor(value) {
   if(stageColor === next) return;
   pushHistoryState();
   stageColor = next;
+  const primary = getPrimaryStagePart();
+  if(primary) primary.color = next;
   applyStageColor();
   markDirty();
   render();
+}
+
+function setStageGridVisible(enabled) {
+  const next = !!enabled;
+  if(showStageGrid === next) return;
+  pushHistoryState();
+  showStageGrid = next;
+  updateStage(true);
+  markDirty();
 }
 
 function getDefaultConnectorMode(type) {
@@ -2040,6 +2559,64 @@ function getPinMicNote(instr, pin) {
   return map[pinKey(pin)] || '';
 }
 
+function getMixerInputBreakdown(instr) {
+  const xlrOnly = Math.max(0, Number(instr && instr.mixerInputXlrOnly) || 0);
+  const combo = Math.max(0, Number(instr && instr.mixerInputCombo) || 0);
+  const auxInputs = Math.max(0, Number(instr && instr.mixerInputJackOnly) || 0);
+  const taggedTotal = xlrOnly + combo + auxInputs;
+  const mixerInputs = Math.max(0, Number(instr && instr.mixerInputs) || 0);
+  if(taggedTotal > 0) {
+    return { xlrOnly, combo, auxInputs, totalStandard: xlrOnly + combo };
+  }
+  const fallbackStandard = Math.max(0, mixerInputs - auxInputs);
+  return { xlrOnly: fallbackStandard, combo: 0, auxInputs, totalStandard: fallbackStandard };
+}
+
+function mapLegacyMixerPin(instr, pin) {
+  const key = pinKey(pin);
+  if(!instr || !instr.isMixer || !key) return key;
+
+  const noMainFamilies = new Set(['x32', 'x32compact', 'x32rack', 'wing', 'wingcompact', 'wingrack']);
+
+  const inputMatch = key.match(/^MX-IN-(\d+)$/);
+  if(inputMatch) {
+    const idx = parseInt(inputMatch[1], 10) || 1;
+    const breakdown = getMixerInputBreakdown(instr);
+    if(breakdown.auxInputs > 0 && idx > breakdown.totalStandard) {
+      const auxIdx = idx - breakdown.totalStandard;
+      if(auxIdx >= 1 && auxIdx <= breakdown.auxInputs) return `MX-AUX-IN-${auxIdx}`;
+    }
+  }
+
+  if(key.startsWith('MX-MAIN-') && (Number(instr.mixerMain) === 0 || noMainFamilies.has(instr.type))) {
+    const mainIdx = parseInt(key.replace('MX-MAIN-', ''), 10) || 1;
+    const xlrOutCount = Math.max(0, Number(instr.mixerAux) || 0);
+    if(xlrOutCount > 0) {
+      if(instr.type === 'x32compact' || instr.type === 'x32rack') {
+        const mapped = 6 + mainIdx;
+        if(mapped <= xlrOutCount) return `MX-AUX-${mapped}`;
+      }
+      if(instr.type === 'x32') {
+        const mapped = 14 + mainIdx;
+        if(mapped <= xlrOutCount) return `MX-AUX-${mapped}`;
+      }
+      const fallback = Math.min(xlrOutCount, mainIdx);
+      if(fallback >= 1) return `MX-AUX-${fallback}`;
+    }
+  }
+
+  return key;
+}
+
+function normalizeAllMixerConnectionPins() {
+  connections.forEach(conn => {
+    const fromInstr = instruments.find(i => i.id === conn.fromId);
+    const toInstr = instruments.find(i => i.id === conn.toId);
+    conn.fromPin = mapLegacyMixerPin(fromInstr, conn.fromPin);
+    conn.toPin = mapLegacyMixerPin(toInstr, conn.toPin);
+  });
+}
+
 function getPinAllowedCableTypes(instr, pin) {
   const p = pinKey(pin);
   if(!instr) return ['xlr', 'ts', 'trs', 'ethernet'];
@@ -2072,17 +2649,17 @@ function getPinAllowedCableTypes(instr, pin) {
   if(instr.isMixer) {
     if(p.startsWith('MX-IN-')) {
       const idx = parseInt(p.replace('MX-IN-', ''), 10) || 1;
-      const xlrOnly = Math.max(0, Number(instr.mixerInputXlrOnly) || 0);
-      const combo = Math.max(0, Number(instr.mixerInputCombo) || 0);
-      const jackOnly = Math.max(0, Number(instr.mixerInputJackOnly) || 0);
-      const totalTagged = xlrOnly + combo + jackOnly;
-      if(totalTagged > 0) {
+      const breakdown = getMixerInputBreakdown(instr);
+      if((breakdown.xlrOnly + breakdown.combo + breakdown.auxInputs) > 0) {
+        const xlrOnly = breakdown.xlrOnly;
+        const combo = breakdown.combo;
         if(idx <= xlrOnly) return ['xlr'];
         if(idx <= (xlrOnly + combo)) return ['xlr', 'ts'];
-        return ['ts'];
+        return ['xlr'];
       }
       return idx <= 16 ? ['xlr', 'ts'] : ['ts'];
     }
+    if(p.startsWith('MX-AUX-IN-')) return ['ts'];
     if(p.startsWith('MX-AUX-') || p.startsWith('MX-MAIN-')) return ['xlr'];
     if(p.startsWith('MX-JACK-OUT-')) return ['ts'];
     if(p.startsWith('MX-P16-')) return ['ethernet'];
@@ -2174,18 +2751,28 @@ function cloneConnections(list) {
   });
 }
 
+function cloneStageParts(list) {
+  return list.map(p => ({ ...p }));
+}
+
 function captureSnapshot() {
   return {
     projectName,
     stageW,
     stageD,
     showStageStairs,
+    showMainStage: !!showMainStage,
+    showStageGrid: !!showStageGrid,
     themeMode,
     stageColor,
+    isStageBuilderMode: !!isStageBuilderMode,
     instruments: cloneInstruments(instruments),
     connections: cloneConnections(connections),
+    stageParts: cloneStageParts(stageParts),
     selectedId,
+    selectedStagePartId,
     idCounter,
+    stagePartIdCounter,
     selectedCable,
   };
 }
@@ -2193,18 +2780,29 @@ function captureSnapshot() {
 function applySnapshot(snapshot, keepCleanState) {
   isRestoringHistory = true;
   instruments.forEach(i => { const el = getEl(i.id); if(el) el.remove(); });
+  stageParts.forEach(p => { const el = getStagePartEl(p.id); if(el) el.remove(); });
 
   projectName = snapshot.projectName || 'untitled-project';
   stageW = snapshot.stageW;
   stageD = snapshot.stageD;
-  showStageStairs = snapshot.showStageStairs !== false;
+  showStageStairs = !!snapshot.showStageStairs;
+  showMainStage = snapshot.showMainStage !== false;
+  showStageGrid = snapshot.showStageGrid !== false;
   themeMode = snapshot.themeMode === 'dark' ? 'dark' : DEFAULT_THEME_MODE;
   stageColor = /^#[0-9a-fA-F]{6}$/.test(String(snapshot.stageColor || '')) ? snapshot.stageColor : DEFAULT_STAGE_COLOR;
+  isStageBuilderMode = !!snapshot.isStageBuilderMode;
   instruments = cloneInstruments(snapshot.instruments || []);
   connections = cloneConnections(snapshot.connections || []);
+  stageParts = cloneStageParts(snapshot.stageParts || []);
+  if(showMainStage && !stageParts.some(p => p.isPrimary)) {
+    const fallbackPrimary = ensureDefaultMainStagePart(stagePx);
+    if(fallbackPrimary) fallbackPrimary.label = 'WORK STAGE';
+  }
   normalizeAllSnakeConnectionPins();
   selectedId = snapshot.selectedId || null;
+  selectedStagePartId = snapshot.selectedStagePartId || null;
   idCounter = snapshot.idCounter || 0;
+  stagePartIdCounter = snapshot.stagePartIdCounter || 0;
   selectedCable = normalizeCableType(snapshot.selectedCable || 'xlr');
   connectingFrom = null;
   drawingLine = null;
@@ -2218,14 +2816,17 @@ function applySnapshot(snapshot, keepCleanState) {
   updateProjectNameUI();
   updateSnakeViewToggleUI();
   refreshCategoryCollapseButtons();
+  applyModeUI();
   updateStage(true);
 
-  if(selectedId && instruments.some(i => i.id === selectedId)) {
+  if(!isStageBuilderMode && selectedId && instruments.some(i => i.id === selectedId)) {
     selectInstrument(selectedId);
+  } else if(isStageBuilderMode && selectedStagePartId && stageParts.some(p => p.id === selectedStagePartId)) {
+    selectStagePart(selectedStagePartId);
   } else {
     selectedId = null;
-    document.getElementById('no-sel').style.display='';
-    document.getElementById('prop-fields').style.display='none';
+    selectedStagePartId = null;
+    updateSelectionPanels();
   }
 
   if(keepCleanState) markClean();
@@ -2250,13 +2851,18 @@ function undoAction() {
 
 function serializeLayout() {
   ensureAllConnectionsRouteNorm(stagePx);
+  ensureAllStagePartsNorm(stagePx);
   return {
-    version:3,
+    version:4,
     created:new Date().toISOString(),
     projectName,
+    showMainStage: !!showMainStage,
+    showStageGrid: !!showStageGrid,
+    isStageBuilderMode: !!isStageBuilderMode,
     stage:{widthM:stageW, depthM:stageD, showStairs:showStageStairs, themeMode, color:stageColor},
     instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,connSide,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,isSnake,snakeViewMode,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,collapsed})=>({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs:!!haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,micModels:Object.values(pinMicAssignments||{}),micModel:Object.values(pinMicAssignments||{})[0]||'',connSide,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,isSnake,snakeViewMode:normalizeSnakeViewMode(snakeViewMode),snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,collapsed:!!collapsed})),
     connections:connections.map(({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX,routeNX})=>({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX,routeNX})),
+    stageParts:stageParts.map(({id,shape,isPrimary,label,x,y,stageNX,stageNY,widthM,depthM,color,hasSteps})=>({id,shape,isPrimary:!!isPrimary,label,x,y,stageNX,stageNY,widthM,depthM,color,hasSteps:!!hasSteps})),
   };
 }
 
@@ -2291,7 +2897,8 @@ function buildPalette(cat) {
 function buildSnakePalette() {
   const grid = document.getElementById('snake-pal'); grid.innerHTML = '';
   SNAKES.forEach(s => {
-    const snakeIcon = '<img class="icon-img" src="images/snake.png" alt="Snake" draggable="false">';
+    const snakeImage = getInstrumentImage(s.type) || 'images/snake8.png';
+    const snakeIcon = `<img class="icon-img" src="${snakeImage}" alt="${s.name}" draggable="false">`;
     const t = makeTile(snakeIcon, s.name, true, null, 'snake-tile');
     t.addEventListener('dragstart', e => {
       isDraggingNew=true;
@@ -2299,6 +2906,7 @@ function buildSnakePalette() {
 		type:s.type,
 		cat:'snake',
 		icon:'🐍',
+		image:snakeImage,
 		name:s.name,
 		isSnake:true,
 		snakeChannels:s.channels,
@@ -2314,6 +2922,7 @@ function buildSnakePalette() {
         type:s.type,
         cat:'snake',
         icon:'🐍',
+        image:snakeImage,
         name:s.name,
         isSnake:true,
         snakeChannels:s.channels,
@@ -2444,7 +3053,8 @@ function makeTile(icon, name, isSnake, instrumentSize, variantClass = '') {
   const t = document.createElement('div');
   t.className = 'pal-tile' + (isSnake ? ' snake-tile' : '') + (variantClass ? ` ${variantClass}` : '');
   t.draggable = true;
-  const base = Number(instrumentSize) || 52;
+  const isRackTile = variantClass === 'mixer-tile';
+  const base = isRackTile ? 52 : (Number(instrumentSize) || 52);
   const previewSize = Math.max(14, Math.min(34, Math.round(base * 0.33)));
   t.style.setProperty('--ti-size', `${previewSize}px`);
   t.innerHTML = `<div class="ti">${icon}</div><div class="tn">${name}</div>`;
@@ -2471,12 +3081,20 @@ function updateStage(skipDirty) {
   const prevStageFrame = normalizeStageFrame(stagePx);
   if(prevStageFrame) {
     ensureAllInstrumentsStageNorm(prevStageFrame);
+    ensureAllStagePartsNorm(prevStageFrame);
     ensureAllConnectionsRouteNorm(prevStageFrame);
   }
+  normalizeAllMixerConnectionPins();
+  const primaryBefore = getPrimaryStagePart();
+  if(primaryBefore) syncStageSettingsFromPrimaryPart(primaryBefore);
   const prevW = stageW;
   const prevD = stageD;
-  stageW = Math.max(2, Math.min(80, parseFloat(document.getElementById('dim-w').value)||7.5));
-  stageD = Math.max(2, Math.min(50, parseFloat(document.getElementById('dim-d').value)||4.4));
+  if(!primaryBefore) {
+    const dimWEl = document.getElementById('dim-w');
+    const dimDEl = document.getElementById('dim-d');
+    stageW = Math.max(2, Math.min(80, parseFloat(dimWEl ? dimWEl.value : stageW) || 7.5));
+    stageD = Math.max(2, Math.min(50, parseFloat(dimDEl ? dimDEl.value : stageD) || 4.4));
+  }
   const wrap = document.getElementById('canvas-wrap');
   const ww = wrap.clientWidth||800, wh = wrap.clientHeight||600;
   pxPerM = Math.min(ww*.78/stageW, wh*.60/stageD);
@@ -2486,20 +3104,46 @@ function updateStage(skipDirty) {
   p.style.width = `${sw}px`;
   p.style.height = `${sh}px`;
   p.style.bottom = 'unset';
+  p.style.display = showMainStage ? 'block' : 'none';
   stagePx = {left:sl,top:st2,width:sw,height:sh};
+  const primaryPart = ensureDefaultMainStagePart(stagePx);
+  if(primaryPart) {
+    syncPrimaryPartFromStageSettings(primaryPart, stagePx);
+  }
   syncAllInstrumentsWorldFromStageNorm(stagePx);
+  syncAllStagePartsWorldFromNorm(stagePx);
   syncAllConnectionsRouteWorldFromNorm(stagePx);
   // Instrument body dimensions depend on pxPerM, so refresh DOM on every stage rescale.
   instruments.forEach(renderInstrument);
+  stageParts.forEach(renderStagePart);
   if(selectedId !== null) {
     const selEl = getEl(selectedId);
     if(selEl) selEl.classList.add('selected');
   }
+  if(selectedStagePartId !== null) {
+    const selPart = getStagePartEl(selectedStagePartId);
+    if(selPart) selPart.classList.add('selected');
+  }
+  applyStageColor();
   applyStageStairs();
   const a = document.getElementById('audience-label');
   a.style.width = `${sw}px`;
+  const stageName = document.getElementById('stage-name');
+  if(stageName) stageName.textContent = String((primaryPart && primaryPart.label) || 'WORK STAGE');
   document.getElementById('stage-dims').textContent = `${stageW} m × ${stageD} m`;
-  document.getElementById('scale-d').textContent = `${pxPerM.toFixed(1)} px/m · 1px=${(1/pxPerM).toFixed(3)}m`;
+  const scaleInfo = document.getElementById('scale-d');
+  if(scaleInfo) {
+    scaleInfo.textContent = `${pxPerM.toFixed(1)} px/m · 1px=${(1/pxPerM).toFixed(3)}m`;
+    scaleInfo.style.display = showStageGrid ? '' : 'none';
+  }
+  const dimWEl = document.getElementById('dim-w');
+  const dimDEl = document.getElementById('dim-d');
+  if(dimWEl) dimWEl.value = String(stageW);
+  if(dimDEl) dimDEl.value = String(stageD);
+  const stairsToggle = document.getElementById('stage-stairs-toggle');
+  if(stairsToggle) stairsToggle.checked = !!showStageStairs;
+  const stageGridToggle = document.getElementById('stage-grid-toggle');
+  if(stageGridToggle) stageGridToggle.checked = !!showStageGrid;
   if(!skipDirty) {
     if(prevW !== stageW || prevD !== stageD) pushHistoryState();
     markDirty();
@@ -2510,7 +3154,7 @@ function updateStage(skipDirty) {
 function applyStageStairs() {
   const stairs = document.getElementById('stage-stairs');
   if(!stairs) return;
-  if(!showStageStairs) {
+  if(!showMainStage || !showStageStairs) {
     stairs.style.display = 'none';
     return;
   }
@@ -2535,8 +3179,17 @@ function toggleStageStairs(enabled) {
 
 function drawRulers() {
   const {left,top,width,height} = stagePx;
-  // H ruler
   const rh = document.getElementById('ruler-h');
+  const rv = document.getElementById('ruler-v');
+  if(!rh || !rv) return;
+  if(!showStageGrid) {
+    rh.style.display = 'none';
+    rv.style.display = 'none';
+    return;
+  }
+  rh.style.display = 'block';
+  rv.style.display = 'block';
+  // H ruler
   rh.width = Math.ceil(width); rh.height = 20;
   Object.assign(rh.style, {width:width+'px', height:'20px'});
   const chx = rh.getContext('2d'); chx.clearRect(0,0,rh.width,20);
@@ -2548,7 +3201,6 @@ function drawRulers() {
     if(maj){ chx.fillStyle=m===0||m===stageW?'#47c4ff':'#6b7280'; chx.textAlign=m===0?'left':m===stageW?'right':'center'; chx.fillText(m+'m',x,6); }
   }
   // V ruler
-  const rv = document.getElementById('ruler-v');
   rv.width=20; rv.height=Math.ceil(height);
   Object.assign(rv.style,{width:'20px',height:height+'px'});
   const cvx=rv.getContext('2d'); cvx.clearRect(0,0,20,rv.height);
@@ -2892,9 +3544,11 @@ function parseSnakeInputPin(pin) {
 
 function parseMixerInputPin(pin) {
   const key = pinKey(pin);
-  const m = key.match(/^MX-IN-(\d+)$/);
-  if(!m) return null;
-  return { index: parseInt(m[1], 10) };
+  const standardMatch = key.match(/^MX-IN-(\d+)$/);
+  if(standardMatch) return { family: 'MX-IN', index: parseInt(standardMatch[1], 10) };
+  const auxMatch = key.match(/^MX-AUX-IN-(\d+)$/);
+  if(auxMatch) return { family: 'MX-AUX-IN', index: parseInt(auxMatch[1], 10) };
+  return null;
 }
 
 function maybeAutoRouteSnakeMixer(baseConn) {
@@ -2912,6 +3566,7 @@ function maybeAutoRouteSnakeMixer(baseConn) {
   let snakePinFamily = '';
   let snakeStartIdx = 0;
   let mixerStartIdx = 0;
+  let mixerPinFamily = 'MX-IN';
   let direction = 'snake-to-mixer';
 
   if(fromSnake && toMixerIn) {
@@ -2920,6 +3575,7 @@ function maybeAutoRouteSnakeMixer(baseConn) {
     snakePinFamily = fromSnake.family;
     snakeStartIdx = fromSnake.index;
     mixerStartIdx = toMixerIn.index;
+    mixerPinFamily = toMixerIn.family || 'MX-IN';
     direction = 'snake-to-mixer';
   } else if(fromMixerIn && toSnake) {
     snakeInstr = toInstr;
@@ -2927,13 +3583,17 @@ function maybeAutoRouteSnakeMixer(baseConn) {
     snakePinFamily = toSnake.family;
     snakeStartIdx = toSnake.index;
     mixerStartIdx = fromMixerIn.index;
+    mixerPinFamily = fromMixerIn.family || 'MX-IN';
     direction = 'mixer-to-snake';
   } else {
     return;
   }
 
   const snakeMax = Math.max(1, Number(snakeInstr.snakeChannels) || 16);
-  const mixerMax = Math.max(0, Number(mixerInstr.mixerInputs) || 0);
+  const breakdown = getMixerInputBreakdown(mixerInstr);
+  const mixerMax = mixerPinFamily === 'MX-AUX-IN'
+    ? Math.max(0, breakdown.auxInputs)
+    : Math.max(0, breakdown.totalStandard || Number(mixerInstr.mixerInputs) || 0);
   let maxAdditional = 0;
   while((snakeStartIdx + maxAdditional + 1) <= snakeMax && (mixerStartIdx + maxAdditional + 1) <= mixerMax) {
     maxAdditional += 1;
@@ -2941,7 +3601,8 @@ function maybeAutoRouteSnakeMixer(baseConn) {
   if(maxAdditional <= 0) return;
 
   const maxTotal = 1 + maxAdditional;
-  const ask = prompt(`Snake to mixer auto-route\n\nHow many consecutive connections do you want to make?\nStart mapping: snake ${snakeStartIdx} -> mixer IN ${mixerStartIdx}\nEnter a number from 1 to ${maxTotal}.`, String(Math.min(8, maxTotal)));
+  const mixerStartLabel = mixerPinFamily === 'MX-AUX-IN' ? `A${mixerStartIdx}` : `${mixerStartIdx}`;
+  const ask = prompt(`Snake to mixer auto-route\n\nHow many consecutive connections do you want to make?\nStart mapping: snake ${snakeStartIdx} -> mixer IN ${mixerStartLabel}\nEnter a number from 1 to ${maxTotal}.`, String(Math.min(8, maxTotal)));
   if(ask == null) return;
   const requestedTotal = parseInt(String(ask).trim(), 10);
   if(!Number.isFinite(requestedTotal) || requestedTotal < 1) {
@@ -2957,7 +3618,7 @@ function maybeAutoRouteSnakeMixer(baseConn) {
     const snakeIdx = snakeStartIdx + step;
     const mixerIdx = mixerStartIdx + step;
     const snakePin = `${snakePinFamily}-${snakeIdx}`;
-    const mixerPin = `MX-IN-${mixerIdx}`;
+    const mixerPin = mixerPinFamily === 'MX-AUX-IN' ? `MX-AUX-IN-${mixerIdx}` : `MX-IN-${mixerIdx}`;
 
     const fromObj = direction === 'snake-to-mixer'
       ? { id: snakeInstr.id, pin: snakePin }
@@ -3102,6 +3763,10 @@ function render(refreshConnectionList = true) {
   const ctx = cv.getContext('2d');
   ctx.clearRect(0,0,cv.width,cv.height);
   connectionHandleCache = [];
+  if(isStageBuilderMode) {
+    if(refreshConnectionList) updateConnList();
+    return;
+  }
   const busState = buildCableBusState();
   const selectedConnIds = selectedId
     ? connections.filter(c => c.fromId === selectedId || c.toId === selectedId).map(c => c.id)
@@ -3631,12 +4296,13 @@ function renderInstrument(instr) {
     const bh = snakeBody.height;
     const uiScale = snakeBody.uiScale || getRackUIScale(bw, 80);
     if(isCollapsed) {
+      const snakeImage = instr.image || getInstrumentImage(instr.type) || 'images/snake8.png';
       el.innerHTML = `
         ${getCollapseButtonHTML(instr)}
         <div class="iface" style="transform:rotate(${angle}deg);transform-origin:center center;">
           ${buildRotationHandleHTML()}
           <div class="ib" style="width:${bw}px;min-height:${Math.round(Math.max(28, bh * 0.46))}px;padding:${Math.round(5 * uiScale)}px;--ui-scale:${uiScale};">
-            <img class="icon-img" src="images/snake.png" alt="${instr.label}" draggable="false">
+            <img class="icon-img" src="${snakeImage}" alt="${instr.label}" draggable="false">
             <div class="ib-label">${instr.label}</div>
           </div>
         </div>
@@ -3882,87 +4548,124 @@ function buildSnakeHTML(instr, includeLabel = true) {
 }
 
 function buildMixerHTML(instr, widthPx) {
-  const uiScale = getRackUIScale(widthPx, 100);
-  const minHeight = Math.max(62, 84 * uiScale);
+  const uiScale = getRackUIScale(widthPx, 80);
+  const minHeight = Math.max(44, 62 * uiScale);
   const inputs = Math.max(0, Number(instr.mixerInputs) || 18);
+  const breakdown = getMixerInputBreakdown(instr);
+  const xlrInputCount = Math.max(0, breakdown.xlrOnly);
+  const comboInputCount = Math.max(0, breakdown.combo);
+  const auxInputCount = Math.max(0, breakdown.auxInputs);
   const auxCount = Math.max(0, Number(instr.mixerAux) || 6);
-  const mainCount = Math.max(0, Number(instr.mixerMain) || 2);
+  const noMainFamilies = new Set(['x32', 'x32compact', 'x32rack', 'wing', 'wingcompact', 'wingrack']);
+  const mainCount = noMainFamilies.has(instr.type) ? 0 : Math.max(0, Number(instr.mixerMain) || 2);
   const jackOutCount = Math.max(0, Number(instr.mixerJackOut) || 0);
   const pmCount = Math.max(0, Number(instr.mixerP16) || 0);
   const aes50Count = Math.max(0, Number(instr.mixerAes50) || 0);
   const xlrOutCount = auxCount + mainCount;
   const isStagebox = instr.type === 's32' || instr.type === 's16';
+  const genericInputCount = (xlrInputCount + comboInputCount + auxInputCount) > 0 ? 0 : inputs;
 
-  let inPins = '';
-  for(let i=1;i<=inputs;i++) {
-    const key = `MX-IN-${i}`;
+  const mixerImage = instr.image
+    ? `<img class="icon-img" src="${instr.image}" alt="${instr.label}" draggable="false" style="width:${Math.round(34 * uiScale)}px;height:${Math.round(34 * uiScale)}px;object-fit:contain;">`
+    : `<span class="icon-emoji" style="font-size:${Math.round(18 * uiScale)}px;line-height:1;">${instr.icon || '🎚'}</span>`;
+
+  function buildMixerPin(key, label, baseLabel, extraClass = '') {
     const used = isPinUsed(instr.id, key);
-    inPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, `Input ${i}`)}">${i}</div>`;
+    return `<div id="pin-${instr.id}-${key}" class="mixer-pin${extraClass}${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, baseLabel)}">${label}</div>`;
   }
 
-  let outPins = '';
+  let inputSections = '';
+  let inputIndex = 1;
+
+  if(xlrInputCount > 0) {
+    let pins = '';
+    for(let i=1;i<=xlrInputCount;i++) {
+      const key = `MX-IN-${inputIndex}`;
+      pins += buildMixerPin(key, `${inputIndex}`, `Input ${inputIndex} (XLR)`);
+      inputIndex += 1;
+    }
+    inputSections += `<div class="mixer-row-label">INPUTS (XLR)</div><div class="mixer-pin-grid">${pins}</div>`;
+  }
+
+  if(comboInputCount > 0) {
+    let pins = '';
+    for(let i=1;i<=comboInputCount;i++) {
+      const key = `MX-IN-${inputIndex}`;
+      pins += buildMixerPin(key, `${inputIndex}`, `Input ${inputIndex} (Combo)`);
+      inputIndex += 1;
+    }
+    inputSections += `<div class="mixer-row-label">INPUTS (COMBO)</div><div class="mixer-pin-grid">${pins}</div>`;
+  }
+
+  if(auxInputCount > 0) {
+    let pins = '';
+    for(let i=1;i<=auxInputCount;i++) {
+      const key = `MX-AUX-IN-${i}`;
+      const lbl = `A${i}`;
+      pins += buildMixerPin(key, lbl, `Aux Input ${lbl} (Jack TS)`);
+    }
+    inputSections += `<div class="mixer-row-label">INPUTS (AUX JACK)</div><div class="mixer-pin-grid">${pins}</div>`;
+  }
+
+  if(genericInputCount > 0) {
+    let pins = '';
+    for(let i=1;i<=genericInputCount;i++) {
+      const key = `MX-IN-${i}`;
+      pins += buildMixerPin(key, `${i}`, `Input ${i}`);
+    }
+    inputSections += `<div class="mixer-row-label">INPUTS</div><div class="mixer-pin-grid">${pins}</div>`;
+  }
+
+  let outputSections = '';
+  let xlrOutputPins = '';
   for(let i=1;i<=auxCount;i++) {
     const key = `MX-AUX-${i}`;
-    const used = isPinUsed(instr.id, key);
-    const outTitle = isStagebox ? `XLR Out ${i}` : `Aux Out ${i}`;
-    const outLabel = isStagebox ? `O${i}` : `A${i}`;
-    outPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin out-pin${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, outTitle)}">${outLabel}</div>`;
+    const outTitle = `XLR Out ${i}`;
+    const outLabel = isStagebox ? `O${i}` : `${i}`;
+    xlrOutputPins += buildMixerPin(key, outLabel, outTitle, ' out-pin');
   }
+  if(xlrOutputPins) outputSections += `<div class="mixer-row-label">OUTPUTS (XLR)</div><div class="mixer-pin-grid">${xlrOutputPins}</div>`;
 
   const mainLabels = ['L', 'R'];
+  let mainOutputPins = '';
   for(let i=1;i<=mainCount;i++) {
     const key = `MX-MAIN-${i}`;
-    const used = isPinUsed(instr.id, key);
     const lbl = mainLabels[i-1] || String(i);
-    outPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin out-pin${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, `Main Out ${lbl}`)}">M${lbl}</div>`;
+    mainOutputPins += buildMixerPin(key, `M${lbl}`, `Main Out ${lbl}`, ' out-pin');
   }
+  if(mainOutputPins) outputSections += `<div class="mixer-row-label">OUTPUTS (MAIN)</div><div class="mixer-pin-grid">${mainOutputPins}</div>`;
 
+  let auxJackOutputPins = '';
   for(let i=1;i<=jackOutCount;i++) {
     const key = `MX-JACK-OUT-${i}`;
-    const used = isPinUsed(instr.id, key);
-    outPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin out-pin${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, `Jack Out ${i}`)}">J${i}</div>`;
+    const lbl = `A${i}`;
+    auxJackOutputPins += buildMixerPin(key, lbl, `Aux Output ${lbl} (Jack TS)`, ' out-pin');
   }
+  if(auxJackOutputPins) outputSections += `<div class="mixer-row-label">OUTPUTS (AUX JACK)</div><div class="mixer-pin-grid">${auxJackOutputPins}</div>`;
 
   let otherPins = '';
 
   for(let i=1;i<=pmCount;i++) {
     const key = `MX-P16-${i}`;
-    const used = isPinUsed(instr.id, key);
-    otherPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin other-pin${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, `Ultranet ${i}`)}">PM${i}</div>`;
+    otherPins += buildMixerPin(key, `PM${i}`, `Ultranet ${i}`, ' other-pin');
   }
 
   for(let i=1;i<=aes50Count;i++) {
     const key = `MX-AES50-${i}`;
-    const used = isPinUsed(instr.id, key);
-    otherPins += `<div id="pin-${instr.id}-${key}" class="mixer-pin other-pin${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, `AES50 ${i}`)}">A5${i}</div>`;
+    otherPins += buildMixerPin(key, `A5${i}`, `AES50 ${i}`, ' other-pin');
   }
-
-  const outputLabelParts = [];
-  if(xlrOutCount) outputLabelParts.push(`XLR ${xlrOutCount}`);
-  if(jackOutCount) outputLabelParts.push(`JACK ${jackOutCount}`);
-  const outputLabel = outputLabelParts.length ? outputLabelParts.join(' · ') : 'NONE';
 
   const otherLabelParts = [];
   if(pmCount) otherLabelParts.push(`ULTRANET ${pmCount}`);
   if(aes50Count) otherLabelParts.push(`AES50 ${aes50Count}`);
   const otherLabel = otherLabelParts.length ? otherLabelParts.join(' · ') : 'NONE';
 
-  const summaryOtherParts = [];
-  if(pmCount) summaryOtherParts.push(`ULTRA:${pmCount}`);
-  if(aes50Count) summaryOtherParts.push(`AES50:${aes50Count}`);
-  const summaryOther = summaryOtherParts.length ? ` / OTH ${summaryOtherParts.join('+')}` : '';
-
   return `
     <div class="ib" style="width:${widthPx}px;min-height:${Math.round(minHeight)}px;padding:${Math.round(5 * uiScale)}px;flex-direction:column;font-size:0;--ui-scale:${uiScale};">
       <div class="ib-label inside-top">${instr.label}</div>
-      <div style="display:flex;align-items:center;gap:${Math.round(6 * uiScale)}px;">
-        <span style="font-size:${Math.round(15 * uiScale)}px;line-height:1;">${buildStageIconHTML(instr, Math.round(14 * uiScale))}</span>
-        <span class="snake-badge" style="color:#47c4ff;border-color:#47c4ff55;background:rgba(71,196,255,.12);">${inputs} IN / ${xlrOutCount + jackOutCount} OUT${summaryOther}</span>
-      </div>
-      <div class="mixer-row-label">INPUTS (1-${inputs})</div>
-      <div class="mixer-pin-grid">${inPins}</div>
-      <div class="mixer-row-label">OUTPUTS (${outputLabel})</div>
-      <div class="mixer-pin-grid">${outPins}</div>
+      <div style="display:flex;justify-content:center;align-items:center;margin-top:${Math.round(2 * uiScale)}px;">${mixerImage}</div>
+      ${inputSections}
+      ${outputSections}
       ${otherPins ? `<div class="mixer-row-label">OTHERS (${otherLabel})</div><div class="mixer-pin-grid">${otherPins}</div>` : ''}
     </div>
   `;
@@ -4044,7 +4747,7 @@ function startDrag(e, id, el) {
     }
     document.body.classList.remove('delete-dragging-hot');
     document.body.classList.remove('delete-dragging');
-    if(hint) hint.textContent = 'Drag from palette · Click source pin then destination pin · Drop on left sidebar to delete';
+    if(hint) hint.textContent = getModeHintText();
     if(isOverDeleteZone(e)) deleteInstrument(id);
     else if(moved) {
       historyStack.push(dragSnapshot);
@@ -4122,7 +4825,7 @@ function startDragTouch(e, id, el) {
     }
     document.body.classList.remove('delete-dragging-hot');
     document.body.classList.remove('delete-dragging');
-    if(hint) hint.textContent = 'Drag from palette · Click source pin then destination pin · Drop on left sidebar to delete';
+    if(hint) hint.textContent = getModeHintText();
 
     if(p && isOverDeleteZone(p.clientX, p.clientY)) deleteInstrument(id);
     else if(moved) {
@@ -4232,6 +4935,8 @@ function startInstrumentRotation(ev, id) {
 }
 
 function selectInstrument(id) {
+  if(isStageBuilderMode) return;
+  selectedStagePartId = null;
   selectedId=id;
   updateClasses();
   hoveredConnectionId = null;
@@ -4847,13 +5552,25 @@ function updateClasses() {
     el.classList.toggle('selected', instr.id===selectedId);
     el.classList.toggle('connecting-source', connectingFrom&&connectingFrom.id===instr.id);
   });
+  stageParts.forEach(part => {
+    const el = getStagePartEl(part.id); if(!el) return;
+    el.classList.toggle('selected', part.id === selectedStagePartId);
+  });
 }
 
 function deleteSelected() {
+  if(isStageBuilderMode) {
+    if(!selectedStagePartId) return;
+    pushHistoryState();
+    deleteStagePart(selectedStagePartId);
+    selectedStagePartId = null;
+    updateSelectionPanels();
+    render();
+    return;
+  }
   if(!selectedId) return;
   deleteInstrument(selectedId); selectedId=null;
-  document.getElementById('no-sel').style.display='';
-  document.getElementById('prop-fields').style.display='none';
+  updateSelectionPanels();
 }
 
 function deleteInstrument(id) {
@@ -4861,7 +5578,7 @@ function deleteInstrument(id) {
   const el=getEl(id); if(el) el.remove();
   instruments=instruments.filter(i=>i.id!==id);
   connections=connections.filter(c=>c.fromId!==id&&c.toId!==id);
-  if(selectedId===id){ selectedId=null; document.getElementById('no-sel').style.display=''; document.getElementById('prop-fields').style.display='none'; }
+  if(selectedId===id){ selectedId=null; updateSelectionPanels(); }
   updateSnakeViewToggleUI();
   refreshCategoryCollapseButtons();
   markDirty();
@@ -4878,7 +5595,7 @@ function isOutputPin(pin) {
 }
 
 function isInputPin(pin) {
-  return typeof pin === 'string' && (pin.startsWith('IN-') || pin.startsWith('STAGE-IN-') || pin.startsWith('CABLE-IN-') || pin.startsWith('MX-IN-') || pin.startsWith('IO-IN-') || pin.startsWith('HA-IN-') || pin.startsWith('AMP-IN-') || pin === 'SPK-IN');
+  return typeof pin === 'string' && (pin.startsWith('IN-') || pin.startsWith('STAGE-IN-') || pin.startsWith('CABLE-IN-') || pin.startsWith('MX-IN-') || pin.startsWith('MX-AUX-IN-') || pin.startsWith('IO-IN-') || pin.startsWith('HA-IN-') || pin.startsWith('AMP-IN-') || pin === 'SPK-IN');
 }
 
 function isEndpointOnlyOutput(instr, pin) {
@@ -4933,6 +5650,7 @@ function getPinTargetAtClientPoint(clientX, clientY) {
 }
 
 function startConnectionFromPin(id, pin, e) {
+  if(isStageBuilderMode) return;
   const clickedPin = pinKey(pin);
 
   if(!connectingFrom) {
@@ -5224,16 +5942,16 @@ canvasWrap.addEventListener('click', e=>{
     suppressCanvasClick = false;
     return;
   }
-  if(!e.target.closest('.si')){
+  if(!e.target.closest('.si, .stage-part')){
     const prevSelectedId = selectedId;
     selectedId=null;
+    selectedStagePartId = null;
     if(prevSelectedId) {
       const prev = instruments.find(i=>i.id===prevSelectedId);
       if(prev) renderInstrument(prev);
     }
     updateClasses();
-    document.getElementById('no-sel').style.display='';
-    document.getElementById('prop-fields').style.display='none';
+    updateSelectionPanels();
     hoveredConnectionId = null;
     connectingFrom=null;
     drawingLine=null;
@@ -5248,6 +5966,11 @@ canvasWrap.addEventListener('click', e=>{
 
 function updateConnList() {
   const list = document.getElementById('conn-list');
+  if(isStageBuilderMode) {
+    list.innerHTML = '<div class="no-conn">Stage Builder mode: connections hidden</div>';
+    hoveredConnectionId = null;
+    return;
+  }
   const instrumentsById = new Map(instruments.map(instr => [instr.id, instr]));
   if(!connections.length) {
     list.innerHTML = '<div class="no-conn">No connections yet</div>';
@@ -5401,7 +6124,9 @@ function clearAll() {
   if(!confirm('Clear the entire stage layout?')) return;
   pushHistoryState();
   instruments.forEach(i=>{ const el=getEl(i.id); if(el) el.remove(); });
-  instruments=[]; connections=[]; selectedId=null; connectingFrom=null; drawingLine=null;
+  stageParts.forEach(p=>{ const el=getStagePartEl(p.id); if(el) el.remove(); });
+  instruments=[]; connections=[]; stageParts=[]; selectedId=null; selectedStagePartId=null; connectingFrom=null; drawingLine=null;
+  isStageBuilderMode = false;
   themeMode = DEFAULT_THEME_MODE;
   stageColor = DEFAULT_STAGE_COLOR;
   applyThemeMode();
@@ -5410,13 +6135,16 @@ function clearAll() {
   document.getElementById('dim-d').value = 4.4;
   stageW = 7.5;
   stageD = 4.4;
-  showStageStairs = true;
+  showStageStairs = false;
+  showMainStage = true;
+  showStageGrid = true;
   const stairsToggle = document.getElementById('stage-stairs-toggle');
-  if(stairsToggle) stairsToggle.checked = true;
+  if(stairsToggle) stairsToggle.checked = false;
   applyStageStairs();
-  document.getElementById('no-sel').style.display=''; document.getElementById('prop-fields').style.display='none';
+  updateSelectionPanels();
   updateSnakeViewToggleUI();
   refreshCategoryCollapseButtons();
+  applyModeUI();
   updateStage(true);
   markDirty();
   render(false);
@@ -5525,15 +6253,22 @@ function loadRiderFromData(data) {
   }
 
   instruments.forEach(i => { const el = getEl(i.id); if(el) el.remove(); });
+  stageParts.forEach(p => { const el = getStagePartEl(p.id); if(el) el.remove(); });
   instruments = [];
   connections = [];
+  stageParts = [];
+  stagePartIdCounter = 0;
   selectedId = null;
+  selectedStagePartId = null;
   connectingFrom = null;
   drawingLine = null;
+  showMainStage = data.showMainStage !== false;
+  showStageGrid = data.showStageGrid !== false;
+  isStageBuilderMode = !!data.isStageBuilderMode;
 
   stageW = Math.max(2, Math.min(80, parseFloat(stage.widthM) || 7.5));
   stageD = Math.max(2, Math.min(50, parseFloat(stage.depthM) || 4.4));
-  showStageStairs = stage.showStairs !== false;
+  showStageStairs = !!stage.showStairs;
   themeMode = stage.themeMode === 'dark' ? 'dark' : DEFAULT_THEME_MODE;
   stageColor = /^#[0-9a-fA-F]{6}$/.test(String(stage.color || '')) ? stage.color : DEFAULT_STAGE_COLOR;
   document.getElementById('dim-w').value = stageW;
@@ -5577,8 +6312,15 @@ function loadRiderFromData(data) {
       mixerInputXlrOnly: Number(raw.mixerInputXlrOnly) || (raw.type === 's32' ? 32 : (raw.type === 's16' ? 16 : (raw.type === 'x32' ? 32 : ((raw.type === 'x32compact' || raw.type === 'x32rack') ? 16 : 0)))),
       mixerInputCombo: Number(raw.mixerInputCombo) || (raw.type === 'xr18' ? 16 : ((raw.type === 'wingcompact' || raw.type === 'wingrack') ? 24 : (raw.type === 'wing' ? 8 : 0))),
       mixerInputJackOnly: Number(raw.mixerInputJackOnly) || (raw.type === 'xr18' ? 2 : (raw.type === 'wing' ? 8 : ((raw.type === 'x32' || raw.type === 'x32compact' || raw.type === 'x32rack') ? 6 : 0))),
-      mixerAux: Number(raw.mixerAux) || (raw.type === 's32' ? 16 : (raw.type === 's16' ? 8 : (raw.type === 'x32' ? 14 : (raw.type === 'xr18' ? 6 : ((raw.type === 'x32compact' || raw.type === 'x32rack' || raw.type === 'wing' || raw.type === 'wingcompact' || raw.type === 'wingrack') ? 6 : 0))))),
-      mixerMain: Number(raw.mixerMain) || (raw.type === 'xr18' ? 2 : ((raw.type === 'x32' || raw.type === 'x32compact' || raw.type === 'x32rack' || raw.type === 'wing' || raw.type === 'wingcompact' || raw.type === 'wingrack') ? 2 : 0)),
+      mixerAux: Number(raw.mixerAux) || (
+        raw.type === 's32' ? 16 :
+        raw.type === 's16' ? 8 :
+        raw.type === 'x32' ? 16 :
+        raw.type === 'xr18' ? 6 :
+        ((raw.type === 'x32compact' || raw.type === 'x32rack') ? 8 :
+        ((raw.type === 'wing' || raw.type === 'wingcompact' || raw.type === 'wingrack') ? 8 : 0))
+      ),
+      mixerMain: Number(raw.mixerMain) || (raw.type === 'xr18' ? 2 : 0),
       mixerJackOut: Number(raw.mixerJackOut) || (raw.type === 'x32' ? 6 : ((raw.type === 'x32compact' || raw.type === 'x32rack') ? 6 : (raw.type === 'wing' ? 8 : 0))),
       mixerP16: Number(raw.mixerP16) || ((raw.type === 's32' || raw.type === 's16' || raw.type === 'xr18' || raw.type === 'x32' || raw.type === 'x32compact' || raw.type === 'x32rack') ? 1 : 0),
       mixerAes50: Number(raw.mixerAes50) || ((raw.type === 's32' || raw.type === 's16' || raw.type === 'x32' || raw.type === 'x32compact' || raw.type === 'x32rack') ? 2 : ((raw.type === 'wing' || raw.type === 'wingcompact' || raw.type === 'wingrack') ? 3 : 0)),
@@ -5591,6 +6333,9 @@ function loadRiderFromData(data) {
       drumMics: Array.isArray(raw.drumMics) ? raw.drumMics : (raw.type === 'drumkit' ? [] : null),
       collapsed: !!raw.collapsed,
     };
+    if(instr.type === 'x32' || instr.type === 'x32compact' || instr.type === 'x32rack' || instr.type === 'wing' || instr.type === 'wingcompact' || instr.type === 'wingrack') {
+      instr.mixerMain = 0;
+    }
     instr.pinMicAssignments = derivePinMicAssignments(raw, instr);
     if(!supportsMicPickup(instr)) instr.pinMicAssignments = {};
     pruneInvalidInstrumentPins(instr);
@@ -5616,14 +6361,42 @@ function loadRiderFromData(data) {
     }));
   normalizeAllSnakeConnectionPins();
 
+  const newStageParts = Array.isArray(data.stageParts) ? data.stageParts : [];
+  stageParts = newStageParts.map(raw => ({
+    id: parseInt(raw.id, 10) || ++stagePartIdCounter,
+    shape: raw.shape === 'circle' ? 'circle' : 'rect',
+    isPrimary: !!raw.isPrimary,
+    label: String(raw.label || ''),
+    x: Number.isFinite(parseFloat(raw.x)) ? parseFloat(raw.x) : stagePx.left,
+    y: Number.isFinite(parseFloat(raw.y)) ? parseFloat(raw.y) : stagePx.top,
+    stageNX: Number.isFinite(parseFloat(raw.stageNX)) ? parseFloat(raw.stageNX) : null,
+    stageNY: Number.isFinite(parseFloat(raw.stageNY)) ? parseFloat(raw.stageNY) : null,
+    widthM: Math.max(0.5, Math.min(120, parseFloat(raw.widthM) || 2.5)),
+    depthM: Math.max(0.5, Math.min(120, parseFloat(raw.depthM) || 2.0)),
+    color: /^#[0-9a-fA-F]{6}$/.test(String(raw.color || '')) ? raw.color : '#7da7c8',
+    hasSteps: !!raw.hasSteps,
+  }));
+  if(showMainStage && !stageParts.some(p => p.isPrimary)) {
+    const defaultPrimary = ensureDefaultMainStagePart(stagePx);
+    if(defaultPrimary) {
+      defaultPrimary.label = 'WORK STAGE';
+      defaultPrimary.widthM = stageW;
+      defaultPrimary.depthM = stageD;
+      defaultPrimary.color = stageColor;
+      defaultPrimary.hasSteps = showStageStairs;
+    }
+  }
+
   const maxInstrId = instruments.reduce((m, i) => Math.max(m, i.id), 0);
   const maxConnId = connections.reduce((m, c) => Math.max(m, c.id), 0);
+  const maxPartId = stageParts.reduce((m, p) => Math.max(m, p.id), 0);
   idCounter = Math.max(idCounter, maxInstrId, maxConnId);
+  stagePartIdCounter = Math.max(stagePartIdCounter, maxPartId);
 
   updateSnakeViewToggleUI();
   refreshCategoryCollapseButtons();
-  document.getElementById('no-sel').style.display='';
-  document.getElementById('prop-fields').style.display='none';
+  updateSelectionPanels();
+  applyModeUI();
   updateStage(true);
   render();
 }
