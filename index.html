@@ -12,6 +12,18 @@
   --text:#d4d8e2; --muted:#6b7280; --stage-bg:#fdca72; --stage-border:#2d3340;
   --stage-label-bg:rgba(7,13,25,.9); --stage-label-text:#ffffff;
   --rack-ui-scale:1;
+  --rack-pin-scale:1;
+  --rack-pin-size-base:18px;
+  --rack-pin-border-base:1.5px;
+  --rack-pin-font-base:7.9px;
+  --rack-pin-gap-base:6px;
+  --rack-pin-grid-padding-base:3px;
+  --rack-pin-grid-margin-top-base:5px;
+  --rack-section-scale:1;
+  --rack-section-font-family:'Share Tech Mono',monospace;
+  --rack-section-font-size-base:9px;
+  --rack-section-type-scale:.88;
+  --rack-section-type-opacity:.7;
 }
 body[data-theme='light']{
   --bg:#eef2f6; --surface:#ffffff; --panel:#e6ebf1; --border:#b7c1cd;
@@ -20,27 +32,54 @@ body[data-theme='light']{
 }
 body[data-theme='light'] .pal-tile.snake-tile{background:#f4edf9;border-color:#b999dc;}
 body[data-theme='light'] .pal-tile.mixer-tile{background:#eaf3fb;border-color:#9cc4e6;}
-body[data-theme='light'] .pal-tile.monitor-tile{background:#edf8f0;border-color:#9ecfaf;}
+body[data-theme='light'] .pal-tile.stagebox-tile{background:#e9f8f0;border-color:#87bea8;}
+body[data-theme='light'] .pal-tile.monitor-tile,
+body[data-theme='light'] .pal-tile.monitor-pa-tile{background:#ffe9e9;border-color:#e7a7a7;}
 body[data-theme='light'] .pal-tile.accessory-tile{background:#fff5e8;border-color:#e4c295;}
 body[data-theme='light'] .pal-tile.mixer-tile:hover{border-color:#4c8fbe;}
-body[data-theme='light'] .pal-tile.monitor-tile:hover{border-color:#4f9a6a;}
+body[data-theme='light'] .pal-tile.stagebox-tile:hover{border-color:#2f8b69;}
+body[data-theme='light'] .pal-tile.monitor-tile:hover,
+body[data-theme='light'] .pal-tile.monitor-pa-tile:hover{border-color:#c76868;}
 body[data-theme='light'] .pal-tile.accessory-tile:hover{border-color:#c98b3f;}
 body[data-theme='light'] .si.is-snake .ib{background:#f1e8f9;border-color:#b999dc;}
+body[data-theme='light'] .si.connbox-snake .ib{background:#f1e8f9;border-color:#b999dc;}
 body[data-theme='light'] .snake-badge{background:rgba(122,75,178,.12);border-color:#b999dc;color:#60318f;}
 body[data-theme='light'] .si.is-snake .snake-ch-pin{background:#ffffff;border-color:#7a4bb2;color:#3f1f66;}
+body[data-theme='light'] .si.connbox-snake .connbox-pin{background:#ffffff;border-color:#7a4bb2;color:#3f1f66;}
 body[data-theme='light'] .si.is-snake .snake-ch-pin:hover{background:#7a4bb2;color:#ffffff;}
+body[data-theme='light'] .si.connbox-snake .connbox-pin:hover{background:#7a4bb2;color:#ffffff;}
 body[data-theme='light'] .si.is-snake .snake-ch-pin.used{background:#d8c2ef;color:#2d1649;}
+body[data-theme='light'] .si.connbox-snake .connbox-pin.used{background:#d8c2ef;color:#2d1649;}
 body[data-theme='light'] .si.is-snake .snake-ch-pin.out-pin{background:#ecfff4;border-color:#1f8a5a;color:#0f5e3b;}
+body[data-theme='light'] .si.connbox-snake .connbox-pin.out-pin{background:#ecfff4;border-color:#1f8a5a;color:#0f5e3b;}
 body[data-theme='light'] .si.is-snake .snake-ch-pin.out-pin.used{background:#a9e6c8;color:#0c4c30;}
+body[data-theme='light'] .si.connbox-snake .connbox-pin.out-pin.used{background:#a9e6c8;color:#0c4c30;}
 body[data-theme='light'] .si.is-mixer .ib{background:#edf5fb;border-color:#7eb0d2;}
+body[data-theme='light'] .si.connbox-mixer .ib{background:#edf5fb;border-color:#7eb0d2;}
+body[data-theme='light'] .si.connbox-stagebox .ib{background:#eaf8f3;border-color:#87bea8;}
 body[data-theme='light'] .si.is-mixer:hover .ib{border-color:#2f7fb0;}
+body[data-theme='light'] .si.connbox-mixer:hover .ib{border-color:#2f7fb0;}
+body[data-theme='light'] .si.connbox-stagebox:hover .ib{border-color:#2f8b69;}
 body[data-theme='light'] .si.is-mixer.selected .ib{border-color:#256f9d;box-shadow:0 0 0 2px rgba(37,111,157,.22);}
+body[data-theme='light'] .si.connbox-mixer.selected .ib{border-color:#256f9d;box-shadow:0 0 0 2px rgba(37,111,157,.22);}
+body[data-theme='light'] .si.connbox-stagebox.selected .ib{border-color:#207454;box-shadow:0 0 0 2px rgba(32,116,84,.22);}
 body[data-theme='light'] .si.is-mixer .mixer-row-label{color:#2f4e63;font-weight:700;}
-body[data-theme='light'] .si.is-mixer .mixer-pin{background:#ffffff;border-color:#1f6fa0;color:#163b55;font-size:8px;}
+body[data-theme='light'] .si.is-connbox .mixer-row-label{color:#2f4e63;font-weight:700;}
+body[data-theme='light'] .si.is-mixer .mixer-pin{background:#ffffff;border-color:#1f6fa0;color:#163b55;font-size:calc(var(--rack-pin-font-base) * var(--port-label-scale, var(--rack-pin-scale, 1)));}
+body[data-theme='light'] .si.connbox-mixer .connbox-pin,
+body[data-theme='light'] .si.connbox-stagebox .connbox-pin{background:#ffffff;border-color:#1f6fa0;color:#163b55;font-size:calc(var(--rack-pin-font-base) * var(--port-label-scale, var(--rack-pin-scale, 1)));}
 body[data-theme='light'] .si.is-mixer .mixer-pin:hover{background:#165d89;color:#ffffff;}
+body[data-theme='light'] .si.connbox-mixer .connbox-pin:hover,
+body[data-theme='light'] .si.connbox-stagebox .connbox-pin:hover{background:#165d89;color:#ffffff;}
 body[data-theme='light'] .si.is-mixer .mixer-pin.used{background:#b9ddf5;color:#0f2c40;}
+body[data-theme='light'] .si.connbox-mixer .connbox-pin.used,
+body[data-theme='light'] .si.connbox-stagebox .connbox-pin.used{background:#b9ddf5;color:#0f2c40;}
 body[data-theme='light'] .si.is-mixer .mixer-pin.out-pin{background:#effaf2;border-color:#1f8a5a;color:#0f5e3b;}
+body[data-theme='light'] .si.connbox-mixer .connbox-pin.out-pin,
+body[data-theme='light'] .si.connbox-stagebox .connbox-pin.out-pin{background:#effaf2;border-color:#1f8a5a;color:#0f5e3b;}
 body[data-theme='light'] .si.is-mixer .mixer-pin.out-pin.used{background:#b6e8cb;color:#0d4f33;}
+body[data-theme='light'] .si.connbox-mixer .connbox-pin.out-pin.used,
+body[data-theme='light'] .si.connbox-stagebox .connbox-pin.out-pin.used{background:#b6e8cb;color:#0d4f33;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 /* HEADER */
@@ -121,6 +160,10 @@ body.stage-builder-mode .si{display:none !important;}
 .pal-tile:hover{border-color:var(--accent);background:rgba(232,255,71,.05);}
 .pal-tile.snake-tile{border-color:#c47fff44;background:#13101a;}
 .pal-tile.snake-tile:hover{border-color:var(--accent4);}
+.pal-tile.stagebox-tile{border-color:#5ec29166;background:#0f1a14;}
+.pal-tile.stagebox-tile:hover{border-color:#5ec291;}
+.pal-tile.monitor-pa-tile{border-color:#e4808066;background:#201113;}
+.pal-tile.monitor-pa-tile:hover{border-color:#e48080;}
 .pal-tile:active{cursor:grabbing;}
 .ti{font-size:var(--ti-size,17px);line-height:1;width:var(--ti-size,17px);height:var(--ti-size,17px);display:flex;align-items:center;justify-content:center;}
 .pal-tile .ti .icon-img{width:100%;height:100%;object-fit:contain;}
@@ -185,27 +228,41 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
 .si.is-snake .ib{border-color:#c47fff55;background:#120f1a;border-radius:4px;}
 .si.is-snake:hover .ib{border-color:var(--accent4);}
 .si.is-snake.selected .ib{border-color:var(--accent4);box-shadow:0 0 0 2px rgba(196,127,255,.25);}
-.si.is-snake .snake-channels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:calc(5px * var(--rack-ui-scale));padding:calc(3px * var(--rack-ui-scale));justify-content:center;width:100%;max-width:calc(154px * var(--rack-ui-scale));margin:0 auto;}
-.si.is-snake .snake-ch-pin{width:calc(16px * var(--rack-ui-scale));height:calc(16px * var(--rack-ui-scale));border-radius:50%;border:calc(1.5px * var(--rack-ui-scale)) solid var(--accent4);cursor:crosshair;position:relative;transition:all .12s;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:calc(8px * var(--rack-ui-scale));line-height:1;color:#d9b8ff;font-weight:700;}
+.si.is-snake .snake-channels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:calc(var(--rack-pin-gap-base) * var(--rack-pin-scale));padding:calc(var(--rack-pin-grid-padding-base) * var(--rack-pin-scale));justify-content:center;width:100%;max-width:calc(170px * var(--rack-pin-scale));margin:0 auto;}
+.si.is-snake .snake-ch-pin{width:calc(var(--rack-pin-size-base) * var(--rack-pin-scale));height:calc(var(--rack-pin-size-base) * var(--rack-pin-scale));border-radius:50%;border:calc(var(--rack-pin-border-base) * var(--rack-pin-scale)) solid var(--accent4);cursor:crosshair;position:relative;transition:all .12s;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:calc(var(--rack-pin-font-base) * var(--port-label-scale, var(--rack-pin-scale, 1)));line-height:1;color:#d9b8ff;font-weight:700;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;}
 .si.is-snake .snake-ch-pin:hover{background:var(--accent4);transform:scale(1.3);}
 .si.is-snake .snake-ch-pin.used{background:rgba(196,127,255,.4);}
 .si.is-snake .snake-ch-pin.out-pin{color:#9affca;border-color:#47ffa0;}
 .snake-label-row{display:flex;align-items:center;gap:calc(4px * var(--ui-scale, 1));padding:calc(2px * var(--ui-scale, 1)) calc(4px * var(--ui-scale, 1));}
 .snake-badge{font-family:'Share Tech Mono',monospace;font-size:calc(8px * var(--ui-scale, 1));color:var(--accent4);background:rgba(196,127,255,.1);border:1px solid #c47fff44;padding:calc(1px * var(--ui-scale, 1)) calc(5px * var(--ui-scale, 1));border-radius:10px;white-space:nowrap;}
-.snake-mode-row{display:flex;justify-content:center;gap:calc(5px * var(--rack-ui-scale));align-items:center;width:100%;margin-bottom:calc(4px * var(--ui-scale, 1));}
-.snake-mode-btn{flex:0 0 auto;min-width:calc(48px * var(--rack-ui-scale));padding:calc(2px * var(--rack-ui-scale)) calc(4px * var(--rack-ui-scale));border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:calc(8px * var(--rack-ui-scale));line-height:1.2;cursor:pointer;}
+.snake-mode-row{display:flex;justify-content:center;gap:calc(4px * var(--connbox-ui-scale, var(--rack-ui-scale, 1)));align-items:center;width:100%;margin-bottom:calc(3px * var(--connbox-ui-scale, var(--ui-scale, 1)));}
+.snake-mode-btn{flex:1 1 0;min-width:calc(34px * var(--connbox-ui-scale, var(--rack-ui-scale, 1)));padding:calc(1.6px * var(--connbox-ui-scale, var(--rack-ui-scale, 1))) calc(3.2px * var(--connbox-ui-scale, var(--rack-ui-scale, 1)));border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:clamp(6px, calc(8px * var(--connbox-ui-scale, var(--rack-ui-scale, 1))), 10px);line-height:1.15;cursor:pointer;white-space:nowrap;text-align:center;}
 .snake-mode-btn.active{background:rgba(196,127,255,.16);border-color:var(--accent4);color:var(--accent4);}
 .snake-mode-link{font-family:'Share Tech Mono',monospace;font-size:calc(8px * var(--ui-scale, 1));color:var(--muted);margin:calc(1px * var(--ui-scale, 1)) 0 calc(4px * var(--ui-scale, 1));}
 .si.is-mixer .ib{border-color:#47c4ff66;background:#101722;border-radius:6px;}
 .si.is-mixer:hover .ib{border-color:#47c4ff;}
 .si.is-mixer.selected .ib{border-color:#47c4ff;box-shadow:0 0 0 2px rgba(71,196,255,.2);}
-.mixer-row-label{font-size:calc(8px * var(--ui-scale, 1));font-family:'Share Tech Mono',monospace;line-height:1;color:var(--muted);margin-top:calc(2px * var(--ui-scale, 1));}
-.mixer-pin-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:calc(7px * var(--rack-ui-scale));width:100%;max-width:calc(194px * var(--rack-ui-scale));margin:calc(5px * var(--rack-ui-scale)) auto 0;}
-.mixer-pin{width:calc(16px * var(--rack-ui-scale));height:calc(16px * var(--rack-ui-scale));border-radius:50%;border:calc(1.5px * var(--rack-ui-scale)) solid var(--accent2);cursor:crosshair;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:calc(8px * var(--rack-ui-scale));line-height:1;color:#b8e6ff;font-weight:700;transition:all .12s;}
-.mixer-pin:hover{background:var(--accent2);color:#0a0b0d;transform:scale(1.2);}
+.rack-section-label,.mixer-row-label{font-size:calc(var(--rack-section-font-size-base) * var(--rack-section-scale, var(--rack-ui-scale, 1)));font-family:var(--rack-section-font-family);line-height:1;color:var(--muted);margin-top:calc(2px * var(--rack-section-scale, var(--rack-ui-scale, 1)));text-align:center;}
+.rack-section-type,.mixer-row-type{font-size:calc(var(--rack-section-type-scale) * 1em);opacity:var(--rack-section-type-opacity);font-weight:500;letter-spacing:.2px;}
+.mixer-pin-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:calc(var(--rack-pin-gap-base) * var(--rack-pin-scale));width:100%;max-width:calc(210px * var(--rack-pin-scale));margin:calc(var(--rack-pin-grid-margin-top-base) * var(--rack-pin-scale)) auto 0;justify-content:center;}
+.mixer-pin{width:calc(var(--rack-pin-size-base) * var(--rack-pin-scale));height:calc(var(--rack-pin-size-base) * var(--rack-pin-scale));border-radius:50%;border:calc(var(--rack-pin-border-base) * var(--rack-pin-scale)) solid var(--accent2);cursor:crosshair;display:grid;place-items:center;text-align:center;padding:0;font-family:'Share Tech Mono',monospace;font-size:calc(var(--rack-pin-font-base) * var(--port-label-scale, var(--rack-pin-scale, 1)));line-height:1;color:#b8e6ff;font-weight:700;transition:all .12s;flex-shrink:0;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;}
+.mixer-pin:hover{background:var(--accent2);color:#0a0b0d;transform:scale(1.3);}
 .mixer-pin.used{background:rgba(71,196,255,.35);}
 .mixer-pin.out-pin{border-color:#47ffa0;color:#9affca;}
 .mixer-pin.other-pin{border-color:#ff9f47;color:#ffd2a3;}
+
+/* Shared connection-box pins (snake + mixer + stagebox) */
+.connbox-pin-grid{display:grid;justify-content:center;justify-items:center;}
+.connbox-pin{width:calc(var(--rack-pin-size-base) * var(--rack-pin-scale));height:calc(var(--rack-pin-size-base) * var(--rack-pin-scale));border-radius:50%;border:calc(var(--rack-pin-border-base) * var(--rack-pin-scale)) solid var(--accent2);cursor:crosshair;display:grid;place-items:center;text-align:center;padding:0;font-family:'Share Tech Mono',monospace;font-size:calc(var(--rack-pin-font-base) * var(--port-label-scale, var(--rack-pin-scale, 1)));line-height:1;color:#b8e6ff;font-weight:700;transition:all .12s;flex-shrink:0;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;}
+.connbox-pin:hover{background:var(--accent2);color:#0a0b0d;transform:scale(1.3);}
+.connbox-pin.used{background:rgba(71,196,255,.35);}
+.connbox-pin.out-pin{border-color:#47ffa0;color:#9affca;}
+.connbox-pin.other-pin{border-color:#ff9f47;color:#ffd2a3;}
+
+.si.connbox-snake .connbox-pin{border-color:var(--accent4);color:#d9b8ff;}
+.si.connbox-snake .connbox-pin:hover{background:var(--accent4);color:#0a0b0d;}
+.si.connbox-snake .connbox-pin.used{background:rgba(196,127,255,.4);}
+.si.connbox-snake .connbox-pin.out-pin{border-color:#47ffa0;color:#9affca;}
 /* channel badge */
 .ich{position:absolute;top:-6px;right:-6px;background:var(--accent);color:#0a0b0d;font-family:'Share Tech Mono',monospace;font-size:7px;font-weight:700;min-width:15px;height:15px;border-radius:8px;padding:0 2px;display:flex;align-items:center;justify-content:center;}
 .ilabel{font-size:9px;color:var(--stage-label-text);font-weight:600;text-align:center;white-space:nowrap;background:var(--stage-label-bg);padding:1px 5px;border-radius:3px;max-width:90px;overflow:hidden;text-overflow:ellipsis;}
@@ -239,6 +296,26 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
 .stage-part .part-label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:'Share Tech Mono',monospace;font-size:9px;padding:2px 5px;background:rgba(10,11,13,.42);color:#f5f7fb;border-radius:3px;pointer-events:none;white-space:nowrap;opacity:.82;}
 body:not(.stage-builder-mode) .stage-part{pointer-events:none;}
 body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgba(10,11,13,.28);color:rgba(255,255,255,.82);} 
+.report-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;background:rgba(5,8,16,.68);backdrop-filter:blur(4px);padding:18px;}
+.report-modal.open{display:flex;}
+.report-dialog{width:min(980px,100%);max-height:min(90vh,900px);overflow:auto;background:#ffffff;color:#132034;border:1px solid #cad4e1;border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.28);}
+.report-dialog-header{padding:18px 20px 12px;border-bottom:1px solid #e3eaf2;background:linear-gradient(180deg, #fff, #f8fbff);}
+.report-dialog-header h2{font-family:'Share Tech Mono',monospace;font-size:18px;letter-spacing:2px;color:#143a6b;text-transform:uppercase;}
+.report-dialog-header p{margin-top:6px;font-size:12px;color:#4f5f73;line-height:1.45;}
+.report-dialog-body{padding:18px 20px 20px;display:grid;gap:16px;}
+.report-option-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+.report-option-panel{border:1px solid #d8e1ea;border-radius:12px;padding:12px;background:#fbfcfe;}
+.report-option-panel h3{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:1.5px;color:#54697f;text-transform:uppercase;margin-bottom:10px;}
+.report-option-list{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow:auto;padding-right:4px;}
+.report-option-item{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#1d2c3d;line-height:1.35;}
+.report-option-item input{margin-top:2px;}
+.report-inline-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:12px;color:#1d2c3d;}
+.report-inline-row label{display:flex;align-items:center;gap:6px;}
+.report-dialog-actions{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px 20px;border-top:1px solid #e3eaf2;background:#f8fbff;position:sticky;bottom:0;}
+.report-btn{padding:7px 12px;border-radius:8px;border:1px solid #c9d6e5;background:#fff;color:#17324f;font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.report-btn:hover{border-color:#7aa1c9;color:#0f4c7d;}
+.report-btn.primary{background:#0f4c7d;border-color:#0f4c7d;color:#fff;}
+.report-btn.primary:hover{background:#0d3f67;border-color:#0d3f67;}
 /* RIGHT PANEL */
 .rpanel{width:216px;flex-shrink:0;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
 .pss{padding:10px;border-bottom:1px solid var(--border);}
@@ -554,14 +631,8 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
       <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
       <button class="btn btn-ghost" onclick="saveRider()">Save Rider</button>
       <button class="btn btn-ghost" onclick="triggerLoadRider()">Load Rider</button>
-      <details id="export-menu" class="header-menu-group">
-        <summary class="btn btn-primary header-menu-trigger">Export</summary>
-        <div class="header-submenu">
-          <button class="btn btn-ghost" type="button" onclick="runExportAction('png')">Export PNG</button>
-          <button class="btn btn-ghost" type="button" onclick="runExportAction('report')">View Report</button>
-          <button class="btn btn-ghost" type="button" onclick="runExportAction('pdf')">Export PDF</button>
-        </div>
-      </details>
+      <button class="btn btn-ghost" type="button" onclick="runExportAction('png')">Export PNG</button>
+      <button class="btn btn-primary" type="button" onclick="runExportAction('pdf')">Export PDF</button>
     </div>
   </div>
 </header>
@@ -1551,11 +1622,11 @@ function runExportAction(action) {
     return;
   }
   if(action === 'report') {
-    viewReport();
+    openReportOptionsDialog(false);
     return;
   }
   if(action === 'pdf') {
-    exportPDFReport();
+    openReportOptionsDialog(true);
   }
 }
 
@@ -1563,15 +1634,59 @@ function normalizeSnakeViewMode(mode) {
   return mode === 'output' ? 'output' : 'input';
 }
 
+function inferConnectionBoxKind(item) {
+  if(!item) return null;
+  if(item.connectionBoxKind === 'snake' || item.connectionBoxKind === 'mixer' || item.connectionBoxKind === 'stagebox') {
+    return item.connectionBoxKind;
+  }
+  if(item.isSnake) return 'snake';
+  if(item.cat === 'stageboxes' || item.type === 's32' || item.type === 's16') return 'stagebox';
+  if(item.isMixer || item.cat === 'mixers') return 'mixer';
+  return null;
+}
+
+function getConnectionBoxKind(item) {
+  return inferConnectionBoxKind(item);
+}
+
+function isConnectionBoxInstrument(item) {
+  return !!getConnectionBoxKind(item);
+}
+
+function isSnakeBox(item) {
+  return getConnectionBoxKind(item) === 'snake';
+}
+
+function isMixerBox(item) {
+  const kind = getConnectionBoxKind(item);
+  return kind === 'mixer' || kind === 'stagebox';
+}
+
+function isStageboxBox(item) {
+  return getConnectionBoxKind(item) === 'stagebox';
+}
+
+function normalizeConnectionBoxFlags(item) {
+  if(!item) return null;
+  const kind = getConnectionBoxKind(item);
+  item.connectionBoxKind = kind || '';
+  item.isSnake = kind === 'snake';
+  item.isMixer = kind === 'mixer' || kind === 'stagebox';
+  if(kind === 'snake') item.cat = 'snake';
+  if(kind === 'mixer' && !item.cat) item.cat = 'mixers';
+  if(kind === 'stagebox') item.cat = 'stageboxes';
+  return kind;
+}
+
 function getSnakeViewMode(instr) {
-  if(!instr || !instr.isSnake) return 'input';
+  if(!instr || !isSnakeBox(instr)) return 'input';
   return normalizeSnakeViewMode(instr.snakeViewMode);
 }
 
 function updateSnakeViewToggleUI() {
   const btns = document.querySelectorAll('.snake-view-btn');
   if(!btns.length) return;
-  const snakes = instruments.filter(i => i && i.isSnake);
+  const snakes = instruments.filter(i => i && isSnakeBox(i));
   let activeMode = null;
   if(snakes.length) {
     const firstMode = getSnakeViewMode(snakes[0]);
@@ -1586,7 +1701,7 @@ function updateSnakeViewToggleUI() {
 function setSnakeViewMode(mode) {
   const next = normalizeSnakeViewMode(mode);
   normalizeAllSnakeConnectionPins();
-  const snakes = instruments.filter(i => i && i.isSnake);
+  const snakes = instruments.filter(i => i && isSnakeBox(i));
   if(!snakes.length) {
     updateSnakeViewToggleUI();
     return;
@@ -1608,7 +1723,7 @@ function setSnakeViewMode(mode) {
 
 function setSnakeViewModeForSnake(id, mode) {
   const instr = instruments.find(i => i.id === id);
-  if(!instr || !instr.isSnake) return;
+  if(!instr || !isSnakeBox(instr)) return;
   const next = normalizeSnakeViewMode(mode);
   normalizeAllSnakeConnectionPins();
   if(getSnakeViewMode(instr) === next) return;
@@ -2020,7 +2135,7 @@ function startPanTouch(e) {
   }
 
   if(e.touches.length !== 1) return;
-  if(e.target.closest('.si, .stage-part, .iconn, .snake-ch-pin, .mixer-pin')) return;
+  if(e.target.closest('.si, .stage-part, .iconn, .connbox-pin')) return;
 
   const t = e.touches[0];
   const startX = t.clientX;
@@ -2167,27 +2282,37 @@ function getRackUIScale(widthPx, referencePx, minScale = 0.72, maxScale = 1.6) {
   return Math.max(minScale, Math.min(maxScale, scale));
 }
 
+function getConnectionBoxViewportScaleCompensation() {
+  const wrap = document.getElementById('canvas-wrap');
+  const viewportWidth = Math.max(320, Number((wrap && wrap.clientWidth) || window.innerWidth) || 1200);
+  if(viewportWidth >= 1100) return 1;
+  const ratio = 1100 / viewportWidth;
+  return Math.max(1, Math.min(1.26, Math.pow(ratio, 0.24)));
+}
+
 function getInstrumentBodyDimensionsPx(item) {
   const fallback = isWideFootprintInstrument(item) ? 82 : 52;
   const baseSize = Number(item && item.size) || getDefaultSizeForType(item && item.type, fallback);
-
-  if(item && item.isSnake) {
-    const normalizedRackSize = Math.max(40, Math.min(52, baseSize * 0.78));
-    const width = getRenderedWorldSizePx(normalizedRackSize, 58, 44);
-    const uiScale = getRackUIScale(width, 58, 0.62, 1.04);
+  const boxKind = getConnectionBoxKind(item);
+  const boxViewportScale = getConnectionBoxViewportScaleCompensation();
+  
+  if(boxKind === 'snake') {
+    const normalizedRackSize = Math.max(48, Math.min(66, baseSize * 0.9));
+    const stableWidth = getRenderedWorldSizePx(normalizedRackSize, 72, 56) * boxViewportScale;
+    const uiScale = getRackUIScale(stableWidth, 108, 0.86, 1.6);
     return {
-      width,
+      width: stableWidth,
       height: Math.max(40, 58 * uiScale),
       uiScale,
     };
   }
 
-  if(item && item.isMixer) {
-    const normalizedRackSize = Math.max(56, Math.min(80, baseSize * 0.62));
-    const width = getRenderedWorldSizePx(normalizedRackSize, 86, 64);
-    const uiScale = getRackUIScale(width, 86, 0.82, 1.22);
+  if(boxKind === 'mixer' || boxKind === 'stagebox') {
+    const normalizedRackSize = Math.max(68, Math.min(102, baseSize * 0.78));
+    const stableWidth = getRenderedWorldSizePx(normalizedRackSize, 104, 82) * boxViewportScale;
+    const uiScale = getRackUIScale(stableWidth, 194, 0.84, 1.6);
     return {
-      width,
+      width: stableWidth,
       height: Math.max(52, 66 * uiScale),
       uiScale,
     };
@@ -2296,7 +2421,7 @@ function getInstrumentOutputPins(instr) {
 
 function getValidPinsForInstrument(instr) {
   if(!instr) return new Set();
-  if(instr.isSnake || instr.isMixer) return null;
+  if(isConnectionBoxInstrument(instr)) return null;
   if(instr.type === 'drumkit') return new Set(getDrumMicPins(instr).map(p => p.key));
   if(isCustomIOInstrument(instr)) {
     return new Set([...getInstrumentInputPins(instr), ...getInstrumentOutputPins(instr)].map(p => p.key));
@@ -2574,7 +2699,7 @@ function getMixerInputBreakdown(instr) {
 
 function mapLegacyMixerPin(instr, pin) {
   const key = pinKey(pin);
-  if(!instr || !instr.isMixer || !key) return key;
+  if(!instr || !isMixerBox(instr) || !key) return key;
 
   const noMainFamilies = new Set(['x32', 'x32compact', 'x32rack', 'wing', 'wingcompact', 'wingrack']);
 
@@ -2641,12 +2766,12 @@ function getPinAllowedCableTypes(instr, pin) {
     if(p.startsWith('HA-OUT-')) return ['trs'];
   }
 
-  if(instr.isSnake) {
+  if(isSnakeBox(instr)) {
     if(isSnakeInputPinKey(p)) return instr.snakeAllowJackInputs ? ['xlr', 'ts', 'trs'] : ['xlr'];
     if(isSnakeOutputPinKey(p)) return ['xlr'];
   }
 
-  if(instr.isMixer) {
+  if(isMixerBox(instr)) {
     if(p.startsWith('MX-IN-')) {
       const idx = parseInt(p.replace('MX-IN-', ''), 10) || 1;
       const breakdown = getMixerInputBreakdown(instr);
@@ -2792,6 +2917,7 @@ function applySnapshot(snapshot, keepCleanState) {
   stageColor = /^#[0-9a-fA-F]{6}$/.test(String(snapshot.stageColor || '')) ? snapshot.stageColor : DEFAULT_STAGE_COLOR;
   isStageBuilderMode = !!snapshot.isStageBuilderMode;
   instruments = cloneInstruments(snapshot.instruments || []);
+  instruments.forEach(i => normalizeConnectionBoxFlags(i));
   connections = cloneConnections(snapshot.connections || []);
   stageParts = cloneStageParts(snapshot.stageParts || []);
   if(showMainStage && !stageParts.some(p => p.isPrimary)) {
@@ -2860,7 +2986,7 @@ function serializeLayout() {
     showStageGrid: !!showStageGrid,
     isStageBuilderMode: !!isStageBuilderMode,
     stage:{widthM:stageW, depthM:stageD, showStairs:showStageStairs, themeMode, color:stageColor},
-    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,connSide,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,isSnake,snakeViewMode,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,collapsed})=>({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs:!!haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,micModels:Object.values(pinMicAssignments||{}),micModel:Object.values(pinMicAssignments||{})[0]||'',connSide,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,isSnake,snakeViewMode:normalizeSnakeViewMode(snakeViewMode),snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,collapsed:!!collapsed})),
+    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,connSide,connectionBoxKind,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,isSnake,snakeViewMode,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,collapsed})=>({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs:!!haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,micModels:Object.values(pinMicAssignments||{}),micModel:Object.values(pinMicAssignments||{})[0]||'',connSide,connectionBoxKind: inferConnectionBoxKind({ connectionBoxKind, isSnake, isMixer, cat, type }) || '',isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,isSnake,snakeViewMode:normalizeSnakeViewMode(snakeViewMode),snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,collapsed:!!collapsed})),
     connections:connections.map(({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX,routeNX})=>({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX,routeNX})),
     stageParts:stageParts.map(({id,shape,isPrimary,label,x,y,stageNX,stageNY,widthM,depthM,color,hasSteps})=>({id,shape,isPrimary:!!isPrimary,label,x,y,stageNX,stageNY,widthM,depthM,color,hasSteps:!!hasSteps})),
   };
@@ -2887,9 +3013,9 @@ function buildPalette(cat) {
   const list = cat==='all' ? baseList : baseList.filter(i=>i.cat===cat);
   list.forEach(instr => {
     const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size);
-    t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr,isSnake:false}; e.dataTransfer.effectAllowed='copy'; });
+    t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
-    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr,isSnake:false}); }, { passive: false });
+    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr}); }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -2908,7 +3034,7 @@ function buildSnakePalette() {
 		icon:'🐍',
 		image:snakeImage,
 		name:s.name,
-		isSnake:true,
+    connectionBoxKind:'snake',
 		snakeChannels:s.channels,
 		outputs:s.outputs,
 		wide:false
@@ -2924,7 +3050,7 @@ function buildSnakePalette() {
         icon:'🐍',
         image:snakeImage,
         name:s.name,
-        isSnake:true,
+        connectionBoxKind:'snake',
         snakeChannels:s.channels,
         outputs:s.outputs,
         wide:false
@@ -2941,9 +3067,9 @@ function buildMixerPalette() {
   const list = INSTRUMENTS.filter(i => i.cat === 'mixers');
   list.forEach(instr => {
     const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'mixer-tile');
-    t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr,isSnake:false}; e.dataTransfer.effectAllowed='copy'; });
+    t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr, connectionBoxKind:'mixer'}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
-    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr,isSnake:false}); }, { passive: false });
+    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr, connectionBoxKind:'mixer'}); }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -2954,16 +3080,16 @@ function buildStageboxPalette() {
   grid.innerHTML = '';
   const list = INSTRUMENTS.filter(i => i.cat === 'stageboxes');
   list.forEach(instr => {
-    const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'mixer-tile');
-    t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr,isSnake:false}; e.dataTransfer.effectAllowed='copy'; });
+    const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'stagebox-tile');
+    t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr, connectionBoxKind:'stagebox'}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
-    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr,isSnake:false}); }, { passive: false });
+    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr, connectionBoxKind:'stagebox'}); }, { passive: false });
     grid.appendChild(t);
   });
 }
 
 function getCategoryInstruments(category) {
-  if(category === 'snake') return instruments.filter(i => i && i.isSnake);
+  if(category === 'snake') return instruments.filter(i => i && isSnakeBox(i));
   if(category === 'mixers') return instruments.filter(i => i && i.cat === 'mixers');
   if(category === 'stageboxes') return instruments.filter(i => i && i.cat === 'stageboxes');
   return [];
@@ -3012,7 +3138,7 @@ function toggleCategoryCollapse(category) {
 
 function toggleInstrumentCollapsed(id) {
   const instr = instruments.find(i => i.id === id);
-  if(!instr || (!instr.isSnake && !instr.isMixer)) return;
+  if(!instr || !isConnectionBoxInstrument(instr)) return;
   pushHistoryState();
   instr.collapsed = !instr.collapsed;
   markDirty();
@@ -3027,10 +3153,10 @@ function buildMonitoringPalette() {
   grid.innerHTML = '';
   const list = INSTRUMENTS.filter(i => i.cat === 'monitoring');
   list.forEach(instr => {
-    const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'monitor-tile');
-    t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr,isSnake:false}; e.dataTransfer.effectAllowed='copy'; });
+    const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'monitor-pa-tile');
+    t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
-    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr,isSnake:false}); }, { passive: false });
+    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr}); }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -3042,9 +3168,9 @@ function buildAccessoryPalette() {
   const list = INSTRUMENTS.filter(i => i.cat === 'accessories');
   list.forEach(instr => {
     const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'accessory-tile');
-    t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr,isSnake:false}; e.dataTransfer.effectAllowed='copy'; });
+    t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
-    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr,isSnake:false}); }, { passive: false });
+    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr}); }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -3227,10 +3353,19 @@ function getEl(id){ return document.getElementById('instr-'+id); }
 
 function getCenterOf(id, pin) {
   if(pin !== undefined && pin !== null) {
+    const instrEl = getEl(id);
+    const useCompactAnchor = !!(instrEl && (
+      instrEl.classList.contains('is-snake') ||
+      instrEl.classList.contains('is-mixer') ||
+      instrEl.dataset.cat === 'stageboxes'
+    ));
+    if(useCompactAnchor) {
+      return getCenterOfEl(id);
+    }
+
     // Handle regular instrument pin keys (L/R/MONO)
     if(pin === 'L' || pin === 'R' || pin === 'MONO') {
       const selector = `.iconn[data-pin="${pin}"]`;
-      const instrEl = getEl(id);
       const el = instrEl ? instrEl.querySelector(selector) : null;
       if(!el) return getCenterOfEl(id);
       const wr = document.getElementById('canvas-wrap').getBoundingClientRect();
@@ -3268,17 +3403,17 @@ function pinKey(pin) {
 function pinForReport(pin) {
   const key = pinKey(pin);
   const drumMap = {
-    'DM-KICK':'DR-Kick',
-    'DM-HH':'DR-HiHat',
-    'DM-SN':'DR-Snare',
-    'DM-T1':'DR-Tom1',
-    'DM-T2':'DR-Tom2',
-    'DM-T3':'DR-Tom3',
-    'DM-RD':'DR-Ride',
-    'DM-CR':'DR-Crash',
-    'DM-OH':'DR-Overhead',
-    'DM-OHL':'DR-Overhead-L',
-    'DM-OHR':'DR-Overhead-R',
+    'DM-KICK':'Kick',
+    'DM-HH':'HiHat',
+    'DM-SN':'Snare',
+    'DM-T1':'Tom1',
+    'DM-T2':'Tom2',
+    'DM-T3':'Tom3',
+    'DM-RD':'Ride',
+    'DM-CR':'Crash',
+    'DM-OH':'Overhead',
+    'DM-OHL':'Overhead-L',
+    'DM-OHR':'Overhead-R',
   };
   if(drumMap[key]) return drumMap[key];
   const ioMap = {
@@ -3357,7 +3492,7 @@ function isSnakeStageReturnOutputPin(pin) {
 
 function normalizeSnakeEndpointPinForInstrument(instr, pin) {
   const key = pinKey(pin);
-  if(!instr || !instr.isSnake) return key;
+  if(!instr || !isSnakeBox(instr)) return key;
   const legacyIn = key.match(/^IN-(\d+)$/);
   if(legacyIn) return `STAGE-IN-${parseInt(legacyIn[1], 10)}`;
   const legacyOut = key.match(/^OUT-(\d+)$/);
@@ -3556,10 +3691,10 @@ function maybeAutoRouteSnakeMixer(baseConn) {
   const toInstr = instruments.find(i => i.id === baseConn.toId);
   if(!fromInstr || !toInstr) return;
 
-  const fromSnake = fromInstr.isSnake ? parseSnakeNumberedPin(baseConn.fromPin) : null;
-  const toSnake = toInstr.isSnake ? parseSnakeNumberedPin(baseConn.toPin) : null;
-  const fromMixerIn = fromInstr.isMixer ? parseMixerInputPin(baseConn.fromPin) : null;
-  const toMixerIn = toInstr.isMixer ? parseMixerInputPin(baseConn.toPin) : null;
+  const fromSnake = isSnakeBox(fromInstr) ? parseSnakeNumberedPin(baseConn.fromPin) : null;
+  const toSnake = isSnakeBox(toInstr) ? parseSnakeNumberedPin(baseConn.toPin) : null;
+  const fromMixerIn = isMixerBox(fromInstr) ? parseMixerInputPin(baseConn.fromPin) : null;
+  const toMixerIn = isMixerBox(toInstr) ? parseMixerInputPin(baseConn.toPin) : null;
 
   let snakeInstr = null;
   let mixerInstr = null;
@@ -3660,8 +3795,8 @@ function maybeAutoRouteDrumkitSnake(baseConn) {
   const toInstr = instruments.find(i => i.id === baseConn.toId);
   if(!fromInstr || !toInstr) return;
 
-  const fromSnakeIn = fromInstr.isSnake ? parseSnakeInputPin(baseConn.fromPin) : null;
-  const toSnakeIn = toInstr.isSnake ? parseSnakeInputPin(baseConn.toPin) : null;
+  const fromSnakeIn = isSnakeBox(fromInstr) ? parseSnakeInputPin(baseConn.fromPin) : null;
+  const toSnakeIn = isSnakeBox(toInstr) ? parseSnakeInputPin(baseConn.toPin) : null;
   const fromDrumPin = fromInstr.type === 'drumkit' ? pinKey(baseConn.fromPin) : '';
   const toDrumPin = toInstr.type === 'drumkit' ? pinKey(baseConn.toPin) : '';
 
@@ -4202,6 +4337,7 @@ function addInstrument(data, x, y) {
   const id = ++idCounter;
   const size = Number(data.size) || (data.wide ? 82 : 52);
   const diStereo = data.type === 'di' ? !!(data.stereo || data.inputStereo || data.outputStereo) : !!data.stereo;
+  const boxKind = inferConnectionBoxKind(data);
   instruments.push({
     id, type:data.type, cat:data.cat||'infra', icon:data.icon,
     image:data.image || getInstrumentImage(data.type),
@@ -4220,7 +4356,8 @@ function addInstrument(data, x, y) {
     connectorMode: data.connectorMode || getDefaultConnectorMode(data.type),
     pinMicAssignments: normalizePinMicAssignments(data.pinMicAssignments),
     connSide: data.connSide || 'bottom',
-  isMixer: !!data.isMixer,
+  connectionBoxKind: boxKind || '',
+  isMixer: boxKind === 'mixer' || boxKind === 'stagebox',
   mixerInputs: Number(data.mixerInputs) || 0,
   mixerInputXlrOnly: Number(data.mixerInputXlrOnly) || 0,
   mixerInputCombo: Number(data.mixerInputCombo) || 0,
@@ -4230,7 +4367,7 @@ function addInstrument(data, x, y) {
   mixerJackOut: Number(data.mixerJackOut) || 0,
   mixerP16: Number(data.mixerP16) || 0,
   mixerAes50: Number(data.mixerAes50) || 0,
-    isSnake:!!data.isSnake,
+    isSnake: boxKind === 'snake',
     snakeViewMode: normalizeSnakeViewMode(data.snakeViewMode),
     snakeChannels: normalizeSnakeChannels(data.snakeChannels || 16),
     snakeAllowJackInputs: !!data.snakeAllowJackInputs,
@@ -4240,6 +4377,7 @@ function addInstrument(data, x, y) {
     collapsed: !!data.collapsed,
   });
   const created = instruments[instruments.length-1];
+  normalizeConnectionBoxFlags(created);
   syncInstrumentStageNormFromWorld(created, stagePx);
   if(!supportsMicPickup(created)) created.pinMicAssignments = {};
   renderInstrument(created);
@@ -4256,7 +4394,7 @@ function addInstrument(data, x, y) {
 }
 
 function getCollapseButtonHTML(instr) {
-  if(!instr || (!instr.isSnake && !instr.isMixer)) return '';
+  if(!instr || !isConnectionBoxInstrument(instr)) return '';
   const title = instr.collapsed ? 'Expand' : 'Collapse';
   const glyph = instr.collapsed ? '+' : '-';
   return `<button class="elem-collapse-btn" type="button" title="${title}" onclick="event.stopPropagation();toggleInstrumentCollapsed(${instr.id})">${glyph}</button>`;
@@ -4282,7 +4420,14 @@ function renderInstrument(instr) {
   const old = getEl(instr.id); if(old) old.remove();
 
   const el = document.createElement('div');
-  el.className = 'si' + (instr.isSnake?' is-snake':'') + (instr.isMixer?' is-mixer':'');
+  const boxKind = getConnectionBoxKind(instr);
+  el.className = 'si';
+  if(boxKind) {
+    el.classList.add('is-connbox', `connbox-${boxKind}`);
+    // Keep legacy classes for compatibility in non-render paths.
+    if(boxKind === 'snake') el.classList.add('is-snake');
+    if(boxKind === 'mixer' || boxKind === 'stagebox') el.classList.add('is-mixer');
+  }
   el.id = 'instr-'+instr.id;
   el.dataset.cat = instr.cat||'';
   positionWorldElement(el, instr.x, instr.y);
@@ -4290,55 +4435,32 @@ function renderInstrument(instr) {
   const angle = parseInt(instr.angle || 0, 10);
   const isCollapsed = !!instr.collapsed;
 
-  if(instr.isSnake) {
-    const snakeBody = getInstrumentBodyDimensionsPx(instr);
-    const bw = snakeBody.width;
-    const bh = snakeBody.height;
-    const uiScale = snakeBody.uiScale || getRackUIScale(bw, 80);
-    if(isCollapsed) {
-      const snakeImage = instr.image || getInstrumentImage(instr.type) || 'images/snake8.png';
-      el.innerHTML = `
-        ${getCollapseButtonHTML(instr)}
-        <div class="iface" style="transform:rotate(${angle}deg);transform-origin:center center;">
-          ${buildRotationHandleHTML()}
-          <div class="ib" style="width:${bw}px;min-height:${Math.round(Math.max(28, bh * 0.46))}px;padding:${Math.round(5 * uiScale)}px;--ui-scale:${uiScale};">
-            <img class="icon-img" src="${snakeImage}" alt="${instr.label}" draggable="false">
-            <div class="ib-label">${instr.label}</div>
-          </div>
-        </div>
-      `;
-    } else {
-      el.innerHTML = `
-        ${getCollapseButtonHTML(instr)}
-        <div class="iface" style="transform:rotate(${angle}deg);transform-origin:center center;">
-          ${buildRotationHandleHTML()}
-          ${buildSnakeHTML(instr, false)}
-        </div>
-      `;
-    }
-  } else if(instr.isMixer) {
+  if(boxKind) {
     const body = getInstrumentBodyDimensionsPx(instr);
     const bw = body.width;
     const bh = body.height;
-    const uiScale = body.uiScale || getRackUIScale(bw, 100);
-    const angleDeg = parseInt(instr.angle || 0, 10);
+    const fallbackRef = boxKind === 'snake' ? 108 : 194;
+    const uiScale = body.uiScale || getRackUIScale(bw, fallbackRef);
+    const collapsedHeightFactor = boxKind === 'snake' ? 0.46 : 0.42;
+    const collapsedMin = boxKind === 'snake' ? 28 : 30;
     if(isCollapsed) {
+      const boxImage = instr.image || getInstrumentImage(instr.type) || (boxKind === 'snake' ? 'images/snake8.png' : '');
       el.innerHTML = `
         ${getCollapseButtonHTML(instr)}
-        <div class="iface" style="transform:rotate(${angleDeg}deg);transform-origin:center center;">
+        <div class="iface" style="transform:rotate(${angle}deg);transform-origin:center center;">
           ${buildRotationHandleHTML()}
-          <div class="ib" style="width:${bw}px;min-height:${Math.round(Math.max(30, bh * 0.42))}px;padding:${Math.round(5 * uiScale)}px;--ui-scale:${uiScale};">
-            ${buildStageIconHTML(instr, Math.round(14 * uiScale))}
-            <div class="ib-label inside-top">${instr.label}</div>
+          <div class="ib" style="width:${bw}px;min-height:${Math.round(Math.max(collapsedMin, bh * collapsedHeightFactor))}px;padding:${Math.round(5 * uiScale)}px;--ui-scale:${uiScale};">
+            ${boxImage ? `<img class="icon-img" src="${boxImage}" alt="${instr.label}" draggable="false">` : buildStageIconHTML(instr, Math.round(14 * uiScale))}
+            <div class="ib-label${boxKind === 'snake' ? '' : ' inside-top'}">${instr.label}</div>
           </div>
         </div>
       `;
     } else {
       el.innerHTML = `
         ${getCollapseButtonHTML(instr)}
-        <div class="iface" style="transform:rotate(${angleDeg}deg);transform-origin:center center;">
+        <div class="iface" style="transform:rotate(${angle}deg);transform-origin:center center;">
           ${buildRotationHandleHTML()}
-          ${buildMixerHTML(instr, bw)}
+          ${buildConnectionBoxHTML(instr, bw)}
         </div>
       `;
     }
@@ -4438,13 +4560,13 @@ function renderInstrument(instr) {
 
   // Drag to move
   el.addEventListener('mousedown', e => {
-    if(e.target.classList.contains('iconn') || e.target.classList.contains('snake-ch-pin') || e.target.classList.contains('mixer-pin') || e.target.classList.contains('rot-handle') || e.target.classList.contains('conn-side-handle') || e.target.closest('.snake-mode-btn') || e.target.closest('.elem-collapse-btn') || e.target.closest('.rot-handle') || e.target.closest('.conn-side-handle')) return;
+    if(e.target.classList.contains('iconn') || e.target.classList.contains('connbox-pin') || e.target.classList.contains('rot-handle') || e.target.classList.contains('conn-side-handle') || e.target.closest('.snake-mode-btn') || e.target.closest('.elem-collapse-btn') || e.target.closest('.rot-handle') || e.target.closest('.conn-side-handle')) return;
     e.preventDefault();
     e.stopPropagation();
     startDrag(e, instr.id, el);
   });
   el.addEventListener('touchstart', e => {
-    if(e.target.classList.contains('iconn') || e.target.classList.contains('snake-ch-pin') || e.target.classList.contains('mixer-pin') || e.target.classList.contains('rot-handle') || e.target.classList.contains('conn-side-handle') || e.target.closest('.snake-mode-btn') || e.target.closest('.elem-collapse-btn') || e.target.closest('.rot-handle') || e.target.closest('.conn-side-handle')) return;
+    if(e.target.classList.contains('iconn') || e.target.classList.contains('connbox-pin') || e.target.classList.contains('rot-handle') || e.target.classList.contains('conn-side-handle') || e.target.closest('.snake-mode-btn') || e.target.closest('.elem-collapse-btn') || e.target.closest('.rot-handle') || e.target.closest('.conn-side-handle')) return;
     if(e.cancelable) e.preventDefault();
     e.stopPropagation();
     startDragTouch(e, instr.id, el);
@@ -4469,23 +4591,8 @@ function renderInstrument(instr) {
     });
   }
 
-  // Snake pin connectors
-  if(instr.isSnake) {
-    el.querySelectorAll('.snake-ch-pin').forEach(pin => {
-      pin.addEventListener('mousedown', e => {
-        e.stopPropagation();
-        startConnectionFromPin(instr.id, pin.dataset.pin, e);
-      });
-      pin.addEventListener('touchstart', e => {
-        if(e.cancelable) e.preventDefault();
-        e.stopPropagation();
-        startConnectionFromPin(instr.id, pin.dataset.pin, e);
-      }, { passive: false });
-    });
-  }
-
-  if(instr.isMixer) {
-    el.querySelectorAll('.mixer-pin').forEach(pin => {
+  if(boxKind) {
+    el.querySelectorAll('.connbox-pin').forEach(pin => {
       pin.addEventListener('mousedown', e => {
         e.stopPropagation();
         startConnectionFromPin(instr.id, pin.dataset.pin, e);
@@ -4501,54 +4608,65 @@ function renderInstrument(instr) {
   wrap.appendChild(el);
 }
 
-function buildSnakeHTML(instr, includeLabel = true) {
-  const ch = instr.snakeChannels || 16;
-  const outputs = instr.type === 'snake8' ? 0 : (instr.snakeOutputs || 0);
-  const body = getInstrumentBodyDimensionsPx(instr);
-  const bw = body.width;
-  const bh = body.height;
-  const uiScale = body.uiScale || getRackUIScale(bw, 80);
-  const stageMode = getSnakeViewMode(instr) !== 'output';
-
-  let inputPins = '';
-  for(let i=1;i<=ch;i++){
-    const topPinKey = stageMode ? `STAGE-IN-${i}` : `CABLE-OUT-${i}`;
-    const isUsed = connections.some(c => (c.fromId===instr.id&&c.fromPin===topPinKey)||(c.toId===instr.id&&c.toPin===topPinKey));
-    const pinClass = `snake-ch-pin${stageMode ? '' : ' out-pin'}${isUsed?' used':''}`;
-    const roleLabel = stageMode ? `Input ${i}` : `Output ${i}`;
-    inputPins += `<div id="pin-${instr.id}-${topPinKey}" class="${pinClass}" data-pin="${topPinKey}" title="${buildPinTitle(instr, topPinKey, `${roleLabel} (paired with channel ${i})`)}">${i}</div>`;
-  }
-
-  let outputPins = '';
-  for(let i=1;i<=outputs;i++){
-    const bottomPinKey = stageMode ? `STAGE-OUT-${i}` : `CABLE-IN-${i}`;
-    const isUsed = connections.some(c => (c.fromId===instr.id&&c.fromPin===bottomPinKey)||(c.toId===instr.id&&c.toPin===bottomPinKey));
-    const label = indexToLetters(i);
-    const pinClass = `snake-ch-pin${stageMode ? ' out-pin' : ''}${isUsed?' used':''}`;
-    const roleLabel = stageMode ? `Output ${label}` : `Input ${label}`;
-    outputPins += `<div id="pin-${instr.id}-${bottomPinKey}" class="${pinClass}" data-pin="${bottomPinKey}" title="${buildPinTitle(instr, bottomPinKey, `${roleLabel} (paired with channel ${label})`)}">${label}</div>`;
-  }
-
-  const topLabel = stageMode ? 'INPUTS' : 'OUTPUTS';
-  const bottomLabel = stageMode ? 'OUTPUTS' : 'INPUTS';
-
-  return `
-    <div class="ib" style="width:${bw}px;min-height:${Math.round(bh)}px;padding:${Math.round(14 * uiScale)}px ${Math.round(4 * uiScale)}px ${Math.round(4 * uiScale)}px;flex-direction:column;font-size:0;--ui-scale:${uiScale};">
-      <div class="ib-label snake-inside">${instr.label}</div>
-      <div class="snake-mode-row">
-        <button class="snake-mode-btn${stageMode?' active':''}" data-mode="input" type="button" onclick="event.stopPropagation();setSnakeViewModeForSnake(${instr.id}, 'input')">STAGE</button>
-        <button class="snake-mode-btn${!stageMode?' active':''}" data-mode="output" type="button" onclick="event.stopPropagation();setSnakeViewModeForSnake(${instr.id}, 'output')">CABLE</button>
-      </div>
-      <div style="font-size:${Math.round(9 * uiScale)}px;color:#c47fff;margin-top:${Math.round(2 * uiScale)}px;">${topLabel}</div>
-      <div class="snake-channels">${inputPins}</div>
-      <div style="font-size:${Math.round(9 * uiScale)}px;color:#1f8a5a;margin-top:${Math.round(6 * uiScale)}px;">${bottomLabel}</div>
-      <div class="snake-channels">${outputPins}</div>
-    </div>
-  `;
+function buildConnectionBoxPin(instr, key, label, baseLabel, extraClass = '') {
+  const used = isPinUsed(instr.id, key);
+  return `<div id="pin-${instr.id}-${key}" class="connbox-pin${extraClass}${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, baseLabel)}">${label}</div>`;
 }
 
-function buildMixerHTML(instr, widthPx) {
-  const uiScale = getRackUIScale(widthPx, 80);
+function buildConnectionBoxHTML(instr, widthPx) {
+  const kind = getConnectionBoxKind(instr);
+  if(!kind) return '';
+  const refWidth = kind === 'snake' ? 108 : 194;
+  const body = getInstrumentBodyDimensionsPx(instr);
+  const resolvedWidth = Number(widthPx) || body.width;
+  const uiScale = body.uiScale || getRackUIScale(resolvedWidth, refWidth);
+  const rackScale = uiScale;
+  const rackPinScale = uiScale;
+  const rackSectionScale = uiScale;
+  const innerPad = Math.round(5 * uiScale);
+
+  if(kind === 'snake') {
+    const ch = instr.snakeChannels || 16;
+    const outputs = instr.type === 'snake8' ? 0 : (instr.snakeOutputs || 0);
+    const bh = body.height;
+    const stageMode = getSnakeViewMode(instr) !== 'output';
+
+    let inputPins = '';
+    for(let i=1;i<=ch;i++){
+      const topPinKey = stageMode ? `STAGE-IN-${i}` : `CABLE-OUT-${i}`;
+      const roleLabel = stageMode ? `Input ${i}` : `Output ${i}`;
+      const pinClass = stageMode ? '' : ' out-pin';
+      inputPins += buildConnectionBoxPin(instr, topPinKey, `${i}`, `${roleLabel} (paired with channel ${i})`, pinClass);
+    }
+
+    let outputPins = '';
+    for(let i=1;i<=outputs;i++){
+      const bottomPinKey = stageMode ? `STAGE-OUT-${i}` : `CABLE-IN-${i}`;
+      const label = indexToLetters(i);
+      const pinClass = stageMode ? ' out-pin' : '';
+      const roleLabel = stageMode ? `Output ${label}` : `Input ${label}`;
+      outputPins += buildConnectionBoxPin(instr, bottomPinKey, label, `${roleLabel} (paired with channel ${label})`, pinClass);
+    }
+
+    const topLabel = stageMode ? 'INPUTS' : 'OUTPUTS';
+    const bottomLabel = stageMode ? 'OUTPUTS' : 'INPUTS';
+    const ioTypeLabel = stageMode ? 'STAGE' : 'CABLE';
+
+    return `
+      <div class="ib" style="width:${resolvedWidth}px;min-height:${Math.round(bh)}px;padding:${Math.round(14 * uiScale)}px ${Math.round(4 * uiScale)}px ${Math.round(4 * uiScale)}px;flex-direction:column;font-size:0;--ui-scale:${uiScale};--rack-ui-scale:${rackScale};--rack-pin-scale:${rackPinScale};--port-label-scale:${rackPinScale};--rack-section-scale:${rackSectionScale};--connbox-ui-scale:${uiScale};">
+        <div class="ib-label snake-inside">${instr.label}</div>
+        <div class="snake-mode-row">
+          <button class="snake-mode-btn${stageMode?' active':''}" data-mode="input" type="button" onclick="event.stopPropagation();setSnakeViewModeForSnake(${instr.id}, 'input')">STAGE</button>
+          <button class="snake-mode-btn${!stageMode?' active':''}" data-mode="output" type="button" onclick="event.stopPropagation();setSnakeViewModeForSnake(${instr.id}, 'output')">CABLE</button>
+        </div>
+        <div class="rack-section-label" style="color:#c47fff;margin-top:${Math.round(2 * uiScale)}px;">${topLabel} <span class="rack-section-type">${ioTypeLabel}</span></div>
+        <div class="connbox-pin-grid snake-channels">${inputPins}</div>
+        <div class="rack-section-label" style="color:#1f8a5a;margin-top:${Math.round(6 * uiScale)}px;">${bottomLabel} <span class="rack-section-type">${ioTypeLabel}</span></div>
+        <div class="connbox-pin-grid snake-channels">${outputPins}</div>
+      </div>
+    `;
+  }
+
   const minHeight = Math.max(44, 62 * uiScale);
   const inputs = Math.max(0, Number(instr.mixerInputs) || 18);
   const breakdown = getMixerInputBreakdown(instr);
@@ -4556,7 +4674,7 @@ function buildMixerHTML(instr, widthPx) {
   const comboInputCount = Math.max(0, breakdown.combo);
   const auxInputCount = Math.max(0, breakdown.auxInputs);
   const auxCount = Math.max(0, Number(instr.mixerAux) || 6);
-  const noMainFamilies = new Set(['x32', 'x32compact', 'x32rack', 'wing', 'wingcompact', 'wingrack']);
+  const noMainFamilies = new Set(['x32', 'x32compact', 'x32rack', 'wing', 'wingcompact', 'wingrack', 's32', 's16']);
   const mainCount = noMainFamilies.has(instr.type) ? 0 : Math.max(0, Number(instr.mixerMain) || 2);
   const jackOutCount = Math.max(0, Number(instr.mixerJackOut) || 0);
   const pmCount = Math.max(0, Number(instr.mixerP16) || 0);
@@ -4569,11 +4687,6 @@ function buildMixerHTML(instr, widthPx) {
     ? `<img class="icon-img" src="${instr.image}" alt="${instr.label}" draggable="false" style="width:${Math.round(34 * uiScale)}px;height:${Math.round(34 * uiScale)}px;object-fit:contain;">`
     : `<span class="icon-emoji" style="font-size:${Math.round(18 * uiScale)}px;line-height:1;">${instr.icon || '🎚'}</span>`;
 
-  function buildMixerPin(key, label, baseLabel, extraClass = '') {
-    const used = isPinUsed(instr.id, key);
-    return `<div id="pin-${instr.id}-${key}" class="mixer-pin${extraClass}${used?' used':''}" data-pin="${key}" title="${buildPinTitle(instr, key, baseLabel)}">${label}</div>`;
-  }
-
   let inputSections = '';
   let inputIndex = 1;
 
@@ -4581,20 +4694,20 @@ function buildMixerHTML(instr, widthPx) {
     let pins = '';
     for(let i=1;i<=xlrInputCount;i++) {
       const key = `MX-IN-${inputIndex}`;
-      pins += buildMixerPin(key, `${inputIndex}`, `Input ${inputIndex} (XLR)`);
+      pins += buildConnectionBoxPin(instr, key, `${inputIndex}`, `Input ${inputIndex} (XLR)`);
       inputIndex += 1;
     }
-    inputSections += `<div class="mixer-row-label">INPUTS (XLR)</div><div class="mixer-pin-grid">${pins}</div>`;
+    inputSections += `<div class="mixer-row-label">INPUTS <span class="mixer-row-type">XLR</span></div><div class="connbox-pin-grid mixer-pin-grid">${pins}</div>`;
   }
 
   if(comboInputCount > 0) {
     let pins = '';
     for(let i=1;i<=comboInputCount;i++) {
       const key = `MX-IN-${inputIndex}`;
-      pins += buildMixerPin(key, `${inputIndex}`, `Input ${inputIndex} (Combo)`);
+      pins += buildConnectionBoxPin(instr, key, `${inputIndex}`, `Input ${inputIndex} (Combo)`);
       inputIndex += 1;
     }
-    inputSections += `<div class="mixer-row-label">INPUTS (COMBO)</div><div class="mixer-pin-grid">${pins}</div>`;
+    inputSections += `<div class="mixer-row-label">INPUTS <span class="mixer-row-type">COMBO</span></div><div class="connbox-pin-grid mixer-pin-grid">${pins}</div>`;
   }
 
   if(auxInputCount > 0) {
@@ -4602,18 +4715,18 @@ function buildMixerHTML(instr, widthPx) {
     for(let i=1;i<=auxInputCount;i++) {
       const key = `MX-AUX-IN-${i}`;
       const lbl = `A${i}`;
-      pins += buildMixerPin(key, lbl, `Aux Input ${lbl} (Jack TS)`);
+      pins += buildConnectionBoxPin(instr, key, lbl, `Aux Input ${lbl} (Jack TS)`);
     }
-    inputSections += `<div class="mixer-row-label">INPUTS (AUX JACK)</div><div class="mixer-pin-grid">${pins}</div>`;
+    inputSections += `<div class="mixer-row-label">INPUTS <span class="mixer-row-type">AUX JACK</span></div><div class="connbox-pin-grid mixer-pin-grid">${pins}</div>`;
   }
 
   if(genericInputCount > 0) {
     let pins = '';
     for(let i=1;i<=genericInputCount;i++) {
       const key = `MX-IN-${i}`;
-      pins += buildMixerPin(key, `${i}`, `Input ${i}`);
+      pins += buildConnectionBoxPin(instr, key, `${i}`, `Input ${i}`);
     }
-    inputSections += `<div class="mixer-row-label">INPUTS</div><div class="mixer-pin-grid">${pins}</div>`;
+    inputSections += `<div class="mixer-row-label">INPUTS</div><div class="connbox-pin-grid mixer-pin-grid">${pins}</div>`;
   }
 
   let outputSections = '';
@@ -4621,60 +4734,68 @@ function buildMixerHTML(instr, widthPx) {
   for(let i=1;i<=auxCount;i++) {
     const key = `MX-AUX-${i}`;
     const outTitle = `XLR Out ${i}`;
-    const outLabel = isStagebox ? `O${i}` : `${i}`;
-    xlrOutputPins += buildMixerPin(key, outLabel, outTitle, ' out-pin');
+    const outLabel = `${i}`;
+    xlrOutputPins += buildConnectionBoxPin(instr, key, outLabel, outTitle, ' out-pin');
   }
-  if(xlrOutputPins) outputSections += `<div class="mixer-row-label">OUTPUTS (XLR)</div><div class="mixer-pin-grid">${xlrOutputPins}</div>`;
+  if(xlrOutputPins) outputSections += `<div class="mixer-row-label">OUTPUTS <span class="mixer-row-type">XLR</span></div><div class="connbox-pin-grid mixer-pin-grid">${xlrOutputPins}</div>`;
 
   const mainLabels = ['L', 'R'];
   let mainOutputPins = '';
   for(let i=1;i<=mainCount;i++) {
     const key = `MX-MAIN-${i}`;
     const lbl = mainLabels[i-1] || String(i);
-    mainOutputPins += buildMixerPin(key, `M${lbl}`, `Main Out ${lbl}`, ' out-pin');
+    mainOutputPins += buildConnectionBoxPin(instr, key, `M${lbl}`, `Main Out ${lbl}`, ' out-pin');
   }
-  if(mainOutputPins) outputSections += `<div class="mixer-row-label">OUTPUTS (MAIN)</div><div class="mixer-pin-grid">${mainOutputPins}</div>`;
+  if(mainOutputPins) outputSections += `<div class="mixer-row-label">OUTPUTS <span class="mixer-row-type">MAIN</span></div><div class="connbox-pin-grid mixer-pin-grid">${mainOutputPins}</div>`;
 
   let auxJackOutputPins = '';
   for(let i=1;i<=jackOutCount;i++) {
     const key = `MX-JACK-OUT-${i}`;
     const lbl = `A${i}`;
-    auxJackOutputPins += buildMixerPin(key, lbl, `Aux Output ${lbl} (Jack TS)`, ' out-pin');
+    auxJackOutputPins += buildConnectionBoxPin(instr, key, lbl, `Aux Output ${lbl} (Jack TS)`, ' out-pin');
   }
-  if(auxJackOutputPins) outputSections += `<div class="mixer-row-label">OUTPUTS (AUX JACK)</div><div class="mixer-pin-grid">${auxJackOutputPins}</div>`;
+  if(auxJackOutputPins) outputSections += `<div class="mixer-row-label">OUTPUTS <span class="mixer-row-type">AUX JACK</span></div><div class="connbox-pin-grid mixer-pin-grid">${auxJackOutputPins}</div>`;
 
   let otherPins = '';
 
   for(let i=1;i<=pmCount;i++) {
     const key = `MX-P16-${i}`;
-    otherPins += buildMixerPin(key, `PM${i}`, `Ultranet ${i}`, ' other-pin');
+    otherPins += buildConnectionBoxPin(instr, key, `PM${i}`, `Ultranet ${i}`, ' other-pin');
   }
 
   for(let i=1;i<=aes50Count;i++) {
     const key = `MX-AES50-${i}`;
-    otherPins += buildMixerPin(key, `A5${i}`, `AES50 ${i}`, ' other-pin');
+    otherPins += buildConnectionBoxPin(instr, key, `A5${i}`, `AES50 ${i}`, ' other-pin');
   }
 
   const otherLabelParts = [];
-  if(pmCount) otherLabelParts.push(`ULTRANET ${pmCount}`);
-  if(aes50Count) otherLabelParts.push(`AES50 ${aes50Count}`);
+  if(pmCount) otherLabelParts.push('ULTRANET');
+  if(aes50Count) otherLabelParts.push('AES50');
   const otherLabel = otherLabelParts.length ? otherLabelParts.join(' · ') : 'NONE';
 
   return `
-    <div class="ib" style="width:${widthPx}px;min-height:${Math.round(minHeight)}px;padding:${Math.round(5 * uiScale)}px;flex-direction:column;font-size:0;--ui-scale:${uiScale};">
+    <div class="ib" style="width:${resolvedWidth}px;min-height:${Math.round(minHeight)}px;padding:${innerPad}px;flex-direction:column;font-size:0;--ui-scale:${uiScale};--rack-ui-scale:${rackScale};--rack-pin-scale:${rackPinScale};--port-label-scale:${rackPinScale};--rack-section-scale:${rackSectionScale};--connbox-ui-scale:${uiScale};">
       <div class="ib-label inside-top">${instr.label}</div>
       <div style="display:flex;justify-content:center;align-items:center;margin-top:${Math.round(2 * uiScale)}px;">${mixerImage}</div>
       ${inputSections}
       ${outputSections}
-      ${otherPins ? `<div class="mixer-row-label">OTHERS (${otherLabel})</div><div class="mixer-pin-grid">${otherPins}</div>` : ''}
+      ${otherPins ? `<div class="mixer-row-label">OTHERS <span class="mixer-row-type">${otherLabel}</span></div><div class="connbox-pin-grid mixer-pin-grid">${otherPins}</div>` : ''}
     </div>
   `;
 }
 
+function buildSnakeHTML(instr, includeLabel = true) {
+  return buildConnectionBoxHTML(instr);
+}
+
+function buildMixerHTML(instr, widthPx) {
+  return buildConnectionBoxHTML(instr, widthPx);
+}
+
 function refreshSnakePins(id) {
-  const instr = instruments.find(i=>i.id===id); if(!instr||!instr.isSnake) return;
+  const instr = instruments.find(i=>i.id===id); if(!instr || !isConnectionBoxInstrument(instr)) return;
   const el = getEl(id); if(!el) return;
-  el.querySelectorAll('.snake-ch-pin').forEach(pin => {
+  el.querySelectorAll('.connbox-pin').forEach(pin => {
     const p = pin.dataset.pin;
     const used = isPinUsed(id, p);
     pin.classList.toggle('used', used);
@@ -4684,7 +4805,7 @@ function refreshSnakePins(id) {
 function refreshConnectorStates(id) {
   const instr = instruments.find(i => i.id === id);
   if(!instr) return;
-  if(instr.isSnake) {
+  if(isConnectionBoxInstrument(instr)) {
     refreshSnakePins(id);
     return;
   }
@@ -4962,7 +5083,7 @@ function selectInstrument(id) {
   const speakerIOWrap = document.getElementById('speaker-io-wrap');
   const ampExtra = document.getElementById('amp-extra');
   const haExtra = document.getElementById('ha-extra');
-  if(instr.isSnake || instr.isMixer) {
+  if(isConnectionBoxInstrument(instr)) {
     connTypeWrap.style.display = 'none';
     micWrap.style.display = 'none';
     sideWrap.style.display = 'none';
@@ -5018,7 +5139,7 @@ function selectInstrument(id) {
   }
   // snake extras
   const se = document.getElementById('snake-extra');
-  if(instr.isSnake){
+  if(isSnakeBox(instr)){
     se.style.display='block';
     document.getElementById('p-snake-ch').value=instr.snakeChannels||16;
     document.getElementById('p-snake-jack').checked = !!instr.snakeAllowJackInputs;
@@ -5168,7 +5289,7 @@ function startAngleKnobDrag(e) {
 }
 
 function setInstrumentConnSide(id, value, shouldSelect) {
-  const instr = instruments.find(i=>i.id===id); if(!instr || instr.isSnake || instr.isMixer) return;
+  const instr = instruments.find(i=>i.id===id); if(!instr || isConnectionBoxInstrument(instr)) return;
   const allowed = new Set(['bottom','right','top','left']);
   const next = allowed.has(value) ? value : 'bottom';
   if((instr.connSide || 'bottom') === next) return;
@@ -5316,7 +5437,7 @@ function updateConnSideButtons(side) {
 
 function updSnakeChannels(value) {
   if(!selectedId) return;
-  const instr=instruments.find(i=>i.id===selectedId); if(!instr||!instr.isSnake) return;
+  const instr=instruments.find(i=>i.id===selectedId); if(!instr || !isSnakeBox(instr)) return;
   const nextVal = normalizeSnakeChannels(value);
   document.getElementById('p-snake-ch').value = nextVal;
   if((instr.snakeChannels||16) === nextVal) return;
@@ -5329,7 +5450,7 @@ function updSnakeChannels(value) {
 
 function updSnakeAllowJack(enabled) {
   if(!selectedId) return;
-  const instr = instruments.find(i=>i.id===selectedId); if(!instr || !instr.isSnake) return;
+  const instr = instruments.find(i=>i.id===selectedId); if(!instr || !isSnakeBox(instr)) return;
   const next = !!enabled;
   if(!!instr.snakeAllowJackInputs === next) return;
   pushHistoryState();
@@ -5354,7 +5475,7 @@ function updSnakeAllowJack(enabled) {
 
 function updConnectorMode(value) {
   if(!selectedId) return;
-  const instr = instruments.find(i=>i.id===selectedId); if(!instr || instr.isSnake || instr.isMixer) return;
+  const instr = instruments.find(i=>i.id===selectedId); if(!instr || isConnectionBoxInstrument(instr)) return;
   const allowed = new Set(['xlr','jack']);
   let next = allowed.has(value) ? value : 'xlr';
   if(hasAnyAssignedMic(instr) && next !== 'xlr') {
@@ -5373,7 +5494,7 @@ function updConnectorMode(value) {
 
 function setPinMicAssignment(pin, value) {
   if(!selectedId) return;
-  const instr = instruments.find(i=>i.id===selectedId); if(!instr || instr.isSnake || instr.isMixer) return;
+  const instr = instruments.find(i=>i.id===selectedId); if(!instr || isConnectionBoxInstrument(instr)) return;
   if(!supportsMicPickup(instr)) return;
   const cleanPin = pinKey(pin);
   const nextVal = String(value || '').trim();
@@ -5540,7 +5661,10 @@ function pruneInvalidDrumConnections(instr) {
 function refreshInstrEl(instr) {
   const el=getEl(instr.id); if(!el) return;
   const lbl=el.querySelector('.ilabel'); if(lbl) lbl.textContent=instr.label;
-  if(instr.isSnake){ renderInstrument(instr); return; }
+  el.querySelectorAll('.ib-label').forEach(labelEl => {
+    labelEl.textContent = instr.label;
+  });
+  if(isConnectionBoxInstrument(instr)){ renderInstrument(instr); return; }
   const body=el.querySelector('.ib');
   const ex=body.querySelector('.ich'); if(ex) ex.remove();
   if(instr.channel){ const b=document.createElement('div'); b.className='ich'; b.textContent=instr.channel; body.appendChild(b); }
@@ -5601,8 +5725,8 @@ function isInputPin(pin) {
 function isEndpointOnlyOutput(instr, pin) {
   const key = pinKey(pin);
   if(!instr) return false;
-  if(instr.isSnake && (key.startsWith('STAGE-OUT-') || key.startsWith('OUT-'))) return true;
-  if(instr.isMixer && (key.startsWith('MX-AUX-') || key.startsWith('MX-MAIN-') || key.startsWith('MX-JACK-OUT-') || key.startsWith('MX-P16-') || key.startsWith('MX-AES50-'))) return true;
+  if(isSnakeBox(instr) && (key.startsWith('STAGE-OUT-') || key.startsWith('OUT-'))) return true;
+  if(isMixerBox(instr) && (key.startsWith('MX-AUX-') || key.startsWith('MX-MAIN-') || key.startsWith('MX-JACK-OUT-') || key.startsWith('MX-P16-') || key.startsWith('MX-AES50-'))) return true;
   if(instr.type === 'ha8000' && key.startsWith('HA-OUT-')) return true;
   if(isSpeakerWithThru(instr) && key === 'SPK-OUT') return true;
   return false;
@@ -5614,21 +5738,21 @@ function isDrumMicPin(pin) {
 
 function isSnakeInPin(instr, pin) {
   const key = pinKey(pin);
-  return !!(instr && instr.isSnake && isSnakeInputPinKey(key));
+  return !!(instr && isSnakeBox(instr) && isSnakeInputPinKey(key));
 }
 
 function isSnakeOutPin(instr, pin) {
   const key = pinKey(pin);
-  return !!(instr && instr.isSnake && isSnakeOutputPinKey(key));
+  return !!(instr && isSnakeBox(instr) && isSnakeOutputPinKey(key));
 }
 
 function isEffectiveOutputPin(instr, pin) {
-  if(instr && instr.isSnake) return isSnakeOutPin(instr, pin);
+  if(instr && isSnakeBox(instr)) return isSnakeOutPin(instr, pin);
   return isOutputPin(pin);
 }
 
 function isEffectiveInputPin(instr, pin) {
-  if(instr && instr.isSnake) return isSnakeInPin(instr, pin);
+  if(instr && isSnakeBox(instr)) return isSnakeInPin(instr, pin);
   return isInputPin(pin);
 }
 
@@ -5636,7 +5760,7 @@ function getPinTargetAtClientPoint(clientX, clientY) {
   const target = document.elementFromPoint(clientX, clientY);
   if(!target) return null;
 
-  const pinEl = target.closest('.iconn, .snake-ch-pin, .mixer-pin');
+  const pinEl = target.closest('.iconn, .connbox-pin');
   if(!pinEl) return null;
 
   const instrEl = pinEl.closest('.si');
@@ -5791,14 +5915,14 @@ function validateConnection(fromObj, toObj) {
   }
 
   // Snake stage-return outputs are for output-destination devices only (monitors/PM1/etc).
-  if(fromInstr.isSnake && isSnakeStageReturnOutputPin(fromObj.pin) && !toInstr.requiresOutput) {
+  if(isSnakeBox(fromInstr) && isSnakeStageReturnOutputPin(fromObj.pin) && !toInstr.requiresOutput) {
     return {
       valid:false,
       message:`${fromInstr.label} output ${fromKey} can only connect to output devices.`
     };
   }
 
-  if(!fromInstr.isSnake && isEndpointOnlyOutput(fromInstr, fromObj.pin) && !toInstr.requiresOutput) {
+  if(!isSnakeBox(fromInstr) && isEndpointOnlyOutput(fromInstr, fromObj.pin) && !toInstr.requiresOutput) {
     return {
       valid:false,
       message:`${fromInstr.label} output ${fromKey} can only connect to output devices.`
@@ -5813,7 +5937,7 @@ function validateConnection(fromObj, toObj) {
     };
   }
 
-  if(toInstr.type === 'p16' && !(fromInstr.isMixer && fromKey.startsWith('MX-P16-'))) {
+  if(toInstr.type === 'p16' && !(isMixerBox(fromInstr) && fromKey.startsWith('MX-P16-'))) {
     return {
       valid:false,
       message:'P16 only accepts Personal Monitoring Ethernet from mixer PM outputs.'
@@ -5990,7 +6114,7 @@ function updateConnList() {
   }
 
   const meta = focusedInstr
-    ? `<div class="conn-focus-meta">Selected: ${focusedInstr.label}${focusedInstr.isSnake?' (snake pin map)':''}</div>`
+    ? `<div class="conn-focus-meta">Selected: ${focusedInstr.label}${isSnakeBox(focusedInstr)?' (snake pin map)':''}</div>`
     : '';
 
   list.innerHTML = meta + viewConnections.map(conn => {
@@ -6001,7 +6125,7 @@ function updateConnList() {
     let fromLabel = conn.fromPin != null ? `${from.label} ${pinForReport(conn.fromPin)}` : from.label;
     let toLabel = conn.toPin != null ? `${to.label} ${pinForReport(conn.toPin)}` : to.label;
 
-    if(focusedInstr && focusedInstr.isSnake) {
+    if(focusedInstr && isSnakeBox(focusedInstr)) {
       const focusedIsFrom = conn.fromId === focusedInstr.id;
       const snakePin = focusedIsFrom ? pinForReport(conn.fromPin) : pinForReport(conn.toPin);
       const other = focusedIsFrom ? to : from;
@@ -6307,6 +6431,7 @@ function loadRiderFromData(data) {
       connectorMode: raw.connectorMode || getDefaultConnectorMode(raw.type),
       pinMicAssignments: {},
       connSide: raw.connSide || 'bottom',
+      connectionBoxKind: inferConnectionBoxKind(raw) || '',
       isMixer: !!raw.isMixer,
       mixerInputs: Number(raw.mixerInputs) || (raw.type === 'xr18' ? 18 : (raw.type === 'x32' ? 38 : ((raw.type === 'x32compact' || raw.type === 'x32rack') ? 22 : ((raw.type === 'wingcompact' || raw.type === 'wingrack') ? 24 : (raw.type === 'wing' ? 16 : 0))))),
       mixerInputXlrOnly: Number(raw.mixerInputXlrOnly) || (raw.type === 's32' ? 32 : (raw.type === 's16' ? 16 : (raw.type === 'x32' ? 32 : ((raw.type === 'x32compact' || raw.type === 'x32rack') ? 16 : 0)))),
@@ -6333,6 +6458,7 @@ function loadRiderFromData(data) {
       drumMics: Array.isArray(raw.drumMics) ? raw.drumMics : (raw.type === 'drumkit' ? [] : null),
       collapsed: !!raw.collapsed,
     };
+    normalizeConnectionBoxFlags(instr);
     if(instr.type === 'x32' || instr.type === 'x32compact' || instr.type === 'x32rack' || instr.type === 'wing' || instr.type === 'wingcompact' || instr.type === 'wingrack') {
       instr.mixerMain = 0;
     }
@@ -6414,135 +6540,1011 @@ function exportJSON() {
 // REPORT (VIEW / PDF)
 // ═══════════════════════════════════════════════════════════════
 
+let reportDialogDefaultAutoPrint = false;
+let currentReportDrumKitCount = 0;
+let reportPreviewWindow = null;
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"]|'/g, ch => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  })[ch]);
+}
+
 function getReportBaseName() {
   return `${sanitizeProjectName(projectName)}_report`;
 }
 
-function buildReportHTML(autoPrint) {
+function isReportAccessory(instr) {
+  return !!instr && (instr.type === 'di' || instr.type === 'pedals');
+}
+
+function getReportTargetGroups() {
+  return [
+    { key:'snakes', label:'Snakes', items: instruments.filter(i => i && isSnakeBox(i)) },
+    { key:'stageboxes', label:'Stageboxes', items: instruments.filter(i => i && isStageboxBox(i)) },
+    { key:'mixers', label:'Mixers', items: instruments.filter(i => i && getConnectionBoxKind(i) === 'mixer') },
+  ].filter(group => group.items.length > 0);
+}
+
+function ensureReportOptionsDialog() {
+  let overlay = document.getElementById('report-modal');
+  if(overlay) return overlay;
+
+  overlay = document.createElement('div');
+  overlay.id = 'report-modal';
+  overlay.className = 'report-modal';
+  overlay.innerHTML = `
+    <div class="report-dialog" role="dialog" aria-modal="true" aria-labelledby="report-dialog-title">
+      <div class="report-dialog-header">
+        <h2 id="report-dialog-title">Report Setup</h2>
+        <p>Select the snakes, stageboxes, and mixers to include. The report is printed in a white roadie-style format, with the stage image cropped to the layout bounds.</p>
+      </div>
+      <div class="report-dialog-body">
+        <div class="report-option-grid" id="report-option-grid"></div>
+        <div class="report-option-panel">
+          <h3>Stage Image</h3>
+          <div class="report-inline-row">
+            <label><input id="report-include-stage-image" type="checkbox" checked> Include stage image</label>
+            <label>Orientation
+              <select id="report-stage-orientation" class="pselect" style="width:auto;min-width:140px;background:#fff;color:#17324f;">
+                <option value="horizontal">Horizontal</option>
+                <option value="vertical">Vertical</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="report-dialog-actions">
+        <button id="report-cancel-btn" class="report-btn" type="button">Cancel</button>
+        <button id="report-view-btn" class="report-btn" type="button">View Report</button>
+        <button id="report-pdf-btn" class="report-btn primary" type="button">Export PDF</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', e => {
+    if(e.target === overlay) closeReportOptionsDialog();
+  });
+  overlay.querySelector('#report-cancel-btn').addEventListener('click', closeReportOptionsDialog);
+  overlay.querySelector('#report-view-btn').addEventListener('click', () => submitReportOptions(false));
+  overlay.querySelector('#report-pdf-btn').addEventListener('click', () => submitReportOptions(true));
+  return overlay;
+}
+
+function closeReportOptionsDialog() {
+  const overlay = document.getElementById('report-modal');
+  if(overlay) overlay.classList.remove('open');
+}
+
+function buildReportOptionsMarkup() {
+  const groups = getReportTargetGroups();
+  if(!groups.length) {
+    return '<div class="report-option-panel"><h3>No report items</h3><div style="font-size:12px;color:#4f5f73;line-height:1.4;">Add snakes, stageboxes, or mixers first.</div></div>';
+  }
+  return groups.map(group => `
+    <div class="report-option-panel">
+      <h3>${escapeHtml(group.label)}</h3>
+      <div class="report-option-list">
+        ${group.items.map(item => `
+          <label class="report-option-item">
+            <input type="checkbox" data-report-item-id="${item.id}" checked>
+            <span>${escapeHtml(item.label || item.name || item.type)}</span>
+          </label>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function openReportOptionsDialog(autoPrint) {
+  reportDialogDefaultAutoPrint = !!autoPrint;
+  const overlay = ensureReportOptionsDialog();
+  const grid = overlay.querySelector('#report-option-grid');
+  grid.innerHTML = buildReportOptionsMarkup();
+  const orientation = overlay.querySelector('#report-stage-orientation');
+  const pdfBtn = overlay.querySelector('#report-pdf-btn');
+  const viewBtn = overlay.querySelector('#report-view-btn');
+  if(orientation) orientation.value = 'horizontal';
+  if(viewBtn && pdfBtn) {
+    viewBtn.classList.toggle('primary', !reportDialogDefaultAutoPrint);
+    pdfBtn.classList.toggle('primary', !!reportDialogDefaultAutoPrint);
+  }
+  overlay.classList.add('open');
+}
+
+function submitReportOptions(autoPrint) {
+  const overlay = document.getElementById('report-modal');
+  if(!overlay) return;
+  const selectedIds = [...overlay.querySelectorAll('[data-report-item-id]:checked')].map(el => parseInt(el.getAttribute('data-report-item-id'), 10)).filter(Number.isFinite);
+  const includeStageImage = !!overlay.querySelector('#report-include-stage-image')?.checked;
+  const stageOrientation = overlay.querySelector('#report-stage-orientation')?.value === 'vertical' ? 'vertical' : 'horizontal';
+  closeReportOptionsDialog();
+  openReportWindow({ selectedIds, includeStageImage, stageOrientation }, autoPrint);
+}
+
+function getReportItemById(id) {
+  return instruments.find(i => i && i.id === id) || null;
+}
+
+function getReportPinLabel(instr, pin) {
+  const key = pinKey(pin);
+  if(!instr) return key;
+  if(isSnakeBox(instr)) {
+    const canonicalIn = key.match(/^SNAKE-IN-(\d+)$/);
+    if(canonicalIn) return String(parseInt(canonicalIn[1], 10));
+    const canonicalOut = key.match(/^SNAKE-OUT-(\d+)$/);
+    if(canonicalOut) return indexToLetters(parseInt(canonicalOut[1], 10));
+    const inMatch = key.match(/^(STAGE-IN|CABLE-OUT)-(\d+)$/);
+    if(inMatch) return String(parseInt(inMatch[2], 10));
+    const outMatch = key.match(/^(STAGE-OUT|CABLE-IN)-(\d+)$/);
+    if(outMatch) return indexToLetters(parseInt(outMatch[2], 10));
+  }
+  if(isMixerBox(instr)) {
+    const mixerIn = key.match(/^MX-IN-(\d+)$/);
+    if(mixerIn) return `Input ${parseInt(mixerIn[1], 10)}`;
+    const auxIn = key.match(/^MX-AUX-IN-(\d+)$/);
+    if(auxIn) return `Aux In ${parseInt(auxIn[1], 10)}`;
+    const auxOut = key.match(/^MX-AUX-(\d+)$/);
+    if(auxOut) return `Out ${parseInt(auxOut[1], 10)}`;
+    const mainOut = key.match(/^MX-MAIN-(\d+)$/);
+    if(mainOut) return `Main ${parseInt(mainOut[1], 10) === 1 ? 'L' : 'R'}`;
+    const jackOut = key.match(/^MX-JACK-OUT-(\d+)$/);
+    if(jackOut) return `Jack Out ${parseInt(jackOut[1], 10)}`;
+    const p16 = key.match(/^MX-P16-(\d+)$/);
+    if(p16) return `P16 ${parseInt(p16[1], 10)}`;
+    const aes50 = key.match(/^MX-AES50-(\d+)$/);
+    if(aes50) return `AES50 ${parseInt(aes50[1], 10)}`;
+  }
+  return pinForReport(key);
+}
+
+function getReportConnectionForPin(instrId, pin) {
+  const key = pinKey(pin);
+  const instr = getReportItemById(instrId);
+  const matchSnakeAlias = connKey => {
+    if(!instr || !isSnakeBox(instr)) return connKey === key;
+    const inMatch = key.match(/^SNAKE-IN-(\d+)$/);
+    if(inMatch) {
+      const idx = parseInt(inMatch[1], 10);
+      return connKey === `STAGE-IN-${idx}` || connKey === `CABLE-OUT-${idx}` || connKey === `IN-${idx}`;
+    }
+    const outMatch = key.match(/^SNAKE-OUT-(\d+)$/);
+    if(outMatch) {
+      const idx = parseInt(outMatch[1], 10);
+      return connKey === `STAGE-OUT-${idx}` || connKey === `CABLE-IN-${idx}` || connKey === `OUT-${idx}`;
+    }
+    return connKey === key;
+  };
+  return connections.find(conn => {
+    const fromMatch = conn.fromId === instrId && matchSnakeAlias(pinKey(conn.fromPin));
+    const toMatch = conn.toId === instrId && matchSnakeAlias(pinKey(conn.toPin));
+    return fromMatch || toMatch;
+  }) || null;
+}
+
+function getReportOtherEndpoint(conn, instrId) {
+  if(!conn) return null;
+  const fromSelf = conn.fromId === instrId;
+  const otherId = fromSelf ? conn.toId : conn.fromId;
+  const otherPin = fromSelf ? conn.toPin : conn.fromPin;
+  const otherInstr = getReportItemById(otherId);
+  return otherInstr ? { instr: otherInstr, pin: otherPin, fromSelf } : null;
+}
+
+function describeAccessoryChain(instr, sourceConnId, visited = new Set()) {
+  if(!instr) return 'Unknown';
+  const pinParts = [];
+  if(visited.has(instr.id)) return instr.label || instr.name || instr.type || 'Unknown';
+  visited.add(instr.id);
+  const nextConn = connections.find(conn => conn.id !== sourceConnId && (conn.fromId === instr.id || conn.toId === instr.id));
+  if(!nextConn || !isReportAccessory(instr)) {
+    return instr.label || instr.name || instr.type || 'Unknown';
+  }
+  const next = getReportOtherEndpoint(nextConn, instr.id);
+  if(!next || !next.instr) return instr.label || instr.name || instr.type || 'Unknown';
+  const thisPin = getReportPinLabel(instr, next.fromSelf ? nextConn.fromPin : nextConn.toPin);
+  const nextLabel = describeAccessoryChain(next.instr, nextConn.id, visited);
+  pinParts.push(instr.label || instr.name || instr.type || 'Unknown');
+  if(thisPin) pinParts.push(thisPin);
+  if(nextLabel) pinParts.push(nextLabel);
+  return pinParts.join(' → ');
+}
+
+function describeReportEndpoint(instr, pin, sourceConnId) {
+  if(!instr) return 'Unknown';
+  const pinLabel = getReportPinLabel(instr, pin);
+  if(isReportAccessory(instr)) {
+    const chain = describeAccessoryChain(instr, sourceConnId, new Set());
+    return pinLabel ? `${chain}` : chain;
+  }
+  if(instr.type === 'drumkit') {
+    if(!pinLabel) return instr.label;
+    return currentReportDrumKitCount > 1 ? `${instr.label} ${pinLabel}` : pinLabel;
+  }
+  if(!pinLabel || pinLabel === 'MONO') return instr.label;
+  return `${instr.label} ${pinLabel}`;
+}
+
+function formatInlineConnectorLabel(label) {
+  const text = String(label || 'XLR').trim();
+  if(/^jack\b/i.test(text)) return 'Jack';
+  return text;
+}
+
+function getReportCableHopClass(label) {
+  const text = String(label || '').toLowerCase();
+  if(text.includes('ethernet')) return 'ethernet';
+  if(text.includes('jack') || text.includes('trs') || text.includes('ts')) return 'jack';
+  if(text.includes('speakon')) return 'speakon';
+  if(text.includes('xlr')) return 'xlr';
+  return 'default';
+}
+
+function getCompactSnakeEndpointLabel(instr, pin, omitMono = false) {
+  if(!instr) return 'Unknown';
+  const pinLabel = getReportPinLabel(instr, pin);
+  if(instr.type === 'drumkit') {
+    if(!pinLabel) return instr.label || instr.name || instr.type || 'Unknown';
+    return currentReportDrumKitCount > 1
+      ? `${instr.label || instr.name || instr.type || 'Unknown'} ${pinLabel}`
+      : pinLabel;
+  }
+  if(!pinLabel || pinLabel === 'MONO' || (omitMono && pinLabel === 'MONO')) return instr.label || instr.name || instr.type || 'Unknown';
+  return `${instr.label || instr.name || instr.type || 'Unknown'} ${pinLabel}`;
+}
+
+function describeInlineAccessoryRouteHTML(instr, inboundConn, pin, visited = new Set()) {
+  if(!instr || !inboundConn) return escapeHtml('Unknown');
+  if(visited.has(instr.id)) return escapeHtml(getCompactSnakeEndpointLabel(instr, pin, true));
+  visited.add(instr.id);
+
+  const inboundHopClass = getReportCableHopClass(inboundConn.label);
+  const parts = [`<span class="report-cable-hop report-cable-hop-${inboundHopClass}">${escapeHtml(formatInlineConnectorLabel(inboundConn.label))}</span> ${escapeHtml(instr.label || instr.name || instr.type || 'Unknown')}`];
+  const nextConn = connections.find(conn => conn.id !== inboundConn.id && (conn.fromId === instr.id || conn.toId === instr.id));
+  if(!nextConn) return parts.join(' → ');
+
+  const next = getReportOtherEndpoint(nextConn, instr.id);
+  if(!next || !next.instr) return parts.join(' → ');
+  if(isReportAccessory(next.instr)) {
+    parts.push(describeInlineAccessoryRouteHTML(next.instr, nextConn, next.pin, visited));
+    return parts.join(' → ');
+  }
+
+  const nextHopClass = getReportCableHopClass(nextConn.label);
+  parts.push(`<span class="report-cable-hop report-cable-hop-${nextHopClass}">${escapeHtml(formatInlineConnectorLabel(nextConn.label))}</span> ${escapeHtml(getCompactSnakeEndpointLabel(next.instr, next.pin, true))}`);
+  return parts.join(' → ');
+}
+
+function getReportRelevantConnections(selectedIds, hasSelection) {
+  if(!hasSelection) return [...connections];
+  const byId = new Map(instruments.map(instr => [instr.id, instr]));
+  const included = new Map();
+  const queuedAccessoryIds = new Set();
+  const accessoryQueue = [];
+
+  const includeConnection = conn => {
+    if(!conn || included.has(conn.id)) return;
+    included.set(conn.id, conn);
+    [conn.fromId, conn.toId].forEach(id => {
+      const instr = byId.get(id);
+      if(instr && isReportAccessory(instr) && !queuedAccessoryIds.has(id)) {
+        queuedAccessoryIds.add(id);
+        accessoryQueue.push(id);
+      }
+    });
+  };
+
+  connections.forEach(conn => {
+    if(selectedIds.has(conn.fromId) || selectedIds.has(conn.toId)) includeConnection(conn);
+  });
+
+  while(accessoryQueue.length) {
+    const accessoryId = accessoryQueue.shift();
+    connections.forEach(conn => {
+      if(conn.fromId === accessoryId || conn.toId === accessoryId) includeConnection(conn);
+    });
+  }
+
+  return [...included.values()];
+}
+
+function getSnakeReportPinGroups(instr) {
+  const channelCount = Math.max(0, Number(instr.snakeChannels) || 0);
+  const outputCount = instr.type === 'snake8' ? 0 : Math.max(0, Number(instr.snakeOutputs) || 0);
+  return [
+    {
+      title: 'Inputs',
+      pins: Array.from({ length: channelCount }, (_v, idx) => ({ key: `SNAKE-IN-${idx + 1}` })),
+    },
+    {
+      title: 'Outputs',
+      pins: Array.from({ length: outputCount }, (_v, idx) => ({ key: `SNAKE-OUT-${idx + 1}` })),
+    },
+  ];
+}
+
+function getMixerReportPinGroups(instr) {
+  const groups = [];
+  const breakdown = getMixerInputBreakdown(instr);
+  let inputIndex = 1;
+  if(breakdown.xlrOnly > 0) {
+    groups.push({
+      title: 'Inputs (XLR)',
+      pins: Array.from({ length: breakdown.xlrOnly }, (_v, idx) => ({ key: `MX-IN-${inputIndex + idx}` })),
+    });
+    inputIndex += breakdown.xlrOnly;
+  }
+  if(breakdown.combo > 0) {
+    groups.push({
+      title: 'Inputs (Combo)',
+      pins: Array.from({ length: breakdown.combo }, (_v, idx) => ({ key: `MX-IN-${inputIndex + idx}` })),
+    });
+    inputIndex += breakdown.combo;
+  }
+  if(breakdown.auxInputs > 0) {
+    groups.push({
+      title: 'Inputs (Aux Jack)',
+      pins: Array.from({ length: breakdown.auxInputs }, (_v, idx) => ({ key: `MX-AUX-IN-${idx + 1}` })),
+    });
+  }
+
+  const outputGroups = [];
+  const auxCount = Math.max(0, Number(instr.mixerAux) || 0);
+  if(auxCount > 0) {
+    outputGroups.push({
+      title: instr.cat === 'stageboxes' ? 'Stage Outputs' : 'Outputs (XLR)',
+      pins: Array.from({ length: auxCount }, (_v, idx) => ({ key: `MX-AUX-${idx + 1}` })),
+    });
+  }
+  const mainCount = ['x32', 'x32compact', 'x32rack', 'wing', 'wingcompact', 'wingrack', 's32', 's16'].includes(instr.type) ? 0 : Math.max(0, Number(instr.mixerMain) || 0);
+  if(mainCount > 0) {
+    outputGroups.push({
+      title: 'Main Outputs',
+      pins: Array.from({ length: mainCount }, (_v, idx) => ({ key: `MX-MAIN-${idx + 1}` })),
+    });
+  }
+  const jackCount = Math.max(0, Number(instr.mixerJackOut) || 0);
+  if(jackCount > 0) {
+    outputGroups.push({
+      title: 'Outputs (Jack)',
+      pins: Array.from({ length: jackCount }, (_v, idx) => ({ key: `MX-JACK-OUT-${idx + 1}` })),
+    });
+  }
+
+  const systemPins = [];
+  const p16Count = Math.max(0, Number(instr.mixerP16) || 0);
+  const aes50Count = Math.max(0, Number(instr.mixerAes50) || 0);
+  if(p16Count > 0) {
+    systemPins.push(...Array.from({ length: p16Count }, (_v, idx) => ({ key: `MX-P16-${idx + 1}` })));
+  }
+  if(aes50Count > 0) {
+    systemPins.push(...Array.from({ length: aes50Count }, (_v, idx) => ({ key: `MX-AES50-${idx + 1}` })));
+  }
+  if(systemPins.length > 0) {
+    outputGroups.push({ title: 'System', pins: systemPins });
+  }
+
+  return [...groups, ...outputGroups];
+}
+
+function getReportPinGroups(instr) {
+  if(!instr) return [];
+  if(isSnakeBox(instr)) return getSnakeReportPinGroups(instr);
+  if(isMixerBox(instr)) return getMixerReportPinGroups(instr);
+  const validPins = getValidPinsForInstrument(instr);
+  if(!validPins) return [];
+  return [{ title: 'Pins', pins: [...validPins].map(key => ({ key })) }];
+}
+
+function buildReportPinLine(instr, pin, notePrefix = '') {
+  const conn = getReportConnectionForPin(instr.id, pin);
+  const pinLabel = getReportPinLabel(instr, pin);
+  const pinTone = getReportPinTone(instr, pin);
+  if(!conn) return '';
+  const other = getReportOtherEndpoint(conn, instr.id);
+  const otherText = other && other.instr ? describeReportEndpoint(other.instr, other.pin, conn.id) : 'Unknown';
+
+  if(instr && isSnakeBox(instr)) {
+    const destinationHTML = other && other.instr && isReportAccessory(other.instr)
+      ? describeInlineAccessoryRouteHTML(other.instr, conn, other.pin, new Set())
+      : escapeHtml(otherText);
+    const numberMarkup = `<span class="report-inline-key report-pin-tone-${pinTone}">${escapeHtml(pinLabel)}</span>`;
+    return `<div class="report-pin-line compact">
+      <div class="report-pin-main">${numberMarkup} - ${destinationHTML}</div>
+    </div>`;
+  }
+
+  const accessoryHint = other && other.instr && isReportAccessory(other.instr)
+    ? `<div class="report-pin-note">Middle accessory path: ${escapeHtml(describeAccessoryChain(other.instr, conn.id, new Set()))}</div>`
+    : '';
+  const micNote = getPinMicNote(instr, pin);
+  const extraNote = [notePrefix, micNote ? `Mic: ${micNote}` : ''].filter(Boolean).join(' · ');
+  return `<div class="report-pin-line">
+    <div class="report-pin-key report-pin-tone-${pinTone}">${escapeHtml(pinLabel)}</div>
+    <div class="report-pin-main">Connect to ${escapeHtml(otherText)}</div>
+    <div class="report-pin-meta">${escapeHtml(conn.label || 'Cable')} ${extraNote ? `· ${escapeHtml(extraNote)}` : ''}</div>
+    ${accessoryHint}
+  </div>`;
+}
+
+function getReportPinTone(instr, pin) {
+  const key = pinKey(pin);
+  if(!key) return 'default';
+
+  if(instr && isSnakeBox(instr)) {
+    if(key.startsWith('SNAKE-IN-') || key.startsWith('STAGE-IN-') || key.startsWith('CABLE-IN-')) return 'input';
+    if(key.startsWith('SNAKE-OUT-') || key.startsWith('STAGE-OUT-') || key.startsWith('CABLE-OUT-')) return 'output';
+    return 'default';
+  }
+
+  if(key.startsWith('MX-IN-') || key.startsWith('MX-AUX-IN-')) return 'input';
+  if(key.startsWith('MX-AUX-') || key.startsWith('MX-MAIN-') || key.startsWith('MX-JACK-OUT-')) return 'output';
+  if(key.startsWith('MX-P16-') || key.startsWith('MX-AES50-')) return 'other';
+  return 'default';
+}
+
+function getReportStageBounds() {
+  const reportItems = instruments.map(getReportSnapshotInstrument);
+  const points = [
+    { left: stagePx.left, top: stagePx.top, right: stagePx.left + stagePx.width, bottom: stagePx.top + stagePx.height },
+  ];
+  stageParts.forEach(part => {
+    const partWidth = Math.max(24, Math.max(0.5, Number(part.widthM) || 1) * pxPerM);
+    const partDepth = Math.max(24, Math.max(0.5, Number(part.depthM) || 1) * pxPerM);
+    points.push({ left: part.x, top: part.y, right: part.x + partWidth, bottom: part.y + partDepth });
+  });
+  reportItems.forEach(item => {
+    points.push({ left: item.worldX, top: item.worldY, right: item.worldX + item.width + 8, bottom: item.worldY + item.height + 12 });
+  });
+  const left = Math.max(0, Math.min(...points.map(p => p.left)) - 24);
+  const top = Math.max(0, Math.min(...points.map(p => p.top)) - 24);
+  const right = Math.max(...points.map(p => p.right)) + 24;
+  const bottom = Math.max(...points.map(p => p.bottom)) + 24;
+  return { left, top, right, bottom };
+}
+
+function getReportSnapshotInstrument(instr) {
+  const liveEl = getEl(instr.id);
+  const liveBody = liveEl ? liveEl.querySelector('.ib') : null;
+  const fallback = getInstrumentBodyDimensionsPx(instr);
+  const width = liveBody && liveBody.offsetWidth > 0 ? (liveBody.offsetWidth / Math.max(zoomLevel, 0.001)) : fallback.width;
+  const height = liveBody && liveBody.offsetHeight > 0 ? (liveBody.offsetHeight / Math.max(zoomLevel, 0.001)) : fallback.height;
+  return {
+    id: instr.id,
+    worldX: instr.x,
+    worldY: instr.y,
+    width,
+    height,
+    angle: parseInt(instr.angle || 0, 10) || 0,
+    label: instr.label || instr.name || instr.type,
+    name: instr.name || instr.type,
+    type: instr.type,
+    cat: instr.cat,
+    image: instr.image || getInstrumentImage(instr.type) || '',
+    icon: instr.icon || '•',
+    isSnake: !!isSnakeBox(instr),
+    isMixer: !!isMixerBox(instr),
+    collapsed: !!instr.collapsed,
+    mixerInputs: Math.max(0, Number(instr.mixerInputs) || 0),
+    mixerInputXlrOnly: Math.max(0, Number(instr.mixerInputXlrOnly) || 0),
+    mixerInputCombo: Math.max(0, Number(instr.mixerInputCombo) || 0),
+    mixerInputJackOnly: Math.max(0, Number(instr.mixerInputJackOnly) || 0),
+    mixerAux: Math.max(0, Number(instr.mixerAux) || 0),
+    mixerMain: Math.max(0, Number(instr.mixerMain) || 0),
+    mixerJackOut: Math.max(0, Number(instr.mixerJackOut) || 0),
+    mixerP16: Math.max(0, Number(instr.mixerP16) || 0),
+    mixerAes50: Math.max(0, Number(instr.mixerAes50) || 0),
+    snakeStageMode: getSnakeViewMode(instr) !== 'output',
+    snakeChannels: Math.max(1, parseInt(instr.snakeChannels, 10) || 16),
+    snakeOutputs: Math.max(0, parseInt(instr.snakeOutputs, 10) || 0),
+    color: isSnakeBox(instr)
+      ? '#f3ecff'
+      : (isStageboxBox(instr)
+        ? '#eaf8f0'
+        : (getConnectionBoxKind(instr) === 'mixer'
+          ? '#e8f2ff'
+          : (instr.cat === 'monitoring' ? '#ffe9e9' : '#ffffff'))),
+    stroke: isSnakeBox(instr)
+      ? '#ab79d8'
+      : (isStageboxBox(instr)
+        ? '#4da97f'
+        : (getConnectionBoxKind(instr) === 'mixer'
+          ? '#7aaed9'
+          : (instr.cat === 'monitoring' ? '#cf6f6f' : '#c7d0db'))),
+    labelColor: '#102033',
+  };
+}
+
+function getReportSnapshotConnectionPoint(instr, reportItem, pin) {
+  if(!instr || !reportItem) return null;
+  const livePoint = getReportWorldCenterForPin(instr.id, pin || null);
+  if(livePoint) return livePoint;
+  return {
+    x: reportItem.worldX + (reportItem.width / 2),
+    y: reportItem.worldY + (reportItem.height / 2),
+  };
+}
+
+function buildReportStageSvg(orientation) {
+  const bounds = getReportStageBounds();
+  const width = Math.max(1, bounds.right - bounds.left);
+  const height = Math.max(1, bounds.bottom - bounds.top);
+  const viewBox = `0 0 ${width} ${height}`;
+  const stageX = stagePx.left - bounds.left;
+  const stageY = stagePx.top - bounds.top;
+  const stageWpx = stagePx.width;
+  const stageHpx = stagePx.height;
+  const stageBorder = getStageBorderColor(stageColor);
+  const stageLabelX = stageX + (stageWpx / 2);
+  const stageLabelY = stageY + 18;
+
+  const stagePartSvg = stageParts.map(part => {
+    const partW = Math.max(24, Math.max(0.5, Number(part.widthM) || 1) * pxPerM);
+    const partD = Math.max(24, Math.max(0.5, Number(part.depthM) || 1) * pxPerM);
+    const x = (part.x - bounds.left).toFixed(2);
+    const y = (part.y - bounds.top).toFixed(2);
+    const fill = /^#[0-9a-fA-F]{6}$/.test(String(part.color || '')) ? part.color : '#7da7c8';
+    const label = escapeHtml(part.label || 'Stage');
+    const partShape = part.shape === 'circle'
+      ? `<circle cx="${(part.x - bounds.left + partW / 2).toFixed(2)}" cy="${(part.y - bounds.top + partD / 2).toFixed(2)}" r="${Math.min(partW, partD) / 2}" fill="${fill}" stroke="rgba(10,11,13,.45)" stroke-width="2" />`
+      : `<rect x="${x}" y="${y}" width="${partW.toFixed(2)}" height="${partD.toFixed(2)}" rx="8" ry="8" fill="${fill}" stroke="rgba(10,11,13,.45)" stroke-width="2" />`;
+    const labelX = part.x - bounds.left + (partW / 2);
+    const labelY = part.y - bounds.top + (partD / 2) + 4;
+    return `<g>${partShape}<text x="${labelX.toFixed(2)}" y="${labelY.toFixed(2)}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="10" fill="#ffffff" opacity=".92">${label}</text></g>`;
+  }).join('');
+
+  const instrumentSvg = instruments.map(instr => {
+    const body = getInstrumentBodyDimensionsPx(instr);
+    const x = (instr.x - bounds.left).toFixed(2);
+    const y = (instr.y - bounds.top).toFixed(2);
+    const w = body.width.toFixed(2);
+    const h = body.height.toFixed(2);
+    const title = escapeHtml(instr.label || instr.name || instr.type);
+    const fill = isSnakeBox(instr)
+      ? '#f3ecff'
+      : (isStageboxBox(instr)
+        ? '#eaf8f0'
+        : (getConnectionBoxKind(instr) === 'mixer'
+          ? '#e8f2ff'
+          : (instr.cat === 'monitoring' ? '#ffe9e9' : '#ffffff')));
+    const stroke = isSnakeBox(instr)
+      ? '#ab79d8'
+      : (isStageboxBox(instr)
+        ? '#4da97f'
+        : (getConnectionBoxKind(instr) === 'mixer'
+          ? '#7aaed9'
+          : (instr.cat === 'monitoring' ? '#cf6f6f' : '#c7d0db')));
+    const image = instr.image || getInstrumentImage(instr.type);
+
+    if(isConnectionBoxInstrument(instr)) {
+      const liveScale = getRackUIScale(Math.max(1, Math.round(body.width)), 80);
+      const liveMarkup = buildConnectionBoxHTML(instr, Math.max(1, Math.round(body.width)));
+      return `<foreignObject x="${x}" y="${y}" width="${w}" height="${h}">
+        <div xmlns="http://www.w3.org/1999/xhtml" class="report-stage-live report-stage-live-connbox" style="--rack-ui-scale:${liveScale};">${liveMarkup}</div>
+      </foreignObject>`;
+    }
+
+    const imageSvg = image ? `<image href="${escapeHtml(image)}" x="${(instr.x - bounds.left + 8).toFixed(2)}" y="${(instr.y - bounds.top + 8).toFixed(2)}" width="${Math.max(24, body.width - 16).toFixed(2)}" height="${Math.max(24, body.height - 24).toFixed(2)}" preserveAspectRatio="xMidYMid meet" />` : `<text x="${(instr.x - bounds.left + body.width / 2).toFixed(2)}" y="${(instr.y - bounds.top + body.height / 2).toFixed(2)}" text-anchor="middle" dominant-baseline="middle" font-family="Share Tech Mono, monospace" font-size="18" fill="#17324f">${escapeHtml(instr.icon || '•')}</text>`;
+    return `<g>
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" ry="10" fill="${fill}" stroke="${stroke}" stroke-width="2.2" />
+      ${imageSvg}
+      <text x="${(instr.x - bounds.left + body.width / 2).toFixed(2)}" y="${(instr.y - bounds.top + body.height + 12).toFixed(2)}" text-anchor="middle" font-family="Barlow, sans-serif" font-size="10" font-weight="700" fill="#102033">${title}</text>
+    </g>`;
+  }).join('');
+
+  const foreignObjectStyle = `
+    .report-stage-live{width:100%;height:100%;overflow:visible;}
+    .report-stage-live .ib{background:#edf5fb;border:1.5px solid #7aaed9;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:none;position:relative;flex-shrink:0;overflow:visible;}
+    .report-stage-live .ib.is-snake{background:#f3ecff;border-color:#ab79d8;}
+    .report-stage-live .ib.is-stagebox,.report-stage-live .ib.stagebox-mode{background:#eaf8f0;border-color:#4da97f;}
+    .report-stage-live .ib.monitoring-mode{background:#ffe9e9;border-color:#cf6f6f;}
+    .report-stage-live .ib-label{position:absolute;left:50%;bottom:2px;transform:translateX(-50%);max-width:calc(100% - 8px);font-size:8px;color:#6b7280;font-weight:600;text-align:center;white-space:nowrap;background:rgba(255,255,255,.82);padding:1px 4px;border-radius:3px;overflow:hidden;text-overflow:ellipsis;z-index:3;pointer-events:none;}
+    .report-stage-live .ib-label.inside-top{top:2px;bottom:auto;}
+    .report-stage-live .icon-img{width:82%;height:82%;object-fit:contain;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3));pointer-events:none;user-select:none;-webkit-user-drag:none;}
+    .report-stage-live .mixer-row-label{font-size:8px;font-family:'Share Tech Mono',monospace;line-height:1;color:#5d6b7d;margin-top:2px;text-align:center;}
+    .report-stage-live .connbox-pin-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:7px;width:100%;max-width:194px;margin:5px auto 0;justify-items:center;}
+    .report-stage-live .connbox-pin{width:16px;height:16px;border-radius:50%;border:1.5px solid #1f6fa0;cursor:default;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:8px;line-height:1;color:#163b55;font-weight:700;transition:none;background:#ffffff;}
+    .report-stage-live .connbox-pin.used{background:#b9ddf5;color:#0f2c40;}
+    .report-stage-live .connbox-pin.out-pin{border-color:#1f8a5a;color:#0f5e3b;background:#effaf2;}
+    .report-stage-live .connbox-pin.out-pin.used{background:#b6e8cb;color:#0d4f33;}
+    .report-stage-live .connbox-pin.other-pin{border-color:#54697f;color:#54697f;background:#eef3f8;}
+    .report-stage-live .connbox-pin.other-pin.used{background:#d7e7f5;color:#0f2c40;}
+    .report-stage-live .connbox-pin:hover{transform:none;}
+  `;
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${viewBox}" preserveAspectRatio="xMidYMid meet">
+      <style><![CDATA[
+        ${foreignObjectStyle}
+      ]]></style>
+      <rect width="100%" height="100%" fill="#ffffff" />
+      <rect x="${stageX}" y="${stageY}" width="${stageWpx}" height="${stageHpx}" rx="9" ry="9" fill="${stageColor}" stroke="${stageBorder}" stroke-width="2" />
+      <rect x="${stageX}" y="${stageY + stageHpx - 14}" width="${stageWpx}" height="14" rx="0" ry="0" fill="${stageBorder}" opacity=".25" />
+      <text x="${stageLabelX}" y="${stageLabelY}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="12" fill="#132034" opacity=".78">STAGE</text>
+      <text x="${stageLabelX}" y="${stageLabelY + 12}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="10" fill="#3b4e66" opacity=".82">${stageW}m × ${stageD}m</text>
+      ${stagePartSvg}
+      ${instrumentSvg}
+      <text x="${stageLabelX}" y="${stageY + stageHpx + 24}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="11" fill="#6c7c8f">◀ AUDIENCE ▶</text>
+    </svg>
+  `)}`;
+}
+
+function buildReportItemCard(instr) {
+  const groupHtml = getReportPinGroups(instr).map(group => buildReportPinGroupHTML(instr, group)).filter(Boolean).join('');
+
+  if(!groupHtml) return '';
+
+  const headerBits = [
+    isSnakeBox(instr) ? null : instr.type,
+    isMixerBox(instr) ? 'Connection Box' : null,
+  ].filter(Boolean).join(' · ');
+
+  const title = isSnakeBox(instr)
+    ? `${escapeHtml(instr.label || instr.name || instr.type)} <span class="report-item-type-meta">(${escapeHtml(instr.type || '')})</span>`
+    : escapeHtml(instr.label || instr.name || instr.type);
+  const familyClass = isSnakeBox(instr)
+    ? ' snake-card'
+    : (isStageboxBox(instr) ? ' stagebox-card' : (getConnectionBoxKind(instr) === 'mixer' ? ' mixer-card' : (instr.cat === 'monitoring' ? ' monitor-card' : '')));
+
+  return `
+    <article class="report-item-card${familyClass}">
+      <div class="report-item-head">
+        <div>
+          <h3>${title}</h3>
+          ${headerBits ? `<div class="report-item-sub">${escapeHtml(headerBits)}</div>` : ''}
+        </div>
+        <div class="report-item-pill">${escapeHtml(instr.cat || 'item')}</div>
+      </div>
+      ${groupHtml || ''}
+    </article>
+  `;
+}
+
+function buildReportPinGroupHTML(instr, group) {
+  const lines = (group.pins || []).map(pin => buildReportPinLine(instr, pin.key)).filter(Boolean);
+  if(!lines.length) return '';
+  if(instr && isSnakeBox(instr)) {
+    const columnCount = Math.min(3, Math.max(1, lines.length));
+    const baseSize = Math.floor(lines.length / columnCount);
+    const remainder = lines.length % columnCount;
+    let start = 0;
+    const columns = [];
+    for(let index = 0; index < columnCount; index++) {
+      const size = baseSize + (index < remainder ? 1 : 0);
+      columns.push(lines.slice(start, start + size).join(''));
+      start += size;
+    }
+    return `
+      <div class="report-pin-group">
+        <div class="report-pin-group-title">${escapeHtml(group.title)}</div>
+        <div class="report-pin-columns" style="grid-template-columns:repeat(${columnCount},minmax(0,1fr));">
+          ${columns.map(column => `<div class="report-pin-column">${column}</div>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+  return `
+    <div class="report-pin-group">
+      <div class="report-pin-group-title">${escapeHtml(group.title)}</div>
+      <div class="report-pin-list">
+        ${lines.join('')}
+      </div>
+    </div>
+  `;
+}
+
+function getReportStageSnapshotData(stageOrientation) {
+  const bounds = getReportStageBounds();
+  const stage = {
+    x: stagePx.left - bounds.left,
+    y: stagePx.top - bounds.top,
+    width: stagePx.width,
+    height: stagePx.height,
+    color: stageColor,
+    borderColor: getStageBorderColor(stageColor),
+    label: 'STAGE',
+    dims: `${stageW}m × ${stageD}m`,
+  };
+  const reportItems = instruments.map(getReportSnapshotInstrument);
+  const itemById = new Map(reportItems.map(item => [item.id, item]));
+  const items = reportItems.map(item => ({
+    ...item,
+    x: item.worldX - bounds.left,
+    y: item.worldY - bounds.top,
+  }));
+  const parts = stageParts.map(part => {
+    const partW = Math.max(24, Math.max(0.5, Number(part.widthM) || 1) * pxPerM);
+    const partH = Math.max(24, Math.max(0.5, Number(part.depthM) || 1) * pxPerM);
+    return {
+      x: part.x - bounds.left,
+      y: part.y - bounds.top,
+      width: partW,
+      height: partH,
+      shape: part.shape,
+      color: /^#[0-9a-fA-F]{6}$/.test(String(part.color || '')) ? part.color : '#7da7c8',
+      label: part.label || 'Stage',
+    };
+  });
+
+  const connectionLines = connections.map(conn => {
+    const fromInstr = instruments.find(instr => instr && instr.id === conn.fromId) || null;
+    const toInstr = instruments.find(instr => instr && instr.id === conn.toId) || null;
+    const fromItem = itemById.get(conn.fromId) || null;
+    const toItem = itemById.get(conn.toId) || null;
+    const liveFrom = getReportWorldCenterForPin(conn.fromId, conn.fromPin);
+    const liveTo = getReportWorldCenterForPin(conn.toId, conn.toPin);
+    const from = getReportSnapshotConnectionPoint(fromInstr, fromItem, conn.fromPin);
+    const to = getReportSnapshotConnectionPoint(toInstr, toItem, conn.toPin);
+    if(!from || !to) return null;
+    const routeXWorld = getEffectiveRouteXForConnection(conn, null);
+    const routeX = Number.isFinite(routeXWorld)
+      ? routeXWorld - bounds.left
+      : ((from.x + to.x) / 2) - bounds.left;
+    return {
+      id: conn.id,
+      color: conn.color || '#47c4ff',
+      fromId: conn.fromId,
+      toId: conn.toId,
+      fromPin: pinKey(conn.fromPin),
+      toPin: pinKey(conn.toPin),
+      from: { x: from.x - bounds.left, y: from.y - bounds.top },
+      to: { x: to.x - bounds.left, y: to.y - bounds.top },
+      routeX,
+    };
+  }).filter(Boolean);
+
+  return { orientation: stageOrientation, bounds, stage, items, parts, connections: connectionLines };
+}
+
+function getReportWorldCenterForPin(id, pin) {
+  const point = getCenterOf(id, pin);
+  if(!point) return null;
+  return {
+    x: (point.x - panX) / zoomLevel,
+    y: (point.y - panY) / zoomLevel,
+  };
+}
+
+function getReportCableStockFamily(conn) {
+  const type = normalizeCableType(conn?.cableType || 'xlr');
+  if(type === 'ethernet') return { label: 'Ethernet', sizes: [3, 5], overflowLabel: '>5m' };
+  if(type === 'xlr') return { label: 'XLR', sizes: [1, 3, 6, 10], overflowLabel: '>10m' };
+  if(type === 'ts' || type === 'trs') return { label: 'Jack', sizes: [1, 3, 6, 10], overflowLabel: '>10m' };
+  return null;
+}
+
+function getReportInstrumentSlackMeters(instr) {
+  if(!instr) return 0.3;
+  const body = getInstrumentBodyDimensionsPx(instr);
+  const widthM = Math.max(0, Number(body.width) || 0) / Math.max(pxPerM, 1);
+  const heightM = Math.max(0, Number(body.height) || 0) / Math.max(pxPerM, 1);
+  return Math.max(0.3, Math.max(widthM, heightM) * 0.25);
+}
+
+function getReportConnectionEstimatedMeters(conn) {
+  if(!conn) return null;
+  const from = getReportWorldCenterForPin(conn.fromId, conn.fromPin);
+  const to = getReportWorldCenterForPin(conn.toId, conn.toPin);
+  if(!from || !to) return null;
+  const routeXWorld = getEffectiveRouteXForConnection(conn, null);
+  const midX = Number.isFinite(routeXWorld) ? routeXWorld : ((from.x + to.x) / 2);
+  const points = [
+    { x: from.x, y: from.y },
+    { x: midX, y: from.y },
+    { x: midX, y: to.y },
+    { x: to.x, y: to.y },
+  ];
+  let lengthPx = 0;
+  for(let i = 1; i < points.length; i++) {
+    lengthPx += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+  }
+  const fromInstr = instruments.find(i => i && i.id === conn.fromId) || null;
+  const toInstr = instruments.find(i => i && i.id === conn.toId) || null;
+  const slackMeters = getReportInstrumentSlackMeters(fromInstr) + getReportInstrumentSlackMeters(toInstr) + 0.25;
+  return (lengthPx / Math.max(pxPerM, 1)) + slackMeters;
+}
+
+function bucketReportConnectionByCableLength(connectionsForReport) {
+  const summary = new Map();
+  (connectionsForReport || []).forEach(conn => {
+    const family = getReportCableStockFamily(conn);
+    if(!family) return;
+    const estimate = getReportConnectionEstimatedMeters(conn);
+    if(!Number.isFinite(estimate)) return;
+    const key = family.label;
+    if(!summary.has(key)) {
+      const counts = {};
+      family.sizes.forEach(size => { counts[`${size}m`] = 0; });
+      counts[family.overflowLabel] = 0;
+      summary.set(key, { family, counts });
+    }
+    const entry = summary.get(key);
+    const bucket = family.sizes.find(size => estimate <= size);
+    if(bucket) entry.counts[`${bucket}m`] += 1;
+    else entry.counts[family.overflowLabel] += 1;
+  });
+  return [...summary.values()];
+}
+
+function buildReportHTML(reportOptions = {}, autoPrint = false) {
   const now = new Date().toLocaleString();
   const safeProjectName = projectName || 'untitled-project';
   const reportBaseName = getReportBaseName();
+  const selectedIds = new Set(Array.isArray(reportOptions.selectedIds) ? reportOptions.selectedIds.map(id => parseInt(id, 10)).filter(Number.isFinite) : []);
+  const includeStageImage = reportOptions.includeStageImage !== false;
+  const stageOrientation = reportOptions.stageOrientation === 'vertical' ? 'vertical' : 'horizontal';
+  const hasSelection = selectedIds.size > 0;
+  const itemFilter = instr => !hasSelection || selectedIds.has(instr.id);
+  const reportGroups = [
+    { key:'snakes', title:'Snakes' },
+    { key:'stageboxes', title:'Stageboxes' },
+    { key:'mixers', title:'Mixers' },
+  ].map(group => {
+    let items = [];
+    if(group.key === 'snakes') items = instruments.filter(i => i && i.isSnake && itemFilter(i));
+    if(group.key === 'stageboxes') items = instruments.filter(i => i && i.cat === 'stageboxes' && itemFilter(i));
+    if(group.key === 'mixers') items = instruments.filter(i => i && i.isMixer && i.cat === 'mixers' && itemFilter(i));
+    return { ...group, items };
+  }).filter(group => group.items.length > 0);
+  currentReportDrumKitCount = instruments.filter(i => i && i.type === 'drumkit' && itemFilter(i)).length;
+  const reportConnections = getReportRelevantConnections(selectedIds, hasSelection);
 
-  // Build connections rows
-  const rows = connections.map(conn => {
-    const from = instruments.find(i=>i.id===conn.fromId);
-    const to   = instruments.find(i=>i.id===conn.toId);
-    if(!from||!to) return '';
-    const fromLabel = conn.fromPin!=null ? `${from.label} — ${pinForReport(conn.fromPin)}` : from.label;
-    const toLabel   = conn.toPin!=null   ? `${to.label} — ${pinForReport(conn.toPin)}`     : to.label;
-    const fromCh    = conn.fromPin!=null ? '' : (from.channel||'—');
-    const toCh      = conn.toPin!=null   ? '' : (to.channel||'—');
-    const fromMic = getPinMicNote(from, conn.fromPin);
-    const toMic = getPinMicNote(to, conn.toPin);
-    const fromNotes = [from.notes||'', fromMic ? `Mic: ${fromMic}` : ''].filter(Boolean).join(' | ');
-    const toNotes   = [to.notes||'', toMic ? `Mic: ${toMic}` : ''].filter(Boolean).join(' | ');
-    return `<tr>
-      <td><span class="dot" style="background:${conn.color}"></span>${conn.label}</td>
-      <td>${fromLabel}</td>
-      <td class="mono">${fromCh}</td>
-      <td>${fromNotes}</td>
-      <td class="arrow">→</td>
-      <td>${toLabel}</td>
-      <td class="mono">${toCh}</td>
-      <td>${toNotes}</td>
-    </tr>`;
+  const stageSnapshotData = includeStageImage ? getReportStageSnapshotData(stageOrientation) : null;
+  const stageImageSection = includeStageImage ? `
+      <figure class="report-stage-shot ${stageOrientation}">
+        <canvas id="report-stage-canvas" width="${Math.max(1, Math.round(stageSnapshotData.bounds.right - stageSnapshotData.bounds.left))}" height="${Math.max(1, Math.round(stageSnapshotData.bounds.bottom - stageSnapshotData.bounds.top))}"></canvas>
+      </figure>
+  ` : '';
+
+  const cableTypeCounts = reportConnections.reduce((acc, conn) => {
+    const key = (conn && conn.label) ? conn.label : 'Cable';
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+  const cableTypeInline = Object.entries(cableTypeCounts)
+    .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
+    .map(([label, count]) => `${escapeHtml(label)} (${count})`)
+    .join(' · ');
+  const cableLengthRows = bucketReportConnectionByCableLength(reportConnections).map(entry => {
+    const counts = entry.counts;
+    return `
+      <tr>
+        <td>${escapeHtml(entry.family.label)}</td>
+        <td>${counts['1m'] || ''}</td>
+        <td>${counts['3m'] || ''}</td>
+        <td>${counts['5m'] || ''}</td>
+        <td>${counts['6m'] || ''}</td>
+        <td>${counts['10m'] || ''}</td>
+        <td>${counts[entry.family.overflowLabel] || ''}</td>
+      </tr>
+    `;
   }).join('');
 
-  // Instrument inventory
-  const instrRows = instruments.map(instr => `<tr>
-    <td>${instr.icon}</td>
-    <td>${instr.label}</td>
-    <td>${instr.type}${instr.isSnake?' (snake '+instr.snakeChannels+'ch)':''}</td>
-    <td class="mono">${parseInt(instr.angle||0,10)}°</td>
-    <td class="mono">${instr.channel||'—'}</td>
-    <td>${instr.drumMics && instr.drumMics.length ? instr.drumMics.join(', ') : (instr.notes||'—')}</td>
-    <td>${connections.filter(c=>c.fromId===instr.id||c.toId===instr.id).length}</td>
-  </tr>`).join('');
+  const reportSections = reportGroups.map(group => `
+    <section class="report-section">
+      <h2>${escapeHtml(group.title)} (${group.items.length})</h2>
+      <div class="report-item-list">
+        ${group.items.map(instr => buildReportItemCard(instr)).join('')}
+      </div>
+    </section>
+  `).join('');
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>${reportBaseName}.pdf</title>
+<title>${escapeHtml(reportBaseName)}.pdf</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;600;700&display=swap');
-  :root{--bg:#0a0b0d;--surface:#13151a;--panel:#1a1d24;--border:#2a2e3a;--accent:#e8ff47;--accent2:#47c4ff;--text:#d4d8e2;--muted:#6b7280;}
+  :root{--bg:#ffffff;--surface:#f6f8fb;--panel:#eef3f8;--border:#cfd8e3;--accent:#0f4c7d;--accent2:#2b6ea6;--text:#172332;--muted:#5d6b7d;}
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);padding:40px;min-height:100vh;}
-  .report-header{margin-bottom:36px;border-bottom:1px solid var(--border);padding-bottom:20px;}
-  .report-header h1{font-family:'Share Tech Mono',monospace;font-size:22px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;}
-  .report-header .meta{font-size:12px;color:var(--muted);margin-top:6px;font-family:'Share Tech Mono',monospace;}
-  .stage-info{display:inline-flex;align-items:center;gap:20px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 18px;margin-top:14px;}
-  .stage-info span{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--accent2);}
-  .stage-info label{font-size:11px;color:var(--muted);display:block;margin-bottom:2px;}
-  section{margin-bottom:40px;}
-  section h2{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:3px;margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border);}
-  table{width:100%;border-collapse:collapse;font-size:12px;}
-  thead tr{background:var(--surface);}
-  thead th{padding:8px 12px;text-align:left;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);}
-  tbody tr{border-bottom:1px solid #1e2230;}
-  tbody tr:hover{background:rgba(255,255,255,.02);}
-  tbody td{padding:8px 12px;vertical-align:middle;color:var(--text);}
-  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:middle;flex-shrink:0;}
-  .mono{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--accent2);}
-  .arrow{color:var(--muted);text-align:center;font-weight:bold;}
-  .count-badge{display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1px 7px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent);}
-  .summary-grid{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px;}
-  .summary-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 18px;min-width:120px;}
-  .summary-card .num{font-family:'Share Tech Mono',monospace;font-size:26px;color:var(--accent);line-height:1;}
-  .summary-card .lbl{font-size:11px;color:var(--muted);margin-top:3px;}
-  .project-title{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--accent2);margin-top:8px;letter-spacing:1px;}
-  @media print{body{background:white;color:#111;padding:24px;} .report-header h1{color:#000;} section h2{color:#444;border-color:#ccc;} thead tr{background:#f5f5f5;} .mono{color:#0066aa;} tbody tr{border-color:#e0e0e0;} .summary-card{background:#f9f9f9;border-color:#ddd;} .summary-card .num{color:#000;}}
+  body{font-family:'Barlow',sans-serif;background:#fff;color:var(--text);padding:28px;min-height:100vh;}
+  .report-cover{display:grid;gap:18px;align-content:start;margin-bottom:28px;}
+  .report-header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:1px solid var(--border);padding-bottom:18px;}
+  .report-header h1{font-family:'Share Tech Mono',monospace;font-size:22px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;line-height:1.1;}
+  .report-header .meta{font-size:12px;color:var(--muted);font-family:'Share Tech Mono',monospace;white-space:nowrap;}
+  .report-section{margin-bottom:24px;break-inside:avoid;}
+  .report-section h2{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:3px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+  .report-stage-shot{border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#ffffff,#f8fbff);padding:10px;overflow:hidden;}
+  .report-stage-shot.horizontal{aspect-ratio:16 / 9;}
+  .report-stage-shot.vertical{aspect-ratio:3 / 4;max-width:520px;}
+  .report-stage-shot canvas,.report-stage-shot img{display:block;width:100% !important;height:auto !important;max-width:100%;object-fit:contain;}
+  .connections-page{break-before:page;}
+  .report-item-list{display:grid;gap:12px;}
+  .report-item-card{border:1px solid var(--border);border-radius:14px;background:#fff;box-shadow:0 1px 0 rgba(15,76,125,.05);padding:14px;break-inside:avoid;}
+  .report-item-card.snake-card{--report-key-color:#8b4fd6;}
+  .report-item-card.stagebox-card{--report-key-color:#1f8a5a;}
+  .report-item-card.mixer-card{--report-key-color:#1d6fb8;}
+  .report-item-card.monitor-card{--report-key-color:#c76868;}
+  .report-item-card.snake-card{border-color:#ab79d8;box-shadow:inset 0 0 0 1px rgba(171,121,216,.35);}
+  .report-item-card.stagebox-card{border-color:#1f8a5a;box-shadow:inset 0 0 0 1px rgba(31,138,90,.24);}
+  .report-item-card.mixer-card{border-color:#1d6fb8;box-shadow:inset 0 0 0 1px rgba(29,111,184,.24);}
+  .report-item-card.monitor-card{border-color:#cf6f6f;box-shadow:inset 0 0 0 1px rgba(207,111,111,.24);}
+  .report-item-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px;}
+  .report-item-head h3{font-family:'Share Tech Mono',monospace;font-size:15px;color:#102033;letter-spacing:1px;text-transform:uppercase;}
+  .report-item-type-meta{font-size:.8em;font-weight:400;letter-spacing:.6px;color:#73859a;opacity:.9;}
+  .report-item-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+  .report-item-pill{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent);background:#eef5fb;border:1px solid #d6e4ef;border-radius:999px;padding:3px 8px;white-space:nowrap;}
+  .report-pin-group{margin-top:10px;border-top:1px solid #e7edf3;padding-top:10px;}
+  .report-pin-group-title{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
+  .report-pin-list{display:grid;gap:8px;}
+  .report-pin-columns{display:grid;gap:10px;align-items:start;}
+  .report-pin-column{display:grid;gap:8px;align-content:start;}
+  .report-pin-line{display:grid;grid-template-columns:120px 1fr;gap:4px 12px;align-items:start;background:#fbfdff;border:1px solid #e3eaf2;border-radius:12px;padding:10px 12px;}
+  .report-pin-line.compact{grid-template-columns:1fr;padding:8px 10px;}
+  .report-pin-line.compact .report-pin-main{font-size:12px;font-weight:600;}
+  .report-pin-line.empty{opacity:.82;}
+  .report-pin-key{display:inline-flex;align-items:center;justify-content:center;min-width:56px;padding:4px 9px;border-radius:999px;background:var(--report-key-color, var(--accent));font-family:'Share Tech Mono',monospace;font-size:11px;color:#ffffff;text-transform:uppercase;letter-spacing:1px;font-weight:700;box-shadow:0 2px 8px rgba(15,76,125,.12);}
+  .report-inline-key{display:inline-flex;align-items:center;justify-content:center;min-width:30px;padding:2px 8px;margin-right:5px;border-radius:999px;background:var(--report-key-color, var(--accent));font-family:'Share Tech Mono',monospace;color:#ffffff;text-transform:uppercase;letter-spacing:1px;font-weight:700;box-shadow:0 2px 8px rgba(15,76,125,.12);}
+  .report-pin-key.report-pin-tone-input,.report-inline-key.report-pin-tone-input{background:#1f6fa0;}
+  .report-pin-key.report-pin-tone-output,.report-inline-key.report-pin-tone-output{background:#1f8a5a;}
+  .report-pin-key.report-pin-tone-other,.report-inline-key.report-pin-tone-other{background:#6a648f;}
+  .report-pin-key.report-pin-tone-default,.report-inline-key.report-pin-tone-default{background:var(--report-key-color, var(--accent));}
+  .report-cable-hop{display:inline-flex;align-items:center;justify-content:center;min-width:34px;padding:1px 6px;margin-right:4px;border-radius:999px;font-family:'Share Tech Mono',monospace;font-size:.72em;letter-spacing:.5px;vertical-align:baseline;border:1px solid #d4dce6;background:#f3f6fa;color:#5e6d7d;opacity:.95;}
+  .report-cable-hop.report-cable-hop-xlr{background:#e8f2ff;border-color:#bfd6f5;color:#2f5f96;}
+  .report-cable-hop.report-cable-hop-jack{background:#fff0e1;border-color:#f0caa1;color:#925826;}
+  .report-cable-hop.report-cable-hop-ethernet{background:#e8fff2;border-color:#bce7cd;color:#26724a;}
+  .report-cable-hop.report-cable-hop-speakon{background:#efe8ff;border-color:#cec0ef;color:#5b4790;}
+  .report-pin-main{font-size:13px;color:#132033;font-weight:600;}
+  .report-pin-meta{grid-column:2;font-size:11px;color:var(--muted);line-height:1.4;}
+  .report-pin-note{grid-column:2;font-size:11px;color:#355977;line-height:1.4;background:#eef5fb;border-left:3px solid #b9d3ea;padding:6px 8px;border-radius:6px;}
+  .report-cable-totals{margin-top:6px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#f8fbff;font-size:11px;color:#30465d;line-height:1.4;}
+  .report-cable-totals strong{font-family:'Share Tech Mono',monospace;color:var(--accent);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-right:6px;}
+  .report-cable-size-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:11px;color:#30465d;}
+  .report-cable-size-table th,.report-cable-size-table td{border:1px solid var(--border);padding:6px 8px;text-align:center;}
+  .report-cable-size-table th:first-child,.report-cable-size-table td:first-child{text-align:left;white-space:nowrap;}
+  .report-cable-size-table thead th{background:#f3f8fd;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.6px;text-transform:uppercase;}
+  .report-cable-size-note{margin-top:6px;font-size:10px;color:var(--muted);line-height:1.4;}
+  @page{margin:10mm;}
+  @media print{body{padding:0;} .report-cover{break-after:page;margin-bottom:0;} .report-stage-shot,.report-item-card,.report-section{break-inside:avoid;} .report-stage-shot{max-height:250mm;} .report-item-card{box-shadow:none;} .report-item-pill{border-color:#d9e3ec;} .connections-page{break-before:auto;}}
 </style>
 </head>
 <body>
-<div class="report-header">
-  <h1>Stage Layout Report</h1>
-  <div class="project-title">Project: ${safeProjectName}</div>
-  <div class="meta">Generated: ${now}</div>
-  <div class="stage-info">
-    <div><label>Stage Width</label><span>${stageW} m</span></div>
-    <div><label>Stage Depth</label><span>${stageD} m</span></div>
-    <div><label>Instruments</label><span>${instruments.length}</span></div>
-    <div><label>Connections</label><span>${connections.length}</span></div>
+<section class="report-cover">
+  <div class="report-header">
+    <h1>Project: ${escapeHtml(safeProjectName)}</h1>
+    <div class="meta">Generated: ${escapeHtml(now)}</div>
   </div>
-</div>
-
-<section>
-  <h2>Summary</h2>
-  <div class="summary-grid">
-    ${CABLE_TYPES.map(ct=>{
-      const count=connections.filter(c=>c.cableType===ct.id).length;
-      if(!count) return '';
-      return `<div class="summary-card"><div class="num" style="color:${ct.color}">${count}</div><div class="lbl">${ct.label} cable${count!==1?'s':''}</div></div>`;
-    }).join('')}
-    ${instruments.filter(i=>i.isSnake).map(s=>`<div class="summary-card"><div class="num" style="color:#c47fff">${s.snakeChannels}</div><div class="lbl">ch — ${s.label}</div></div>`).join('')}
-  </div>
+  ${stageImageSection || '<section class="report-section"><div style="color:var(--muted);font-size:13px;">Stage image not included in this report.</div></section>'}
 </section>
 
-<section>
-  <h2>Connections (${connections.length})</h2>
-  <table>
-    <thead><tr><th>Cable</th><th>From</th><th>Ch</th><th>Notes</th><th></th><th>To</th><th>Ch</th><th>Notes</th></tr></thead>
-    <tbody>${rows||'<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px;">No connections</td></tr>'}</tbody>
-  </table>
-</section>
+<main class="connections-page">
+  ${reportSections || '<section class="report-section"><h2>No selected items</h2><div style="color:var(--muted);font-size:13px;">Nothing selected for this report.</div></section>'}
 
-<section>
-  <h2>Instrument Inventory (${instruments.length})</h2>
-  <table>
-    <thead><tr><th></th><th>Name</th><th>Type</th><th>Angle</th><th>Input / Ch</th><th>Notes</th><th>Connections</th></tr></thead>
-    <tbody>${instrRows||'<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px;">No instruments</td></tr>'}</tbody>
-  </table>
-</section>
+  <section class="report-section">
+    <h2>Cable Count</h2>
+    <div class="report-cable-totals"><strong>Types</strong>${cableTypeInline || 'No cables'}</div>
+    ${cableLengthRows ? `
+      <table class="report-cable-size-table">
+        <thead>
+          <tr><th>Type</th><th>1m</th><th>3m</th><th>5m</th><th>6m</th><th>10m</th><th>Over</th></tr>
+        </thead>
+        <tbody>${cableLengthRows}</tbody>
+      </table>
+      <div class="report-cable-size-note">Estimated from routed stage distance plus endpoint slack, then rounded up to the next stocked cable size.</div>
+    ` : ''}
+  </section>
+</main>
 
 </body>
 </html>`;
 }
 
-function openReportWindow(autoPrint) {
-  const html = buildReportHTML(autoPrint);
-  const win = window.open('', '_blank');
+function openReportWindow(reportOptions = {}, autoPrint = false) {
+  const html = buildReportHTML(reportOptions, autoPrint);
+  let win = null;
+  if(reportPreviewWindow && !reportPreviewWindow.closed) {
+    win = reportPreviewWindow;
+  } else {
+    // Reuse a named window to avoid spawning locked popups and keep main editor interactive.
+    win = window.open('', 'stage_ryder_report_window');
+    reportPreviewWindow = win || null;
+  }
   if(!win) {
     alert('Popup blocked. Please allow popups to view/export the report.');
     return;
@@ -6550,22 +7552,502 @@ function openReportWindow(autoPrint) {
   win.document.open();
   win.document.write(html);
   win.document.close();
-  if(autoPrint) {
-    win.addEventListener('load', () => {
-      setTimeout(() => {
-        win.focus();
-        win.print();
-      }, 250);
-    });
+  renderReportStageCanvas(win, reportOptions, autoPrint);
+  if(!autoPrint) {
+    setTimeout(() => {
+      try {
+        window.focus();
+      } catch(_err) {
+        // Ignore focus failures; editing remains possible by clicking the main window.
+      }
+    }, 30);
   }
 }
 
+async function renderReportStageCanvas(win, reportOptions = {}, autoPrint = false) {
+  if(!win || !win.document) return;
+  const canvas = win.document.getElementById('report-stage-canvas');
+  if(!canvas) {
+    if(autoPrint) win.print();
+    return;
+  }
+  const data = getReportStageSnapshotData(reportOptions.stageOrientation === 'vertical' ? 'vertical' : 'horizontal');
+  const ctx = canvas.getContext('2d');
+  const dpr = win.devicePixelRatio || 1;
+  const cssWidth = Math.max(1, Math.round(canvas.getAttribute('width') || canvas.width || 1));
+  const cssHeight = Math.max(1, Math.round(canvas.getAttribute('height') || canvas.height || 1));
+  canvas.width = Math.max(1, Math.round(cssWidth * dpr));
+  canvas.height = Math.max(1, Math.round(cssHeight * dpr));
+  canvas.style.width = '100%';
+  canvas.style.maxWidth = '100%';
+  canvas.style.height = 'auto';
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, cssWidth, cssHeight);
+
+  const images = await Promise.all(data.items.filter(item => item.image).map(item => new Promise(resolve => {
+    const img = new win.Image();
+    img.onload = () => resolve({ item, img });
+    img.onerror = () => resolve({ item, img: null });
+    img.src = item.image;
+  })));
+  const byKey = new Map(images.map(entry => [entry.item.id, entry.img]));
+
+  drawReportStageSnapshot(ctx, data, byKey);
+  if(autoPrint) {
+    setTimeout(() => {
+      try {
+        win.focus();
+        win.print();
+      } catch(_err) {
+        // Ignore print failures here; the report window is still usable.
+      }
+    }, 150);
+  }
+}
+
+function drawReportStageSnapshot(ctx, data, byKey) {
+  const { stage } = data;
+  ctx.fillStyle = stage.color;
+  ctx.strokeStyle = stage.borderColor;
+  ctx.lineWidth = 2;
+  roundRect(ctx, stage.x, stage.y, stage.width, stage.height, 9);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,255,255,.26)';
+  ctx.fillRect(stage.x, stage.y + stage.height - 14, stage.width, 14);
+  ctx.fillStyle = '#132033';
+  ctx.font = '12px "Share Tech Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(stage.label, stage.x + stage.width / 2, stage.y + 18);
+  ctx.font = '10px "Share Tech Mono", monospace';
+  ctx.fillStyle = '#3b4e66';
+  ctx.fillText(stage.dims, stage.x + stage.width / 2, stage.y + 30);
+
+  data.parts.forEach(part => {
+    ctx.fillStyle = part.color;
+    ctx.strokeStyle = 'rgba(10,11,13,.45)';
+    ctx.lineWidth = 2;
+    if(part.shape === 'circle') {
+      ctx.beginPath();
+      ctx.arc(part.x + part.width / 2, part.y + part.height / 2, Math.min(part.width, part.height) / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      roundRect(ctx, part.x, part.y, part.width, part.height, 8);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '10px "Share Tech Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(part.label, part.x + part.width / 2, part.y + part.height / 2 + 4);
+  });
+
+  (data.connections || []).forEach(conn => {
+    const points = [
+      { x: conn.from.x, y: conn.from.y },
+      { x: conn.routeX, y: conn.from.y },
+      { x: conn.routeX, y: conn.to.y },
+      { x: conn.to.x, y: conn.to.y },
+    ];
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for(let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+    ctx.strokeStyle = conn.color;
+    ctx.lineWidth = 2.5;
+    ctx.globalAlpha = 0.92;
+    ctx.shadowColor = conn.color;
+    ctx.shadowBlur = 5;
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    [points[0], points[points.length - 1]].forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
+      ctx.fillStyle = conn.color;
+      ctx.fill();
+    });
+    ctx.restore();
+  });
+
+  data.items.forEach(item => {
+    const cx = item.x + (item.width / 2);
+    const cy = item.y + (item.height / 2);
+    const angleRad = ((parseInt(item.angle || 0, 10) || 0) * Math.PI) / 180;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angleRad);
+    ctx.translate(-cx, -cy);
+
+    if(item.isSnake && !item.collapsed) {
+      drawReportExpandedSnakePanel(ctx, item, byKey.get(item.id), data.connections || []);
+    } else if((item.isMixer || item.cat === 'stageboxes') && !item.collapsed) {
+      drawReportExpandedMixerPanel(ctx, item, byKey.get(item.id), data.connections || []);
+    } else {
+      ctx.fillStyle = item.color;
+      ctx.strokeStyle = item.stroke;
+      ctx.lineWidth = 2.2;
+      roundRect(ctx, item.x, item.y, item.width, item.height, 10);
+      ctx.fill();
+      ctx.stroke();
+      const img = byKey.get(item.id);
+      if(img) {
+        const targetW = Math.max(24, item.width - 16);
+        const targetH = Math.max(24, item.height - 24);
+        const ratio = Math.min(targetW / img.width, targetH / img.height);
+        const w = img.width * ratio;
+        const h = img.height * ratio;
+        ctx.drawImage(img, item.x + (item.width - w) / 2, item.y + 8 + (targetH - h) / 2, w, h);
+      } else {
+        ctx.fillStyle = '#17324f';
+        ctx.font = '18px serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(item.icon, item.x + item.width / 2, item.y + item.height / 2);
+      }
+    }
+    ctx.restore();
+
+    const isExpandedPanel = (item.isSnake || item.isMixer || item.cat === 'stageboxes') && !item.collapsed;
+    if(!isExpandedPanel) {
+      ctx.fillStyle = item.labelColor;
+      ctx.font = '700 10px Barlow, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(item.label, item.x + item.width / 2, item.y + item.height + 12);
+    }
+  });
+
+  ctx.fillStyle = '#6c7c8f';
+  ctx.font = '11px "Share Tech Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('◀ AUDIENCE ▶', stage.x + stage.width / 2, stage.y + stage.height + 24);
+}
+
+function drawReportExpandedSnakePanel(ctx, item, img, reportConnections) {
+  const pad = Math.max(2, Math.round(item.width * 0.025));
+  const x = item.x + pad;
+  const y = item.y + pad;
+  const w = Math.max(44, item.width - (pad * 2));
+  const h = Math.max(44, item.height - (pad * 2));
+  const tabH = Math.max(10, h * 0.085);
+  const channels = Math.max(1, Math.min(64, parseInt(item.snakeChannels, 10) || 16));
+  const outputs = Math.max(0, Math.min(16, parseInt(item.snakeOutputs, 10) || 0));
+  const stageMode = item.snakeStageMode !== false;
+  const titleFont = Math.max(7, w * 0.1);
+  const monoFont = Math.max(6, w * 0.072);
+  const topFamily = stageMode ? 'STAGE-IN' : 'CABLE-OUT';
+  const bottomFamily = stageMode ? 'STAGE-OUT' : 'CABLE-IN';
+  const usedTop = new Set();
+  const usedBottom = new Set();
+
+  (reportConnections || []).forEach(conn => {
+    if(!conn) return;
+    if(conn.fromId === item.id) {
+      const topMatch = String(conn.fromPin || '').match(new RegExp(`^${topFamily}-(\\d+)$`));
+      const bottomMatch = String(conn.fromPin || '').match(new RegExp(`^${bottomFamily}-(\\d+)$`));
+      if(topMatch) usedTop.add(parseInt(topMatch[1], 10));
+      if(bottomMatch) usedBottom.add(parseInt(bottomMatch[1], 10));
+    }
+    if(conn.toId === item.id) {
+      const topMatch = String(conn.toPin || '').match(new RegExp(`^${topFamily}-(\\d+)$`));
+      const bottomMatch = String(conn.toPin || '').match(new RegExp(`^${bottomFamily}-(\\d+)$`));
+      if(topMatch) usedTop.add(parseInt(topMatch[1], 10));
+      if(bottomMatch) usedBottom.add(parseInt(bottomMatch[1], 10));
+    }
+  });
+
+  ctx.fillStyle = '#f3ecff';
+  ctx.strokeStyle = '#ab79d8';
+  ctx.lineWidth = 1.6;
+  roundRect(ctx, x, y, w, h, 8);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#101722';
+  ctx.font = `600 ${titleFont}px Barlow, sans-serif`;
+  ctx.textAlign = 'center';
+  const titleY = y + Math.max(11, h * 0.1);
+  ctx.fillText(item.label, x + (w / 2), titleY);
+
+  const tabY = titleY + Math.max(8, h * 0.065);
+  const tabGap = Math.max(4, w * 0.02);
+  const tabW = (w - (tabGap * 3)) / 2;
+  ctx.fillStyle = '#d7bdf2';
+  roundRect(ctx, x + tabGap, tabY, tabW, tabH, 4);
+  ctx.fill();
+  ctx.strokeStyle = '#7a4bb2';
+  ctx.lineWidth = 0.9;
+  roundRect(ctx, x + tabGap, tabY, tabW, tabH, 4);
+  ctx.stroke();
+  ctx.fillStyle = '#e8ecef';
+  roundRect(ctx, x + (tabGap * 2) + tabW, tabY, tabW, tabH, 4);
+  ctx.fill();
+  ctx.strokeStyle = '#aab4bc';
+  ctx.lineWidth = 0.8;
+  roundRect(ctx, x + (tabGap * 2) + tabW, tabY, tabW, tabH, 4);
+  ctx.stroke();
+  ctx.fillStyle = '#6b4b95';
+  ctx.font = `600 ${monoFont}px "Share Tech Mono", monospace`;
+  ctx.fillText('STAGE', x + tabGap + (tabW / 2), tabY + tabH - 3);
+  ctx.fillStyle = '#6e7580';
+  ctx.fillText('CABLE', x + (tabGap * 2) + tabW + (tabW / 2), tabY + tabH - 3);
+
+  const outSectionH = outputs > 0 ? Math.max(18, h * 0.16) : 0;
+  const inputsLabelY = tabY + tabH + Math.max(8, h * 0.05);
+  ctx.fillStyle = '#9470c4';
+  ctx.font = `600 ${monoFont}px "Share Tech Mono", monospace`;
+  ctx.fillText('INPUTS', x + (w / 2), inputsLabelY);
+
+  const cols = Math.min(4, channels);
+  const rows = Math.ceil(channels / cols);
+  const gridTop = inputsLabelY + Math.max(4, h * 0.03);
+  const gridBottom = y + h - outSectionH - Math.max(4, h * 0.02);
+  const gridCellW = (w - (pad * 2)) / cols;
+  const availableGridH = Math.max(14, gridBottom - gridTop);
+  const gridCellH = availableGridH / Math.max(1, rows);
+  const pinRadius = Math.max(3.5, Math.min(gridCellW, gridCellH) * 0.32);
+  for(let i = 0; i < channels; i++) {
+    const idx = i + 1;
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const cx = x + pad + (gridCellW * col) + (gridCellW / 2);
+    const cy = gridTop + (gridCellH * row) + (gridCellH / 2);
+    const isUsed = usedTop.has(idx);
+    ctx.strokeStyle = '#7a4bb2';
+    ctx.lineWidth = 1.2;
+    ctx.fillStyle = isUsed ? '#d8c2ef' : '#f7f2ff';
+    ctx.beginPath();
+    ctx.arc(cx, cy, pinRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = isUsed ? '#2d1649' : '#5d3f88';
+    ctx.font = `700 ${Math.max(5, pinRadius * 0.9)}px "Share Tech Mono", monospace`;
+    ctx.fillText(String(idx), cx, cy + 2);
+  }
+
+  if(outputs > 0) {
+    const outY = y + h - Math.max(7, h * 0.055);
+    ctx.fillStyle = '#37926b';
+    ctx.font = `600 ${monoFont}px "Share Tech Mono", monospace`;
+    ctx.fillText('OUTPUTS', x + (w / 2), outY - Math.max(9, h * 0.085));
+    const outCellW = (w - (pad * 2)) / Math.max(1, outputs);
+    const outRadius = pinRadius;
+    for(let i = 0; i < outputs; i++) {
+      const idx = i + 1;
+      const cx = x + pad + (outCellW * i) + (outCellW / 2);
+      const cy = outY;
+      const isUsed = usedBottom.has(idx);
+      ctx.strokeStyle = '#1f8a5a';
+      ctx.fillStyle = isUsed ? '#a9e6c8' : '#e7fff2';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, outRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = isUsed ? '#0c4c30' : '#1f8a5a';
+      ctx.font = `700 ${Math.max(5, w * 0.055)}px "Share Tech Mono", monospace`;
+      ctx.fillText(String.fromCharCode(65 + i), cx, cy + 2);
+    }
+  }
+}
+
+function drawReportExpandedMixerPanel(ctx, item, img, reportConnections) {
+  const bodyW = Math.max(48, item.width - 6);
+  const bodyH = Math.max(52, item.height - 6);
+  const x = item.x + 3;
+  const y = item.y + 3;
+  const pad = Math.max(4, Math.round(bodyW * 0.03));
+  const uiScale = getRackUIScale(bodyW, 80);
+  const isStagebox = item.cat === 'stageboxes';
+  const auxCount = Math.max(0, Number(item.mixerAux) || 0);
+  const mainCount = isStagebox || ['x32', 'x32compact', 'x32rack', 'wing', 'wingcompact', 'wingrack'].includes(item.type) ? 0 : Math.max(0, Number(item.mixerMain) || 0);
+  const jackCount = Math.max(0, Number(item.mixerJackOut) || 0);
+  const p16Count = Math.max(0, Number(item.mixerP16) || 0);
+  const aes50Count = Math.max(0, Number(item.mixerAes50) || 0);
+  const inputs = Math.max(0, Number(item.mixerInputs) || 18);
+  const breakdown = getMixerInputBreakdown(item);
+
+  const xlrInputCount = Math.max(0, breakdown.xlrOnly);
+  const comboInputCount = Math.max(0, breakdown.combo);
+  const auxInputCount = Math.max(0, breakdown.auxInputs);
+
+  const inputPins = [];
+  let inputIndex = 1;
+  if(xlrInputCount > 0) {
+    for(let i = 0; i < xlrInputCount; i++) inputPins.push({ key:`MX-IN-${inputIndex++}`, label:String(inputIndex - 1), used:isPinUsed(item.id, `MX-IN-${inputIndex - 1}`) });
+  }
+  if(comboInputCount > 0) {
+    for(let i = 0; i < comboInputCount; i++) inputPins.push({ key:`MX-IN-${inputIndex++}`, label:String(inputIndex - 1), used:isPinUsed(item.id, `MX-IN-${inputIndex - 1}`) });
+  }
+  if(auxInputCount > 0) {
+    for(let i = 0; i < auxInputCount; i++) inputPins.push({ key:`MX-AUX-IN-${i + 1}`, label:`A${i + 1}`, used:isPinUsed(item.id, `MX-AUX-IN-${i + 1}`) });
+  }
+  if(inputPins.length === 0) {
+    for(let i = 0; i < inputs; i++) inputPins.push({ key:`MX-IN-${i + 1}`, label:String(i + 1), used:isPinUsed(item.id, `MX-IN-${i + 1}`) });
+  }
+
+  const outputPins = [];
+  for(let i = 0; i < auxCount; i++) outputPins.push({ key:`MX-AUX-${i + 1}`, label:isStagebox ? `O${i + 1}` : String(i + 1), used:isPinUsed(item.id, `MX-AUX-${i + 1}`) });
+  for(let i = 0; i < mainCount; i++) outputPins.push({ key:`MX-MAIN-${i + 1}`, label:`M${i === 0 ? 'L' : 'R'}`, used:isPinUsed(item.id, `MX-MAIN-${i + 1}`) });
+  for(let i = 0; i < jackCount; i++) outputPins.push({ key:`MX-JACK-OUT-${i + 1}`, label:`A${i + 1}`, used:isPinUsed(item.id, `MX-JACK-OUT-${i + 1}`) });
+
+  const otherPins = [];
+  for(let i = 0; i < p16Count; i++) otherPins.push({ key:`MX-P16-${i + 1}`, label:`PM${i + 1}`, used:isPinUsed(item.id, `MX-P16-${i + 1}`) });
+  for(let i = 0; i < aes50Count; i++) otherPins.push({ key:`MX-AES50-${i + 1}`, label:`A5${i + 1}`, used:isPinUsed(item.id, `MX-AES50-${i + 1}`) });
+
+  ctx.fillStyle = '#edf5fb';
+  ctx.strokeStyle = '#7aaed9';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, x, y, bodyW, bodyH, 8);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#102033';
+  ctx.font = `600 ${Math.max(7, 10 * uiScale)}px Barlow, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText(item.label, x + (bodyW / 2), y + Math.max(10, 9 * uiScale));
+
+  const imageY = y + Math.max(12, 10 * uiScale);
+  let imageHUsed = 0;
+  if(img) {
+    const imageW = Math.max(18, 34 * uiScale);
+    const imageH = Math.max(14, 34 * uiScale);
+    const ratio = Math.min(imageW / img.width, imageH / img.height);
+    const drawW = img.width * ratio;
+    const drawH = img.height * ratio;
+    ctx.drawImage(img, x + (bodyW - drawW) / 2, imageY, drawW, drawH);
+    imageHUsed = drawH;
+  }
+
+  const availableW = Math.min(bodyW - (pad * 2), 194 * uiScale);
+  const basePinSize = Math.max(8, 16 * uiScale);
+  const baseGap = Math.max(3, 7 * uiScale);
+  const gridCols = 8;
+  const gridNaturalW = (basePinSize * gridCols) + (baseGap * (gridCols - 1));
+  const gridScale = gridNaturalW > availableW ? (availableW / gridNaturalW) : 1;
+  const pinSize = basePinSize * gridScale;
+  const gap = baseGap * gridScale;
+  const gridW = (pinSize * gridCols) + (gap * (gridCols - 1));
+  const pinRadius = pinSize / 2;
+  const rowLabelFont = Math.max(6, 8 * uiScale);
+  const pinFont = Math.max(5, 8 * uiScale * gridScale);
+  const rowStep = pinSize + gap;
+  const gridLeft = x + ((bodyW - gridW) / 2);
+  const sectionStartGap = isStagebox ? Math.max(3, 1.5 * uiScale) : Math.max(1, 0.9 * uiScale);
+  const titleToGridGap = isStagebox ? Math.max(7, 4.2 * uiScale) : Math.max(3, 2.1 * uiScale);
+  let yCursor = imageY + imageHUsed + sectionStartGap;
+
+  const drawSection = (title, pins, labelColor, usedFill, usedText, pinStroke, isOutput = false, typeText = '') => {
+    if(!pins.length) return;
+    const titleY = yCursor + rowLabelFont;
+    const detailFont = Math.max(6, rowLabelFont * 0.84);
+    ctx.textAlign = 'left';
+    ctx.font = `600 ${rowLabelFont}px "Share Tech Mono", monospace`;
+    const mainW = ctx.measureText(title).width;
+    let detailW = 0;
+    if(typeText) {
+      ctx.font = `500 ${detailFont}px "Share Tech Mono", monospace`;
+      detailW = ctx.measureText(` ${typeText}`).width;
+    }
+    const totalW = mainW + detailW;
+    const startX = (x + (bodyW / 2)) - (totalW / 2);
+    ctx.fillStyle = labelColor;
+    ctx.font = `600 ${rowLabelFont}px "Share Tech Mono", monospace`;
+    ctx.fillText(title, startX, titleY);
+    if(typeText) {
+      ctx.fillStyle = '#74879b';
+      ctx.font = `500 ${detailFont}px "Share Tech Mono", monospace`;
+      ctx.fillText(` ${typeText}`, startX + mainW, titleY);
+    }
+    ctx.textAlign = 'center';
+    yCursor += rowLabelFont + titleToGridGap;
+
+    const rowsNeeded = Math.ceil(pins.length / gridCols);
+    for(let i = 0; i < pins.length; i++) {
+      const pin = pins[i];
+      const col = i % gridCols;
+      const row = Math.floor(i / gridCols);
+      const cx = gridLeft + pinRadius + (col * rowStep);
+      const cy = yCursor + pinRadius + (row * rowStep);
+      ctx.strokeStyle = pinStroke;
+      ctx.fillStyle = pin.used ? usedFill : (isOutput ? '#effaf2' : '#ffffff');
+      ctx.lineWidth = Math.max(1, 1.5 * gridScale);
+      ctx.beginPath();
+      ctx.arc(cx, cy, pinRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = pin.used ? usedText : pinStroke;
+      ctx.font = `700 ${pinFont}px "Share Tech Mono", monospace`;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(pin.label, cx, cy);
+      ctx.textBaseline = 'alphabetic';
+    }
+    yCursor += (rowsNeeded * rowStep) + Math.max(1, 1.2 * uiScale);
+  };
+
+  drawSection('INPUTS', inputPins.filter(pin => pin.key.startsWith('MX-IN-') && Number(pin.label) <= xlrInputCount), '#54697f', '#b9ddf5', '#0f2c40', '#1f6fa0', false, 'XLR');
+  const comboPins = inputPins.filter(pin => pin.key.startsWith('MX-IN-') && Number(pin.label) > xlrInputCount && Number(pin.label) <= (xlrInputCount + comboInputCount));
+  drawSection(comboInputCount > 0 ? 'INPUTS' : '', comboPins, '#54697f', '#b9ddf5', '#0f2c40', '#1f6fa0', false, 'COMBO');
+  const auxInputPins = inputPins.filter(pin => pin.key.startsWith('MX-AUX-IN-'));
+  drawSection(auxInputCount > 0 ? 'INPUTS' : '', auxInputPins, '#54697f', '#b9ddf5', '#0f2c40', '#1f6fa0', false, 'AUX JACK');
+  if(!xlrInputCount && !comboInputCount && !auxInputCount) {
+    drawSection('INPUTS', inputPins, '#54697f', '#b9ddf5', '#0f2c40', '#1f6fa0');
+  }
+
+  const xlrOutputPins = outputPins.filter(pin => pin.key.startsWith('MX-AUX-'));
+  drawSection(xlrOutputPins.length ? 'OUTPUTS' : '', xlrOutputPins, '#54697f', '#b6e8cb', '#0d4f33', '#1f8a5a', true, 'XLR');
+  const mainOutputPins = outputPins.filter(pin => pin.key.startsWith('MX-MAIN-'));
+  drawSection(mainOutputPins.length ? 'OUTPUTS' : '', mainOutputPins, '#54697f', '#b6e8cb', '#0d4f33', '#1f8a5a', true, 'MAIN');
+  const jackOutputPins = outputPins.filter(pin => pin.key.startsWith('MX-JACK-OUT-'));
+  drawSection(jackOutputPins.length ? 'OUTPUTS' : '', jackOutputPins, '#54697f', '#b6e8cb', '#0d4f33', '#1f8a5a', true, 'AUX JACK');
+
+  if(otherPins.length) {
+    const otherLabelParts = [];
+    if(p16Count) otherLabelParts.push('Ultranet');
+    if(aes50Count) otherLabelParts.push('AES50');
+    const otherText = otherLabelParts.join(' · ');
+    drawSection('OTHERS', otherPins, '#54697f', '#d7e7f5', '#0f2c40', '#54697f', false, otherText);
+  }
+}
+
+function wrapReportText(ctx, text, maxWidth) {
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  if(!words.length) return [''];
+  const lines = [];
+  let line = words[0];
+  for(let i = 1; i < words.length; i++) {
+    const testLine = `${line} ${words[i]}`;
+    if(ctx.measureText(testLine).width <= maxWidth) {
+      line = testLine;
+    } else {
+      lines.push(line);
+      line = words[i];
+    }
+  }
+  lines.push(line);
+  return lines;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  const radius = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + w, y, x + w, y + h, radius);
+  ctx.arcTo(x + w, y + h, x, y + h, radius);
+  ctx.arcTo(x, y + h, x, y, radius);
+  ctx.arcTo(x, y, x + w, y, radius);
+  ctx.closePath();
+}
+
 function viewReport() {
-  openReportWindow(false);
+  openReportOptionsDialog(false);
 }
 
 function exportPDFReport() {
-  openReportWindow(true);
+  openReportOptionsDialog(true);
 }
 
 // Backward compatibility for older UI references
@@ -6618,8 +8100,8 @@ function exportPNG() {
     ctx.translate(cx, cy);
     ctx.rotate(angleRad);
     ctx.translate(-cx, -cy);
-    ctx.fillStyle=instr.isSnake?'#120f1a':'#1a1d24';
-    ctx.strokeStyle=instr.isSnake?'#c47fff55':'#2a2e3a';
+    ctx.fillStyle=isSnakeBox(instr)?'#120f1a':'#1a1d24';
+    ctx.strokeStyle=isSnakeBox(instr)?'#c47fff55':'#2a2e3a';
     ctx.lineWidth=1.5; ctx.beginPath(); ctx.roundRect(ex+4,ey,bw,bw*.85,8); ctx.fill(); ctx.stroke();
     ctx.font=Math.round(bw*.35)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(instr.icon,ex+4+bw/2,ey+bw*.4);
