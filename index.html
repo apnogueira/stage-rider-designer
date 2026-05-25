@@ -629,8 +629,14 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
       <button id="mode-toggle-mobile" class="btn btn-ghost mobile-only" type="button" onclick="toggleStageBuilderMode()">Stage Builder: OFF</button>
       <button class="btn btn-ghost" onclick="undoAction()">Undo</button>
       <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
-      <button class="btn btn-ghost" onclick="saveRider()">Save Rider</button>
-      <button class="btn btn-ghost" onclick="triggerLoadRider()">Load Rider</button>
+      <details id="rider-save-menu" class="header-menu-group">
+        <summary class="btn btn-ghost header-menu-trigger">Save/Load</summary>
+        <div class="header-submenu" role="menu" aria-label="Save and load menu">
+          <button class="btn btn-ghost" type="button" onclick="runRiderMenuAction('load')">Load</button>
+          <button class="btn btn-ghost" type="button" onclick="runRiderMenuAction('save')">Save</button>
+          <button class="btn btn-ghost" type="button" onclick="runRiderMenuAction('save-as')">Save As</button>
+        </div>
+      </details>
       <button class="btn btn-ghost" type="button" onclick="runExportAction('png')">Export PNG</button>
       <button class="btn btn-primary" type="button" onclick="runExportAction('pdf')">Export PDF</button>
     </div>
@@ -1088,6 +1094,8 @@ let touchPaletteGhost = null;
 let isLeftPanelCollapsed = false;
 let isRightPanelCollapsed = false;
 let riderFileHandle = null;
+let riderSaveDirHandle = null;
+let riderLastSavedFileName = '';
 let isLoadRiderPickerOpen = false;
 let isStageBuilderMode = false;
 
@@ -1235,6 +1243,24 @@ function closeExportMenu() {
   if(menu) menu.open = false;
 }
 
+function closeRiderSaveMenu() {
+  const menu = document.getElementById('rider-save-menu');
+  if(menu) menu.open = false;
+}
+
+function runRiderMenuAction(action) {
+  closeRiderSaveMenu();
+  if(action === 'load') {
+    triggerLoadRider();
+    return;
+  }
+  if(action === 'save-as') {
+    saveRiderAs();
+    return;
+  }
+  saveRider();
+}
+
 function handleDocumentClickForMobileMenu(e) {
   const t = e.target;
   if(document.body.classList.contains('mobile-menu-open')) {
@@ -1245,6 +1271,8 @@ function handleDocumentClickForMobileMenu(e) {
   }
   const exportMenu = document.getElementById('export-menu');
   if(exportMenu && exportMenu.open && !exportMenu.contains(t)) closeExportMenu();
+  const riderMenu = document.getElementById('rider-save-menu');
+  if(riderMenu && riderMenu.open && !riderMenu.contains(t)) closeRiderSaveMenu();
 }
 
 function getModeHintText() {
@@ -6282,6 +6310,14 @@ function supportsFileSystemSave() {
   return typeof window.showSaveFilePicker === 'function';
 }
 
+function supportsFileSystemDirectory() {
+  return typeof window.showDirectoryPicker === 'function';
+}
+
+function supportsFileSystemLoad() {
+  return typeof window.showOpenFilePicker === 'function';
+}
+
 async function ensureRiderSaveHandle() {
   if(riderFileHandle) return riderFileHandle;
   if(!supportsFileSystemSave()) return null;
@@ -6294,6 +6330,59 @@ async function ensureRiderSaveHandle() {
   };
   riderFileHandle = await window.showSaveFilePicker(pickerOpts);
   return riderFileHandle;
+}
+
+function normalizeRiderFileName(name) {
+  const trimmed = String(name || '').trim();
+  if(!trimmed) return getRiderSaveFileName();
+  if(trimmed.toLowerCase().endsWith(RIDER_FILE_EXTENSION.toLowerCase())) return trimmed;
+  return `${trimmed}${RIDER_FILE_EXTENSION}`;
+}
+
+function splitRiderFileName(name) {
+  const normalized = normalizeRiderFileName(name);
+  if(normalized.toLowerCase().endsWith(RIDER_FILE_EXTENSION.toLowerCase())) {
+    return {
+      base: normalized.slice(0, -RIDER_FILE_EXTENSION.length) || 'untitled-project',
+      ext: RIDER_FILE_EXTENSION,
+    };
+  }
+  const idx = normalized.lastIndexOf('.');
+  if(idx > 0) {
+    return { base: normalized.slice(0, idx), ext: normalized.slice(idx) };
+  }
+  return { base: normalized, ext: '' };
+}
+
+async function getUniqueRiderFileNameInDirectory(dirHandle, preferredName) {
+  const normalized = normalizeRiderFileName(preferredName);
+  try {
+    await dirHandle.getFileHandle(normalized, { create: false });
+  } catch(_err) {
+    return normalized;
+  }
+
+  const parts = splitRiderFileName(normalized);
+  for(let i = 2; i < 1000; i++) {
+    const candidate = `${parts.base}-${i}${parts.ext}`;
+    try {
+      await dirHandle.getFileHandle(candidate, { create: false });
+    } catch(_err) {
+      return candidate;
+    }
+  }
+  return `${parts.base}-${Date.now()}${parts.ext}`;
+}
+
+async function writeRiderToDirectory(dirHandle, data, preferredName, options = {}) {
+  const overwrite = !!options.overwrite;
+  const normalized = normalizeRiderFileName(preferredName);
+  const targetName = overwrite ? normalized : await getUniqueRiderFileNameInDirectory(dirHandle, normalized);
+  const fileHandle = await dirHandle.getFileHandle(targetName, { create: true });
+  await writeRiderToHandle(fileHandle, data);
+  riderFileHandle = fileHandle;
+  riderLastSavedFileName = targetName;
+  return { fileHandle, fileName: targetName };
 }
 
 async function writeRiderToHandle(handle, data) {
@@ -6315,12 +6404,28 @@ function saveRiderByDownload(data) {
 async function saveRider() {
   const data = serializeLayout();
   try {
-    const handle = await ensureRiderSaveHandle();
-    if(handle) {
-      await writeRiderToHandle(handle, data);
+    const targetName = getRiderSaveFileName();
+
+    if(riderSaveDirHandle && supportsFileSystemDirectory()) {
+      const overwrite = !!riderLastSavedFileName && normalizeRiderFileName(riderLastSavedFileName) === normalizeRiderFileName(targetName);
+      await writeRiderToDirectory(riderSaveDirHandle, data, targetName, { overwrite });
       markClean();
       return;
     }
+
+    if(riderFileHandle) {
+      if(normalizeRiderFileName(riderFileHandle.name || '') === normalizeRiderFileName(targetName)) {
+        await writeRiderToHandle(riderFileHandle, data);
+        riderLastSavedFileName = normalizeRiderFileName(targetName);
+        markClean();
+        return;
+      }
+      await saveRiderAs();
+      return;
+    }
+
+    await saveRiderAs();
+    return;
   } catch(err) {
     if(err && err.name === 'AbortError') return;
     // Permissions/API write failures fall back to download save.
@@ -6329,9 +6434,71 @@ async function saveRider() {
   markClean();
 }
 
+async function saveRiderAs() {
+  const data = serializeLayout();
+  try {
+    if(supportsFileSystemDirectory()) {
+      const directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      if(!directoryHandle) return;
+      const suggested = getRiderSaveFileName();
+      const entered = prompt('Save As filename', suggested);
+      if(entered == null) return;
+      const chosenName = normalizeRiderFileName(entered || suggested);
+      riderSaveDirHandle = directoryHandle;
+      await writeRiderToDirectory(directoryHandle, data, chosenName, { overwrite: true });
+      markClean();
+      return;
+    }
+
+    const handle = await ensureRiderSaveHandle();
+    if(handle) {
+      await writeRiderToHandle(handle, data);
+      riderLastSavedFileName = normalizeRiderFileName(handle.name || getRiderSaveFileName());
+      markClean();
+      return;
+    }
+  } catch(err) {
+    if(err && err.name === 'AbortError') return;
+  }
+
+  saveRiderByDownload(data);
+  markClean();
+}
+
 function triggerLoadRider() {
   if(isLoadRiderPickerOpen) return;
   if(hasUnsavedChanges && !confirm('You have unsaved changes. Loading a rider will replace the current layout. Continue?')) return;
+
+  if(supportsFileSystemLoad()) {
+    (async () => {
+      try {
+        const picked = await window.showOpenFilePicker({
+          multiple: false,
+          types: [{
+            description: 'Stage Rider JSON',
+            accept: { 'application/json': ['.json'] },
+          }],
+        });
+        if(!picked || !picked.length) return;
+        const handle = picked[0];
+        const file = await handle.getFile();
+        const text = await file.text();
+        pushHistoryState();
+        const data = JSON.parse(text);
+        loadRiderFromData(data);
+        setProjectNameFromFileName(file.name);
+        riderSaveDirHandle = null;
+        riderFileHandle = handle;
+        riderLastSavedFileName = normalizeRiderFileName(file.name);
+        markClean();
+      } catch(err) {
+        if(err && err.name === 'AbortError') return;
+        alert('Could not load rider file. Please select a valid JSON rider.');
+      }
+    })();
+    return;
+  }
+
   const input = document.getElementById('rider-file');
   isLoadRiderPickerOpen = true;
   input.value = '';
@@ -6350,7 +6517,9 @@ function handleLoadRiderFile(e) {
   isLoadRiderPickerOpen = false;
   const file = e.target.files && e.target.files[0];
   if(!file) return;
+  riderSaveDirHandle = null;
   riderFileHandle = null;
+  riderLastSavedFileName = '';
   pushHistoryState();
   const reader = new FileReader();
   reader.onload = () => {
@@ -7205,18 +7374,51 @@ function buildReportItemCard(instr) {
   `;
 }
 
+function getSnakeReportPinIndex(key) {
+  const match = String(key || '').match(/^SNAKE-(IN|OUT)-(\d+)$/);
+  if(!match) return null;
+  return { family: match[1], index: parseInt(match[2], 10) || 0 };
+}
+
+function shouldShowSnakeGapIndicator(prevKey, nextKey) {
+  const prev = getSnakeReportPinIndex(prevKey);
+  const next = getSnakeReportPinIndex(nextKey);
+  if(!prev || !next) return false;
+  if(prev.family !== next.family) return false;
+  return (next.index - prev.index) > 1;
+}
+
+function addReportPinLineClass(html, className) {
+  const text = String(html || '');
+  if(!text || !className) return text;
+  return text.replace(/class="report-pin-line([^\"]*)"/, (all, rest) => {
+    if(String(rest || '').includes(className)) return all;
+    return `class="report-pin-line${rest} ${className}"`;
+  });
+}
+
 function buildReportPinGroupHTML(instr, group) {
-  const lines = (group.pins || []).map(pin => buildReportPinLine(instr, pin.key)).filter(Boolean);
-  if(!lines.length) return '';
+  const lineEntries = (group.pins || []).map(pin => ({ key: pin.key, html: buildReportPinLine(instr, pin.key) })).filter(entry => !!entry.html);
+  if(!lineEntries.length) return '';
   if(instr && isSnakeBox(instr)) {
-    const columnCount = Math.min(3, Math.max(1, lines.length));
-    const baseSize = Math.floor(lines.length / columnCount);
-    const remainder = lines.length % columnCount;
+    const columnCount = Math.min(3, Math.max(1, lineEntries.length));
+    const baseSize = Math.floor(lineEntries.length / columnCount);
+    const remainder = lineEntries.length % columnCount;
     let start = 0;
     const columns = [];
     for(let index = 0; index < columnCount; index++) {
       const size = baseSize + (index < remainder ? 1 : 0);
-      columns.push(lines.slice(start, start + size).join(''));
+      const entries = lineEntries.slice(start, start + size);
+      const decorated = entries.map(entry => entry.html);
+      for(let i = 1; i < entries.length; i++) {
+        const prev = entries[i - 1];
+        const curr = entries[i];
+        if(shouldShowSnakeGapIndicator(prev.key, curr.key)) {
+          decorated[i] = addReportPinLineClass(decorated[i], 'report-gap-before');
+        }
+      }
+      const html = decorated.join('');
+      columns.push(html);
       start += size;
     }
     return `
@@ -7232,7 +7434,7 @@ function buildReportPinGroupHTML(instr, group) {
     <div class="report-pin-group">
       <div class="report-pin-group-title">${escapeHtml(group.title)}</div>
       <div class="report-pin-list">
-        ${lines.join('')}
+        ${lineEntries.map(entry => entry.html).join('')}
       </div>
     </div>
   `;
@@ -7302,12 +7504,55 @@ function getReportStageSnapshotData(stageOrientation) {
 }
 
 function getReportWorldCenterForPin(id, pin) {
+  const instr = instruments.find(i => i && i.id === id) || null;
+  if(instr && instr.type === 'drumkit') {
+    const key = pinKey(pin);
+    const drumAnchorMap = {
+      'DM-KICK': { x: 0.50, y: 0.76 },
+      'DM-HH': { x: 0.24, y: 0.50 },
+      'DM-SN': { x: 0.38, y: 0.58 },
+      'DM-T1': { x: 0.44, y: 0.43 },
+      'DM-T2': { x: 0.56, y: 0.43 },
+      'DM-T3': { x: 0.70, y: 0.56 },
+      'DM-RD': { x: 0.77, y: 0.40 },
+      'DM-CR': { x: 0.24, y: 0.34 },
+      'DM-OH': { x: 0.50, y: 0.14 },
+      'DM-OHL': { x: 0.30, y: 0.18 },
+      'DM-OHR': { x: 0.70, y: 0.18 },
+    };
+    const anchor = drumAnchorMap[key];
+    if(anchor) {
+      const body = getInstrumentBodyDimensionsPx(instr);
+      const w = Math.max(1, Number(body.width) || 1);
+      const h = Math.max(1, Number(body.height) || 1);
+      const angle = ((parseInt(instr.angle || 0, 10) || 0) * Math.PI) / 180;
+      const cx = (Number(instr.x) || 0) + (w / 2);
+      const cy = (Number(instr.y) || 0) + (h / 2);
+      const dx = (anchor.x - 0.5) * w;
+      const dy = (anchor.y - 0.5) * h;
+      const rx = (dx * Math.cos(angle)) - (dy * Math.sin(angle));
+      const ry = (dx * Math.sin(angle)) + (dy * Math.cos(angle));
+      return { x: cx + rx, y: cy + ry };
+    }
+  }
+
   const point = getCenterOf(id, pin);
   if(!point) return null;
   return {
     x: (point.x - panX) / zoomLevel,
     y: (point.y - panY) / zoomLevel,
   };
+}
+
+function getReportPinExtraSlackMeters(instr, pin) {
+  if(!instr) return 0;
+  const key = pinKey(pin);
+  if(instr.type !== 'drumkit') return 0;
+  if(key === 'DM-OH') return 0.9;
+  if(key === 'DM-OHL' || key === 'DM-OHR') return 0.85;
+  if(key === 'DM-KICK') return 0.1;
+  if(key.startsWith('DM-')) return 0.2;
+  return 0;
 }
 
 function getReportCableStockFamily(conn) {
@@ -7345,7 +7590,8 @@ function getReportConnectionEstimatedMeters(conn) {
   }
   const fromInstr = instruments.find(i => i && i.id === conn.fromId) || null;
   const toInstr = instruments.find(i => i && i.id === conn.toId) || null;
-  const slackMeters = getReportInstrumentSlackMeters(fromInstr) + getReportInstrumentSlackMeters(toInstr) + 0.25;
+  const pinSlackMeters = getReportPinExtraSlackMeters(fromInstr, conn.fromPin) + getReportPinExtraSlackMeters(toInstr, conn.toPin);
+  const slackMeters = getReportInstrumentSlackMeters(fromInstr) + getReportInstrumentSlackMeters(toInstr) + pinSlackMeters + 0.25;
   return (lengthPx / Math.max(pxPerM, 1)) + slackMeters;
 }
 
@@ -7477,14 +7723,16 @@ function buildReportHTML(reportOptions = {}, autoPrint = false) {
   .report-pin-column{display:grid;gap:8px;align-content:start;}
   .report-pin-line{display:grid;grid-template-columns:120px 1fr;gap:4px 12px;align-items:start;background:#fbfdff;border:1px solid #e3eaf2;border-radius:12px;padding:10px 12px;}
   .report-pin-line.compact{grid-template-columns:1fr;padding:8px 10px;}
+  .report-pin-line.compact.report-gap-before{position:relative;}
+  .report-pin-line.compact.report-gap-before::before{content:'...';position:absolute;left:25px;top:-12px;transform:translateX(-50%);font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:#8ea2b8;line-height:1;pointer-events:none;user-select:none;}
   .report-pin-line.compact .report-pin-main{font-size:12px;font-weight:600;}
   .report-pin-line.empty{opacity:.82;}
-  .report-pin-key{display:inline-flex;align-items:center;justify-content:center;min-width:56px;padding:4px 9px;border-radius:999px;background:var(--report-key-color, var(--accent));font-family:'Share Tech Mono',monospace;font-size:11px;color:#ffffff;text-transform:uppercase;letter-spacing:1px;font-weight:700;box-shadow:0 2px 8px rgba(15,76,125,.12);}
-  .report-inline-key{display:inline-flex;align-items:center;justify-content:center;min-width:30px;padding:2px 8px;margin-right:5px;border-radius:999px;background:var(--report-key-color, var(--accent));font-family:'Share Tech Mono',monospace;color:#ffffff;text-transform:uppercase;letter-spacing:1px;font-weight:700;box-shadow:0 2px 8px rgba(15,76,125,.12);}
-  .report-pin-key.report-pin-tone-input,.report-inline-key.report-pin-tone-input{background:#1f6fa0;}
-  .report-pin-key.report-pin-tone-output,.report-inline-key.report-pin-tone-output{background:#1f8a5a;}
-  .report-pin-key.report-pin-tone-other,.report-inline-key.report-pin-tone-other{background:#6a648f;}
-  .report-pin-key.report-pin-tone-default,.report-inline-key.report-pin-tone-default{background:var(--report-key-color, var(--accent));}
+  .report-pin-key{display:inline-flex;align-items:center;justify-content:center;min-width:56px;padding:4px 9px;border-radius:999px;background:#edf2f7;border:1px solid #c8d6e6;font-family:'Share Tech Mono',monospace;font-size:11px;color:#16304a;text-transform:uppercase;letter-spacing:1px;font-weight:700;box-shadow:0 1px 5px rgba(15,76,125,.08);}
+  .report-inline-key{display:inline-flex;align-items:center;justify-content:center;min-width:30px;padding:2px 8px;margin-right:5px;border-radius:999px;background:#edf2f7;border:1px solid #c8d6e6;font-family:'Share Tech Mono',monospace;color:#16304a;text-transform:uppercase;letter-spacing:1px;font-weight:700;box-shadow:0 1px 5px rgba(15,76,125,.08);}
+  .report-pin-key.report-pin-tone-input,.report-inline-key.report-pin-tone-input{background:#dbeefe;border-color:#9bc6e8;color:#124367;}
+  .report-pin-key.report-pin-tone-output,.report-inline-key.report-pin-tone-output{background:#def4e8;border-color:#9dd8bd;color:#18583a;}
+  .report-pin-key.report-pin-tone-other,.report-inline-key.report-pin-tone-other{background:#ebe7f6;border-color:#c2b6df;color:#463a72;}
+  .report-pin-key.report-pin-tone-default,.report-inline-key.report-pin-tone-default{background:#eceff7;border-color:#cfd8e7;color:#2f4861;}
   .report-cable-hop{display:inline-flex;align-items:center;justify-content:center;min-width:34px;padding:1px 6px;margin-right:4px;border-radius:999px;font-family:'Share Tech Mono',monospace;font-size:.72em;letter-spacing:.5px;vertical-align:baseline;border:1px solid #d4dce6;background:#f3f6fa;color:#5e6d7d;opacity:.95;}
   .report-cable-hop.report-cable-hop-xlr{background:#e8f2ff;border-color:#bfd6f5;color:#2f5f96;}
   .report-cable-hop.report-cable-hop-jack{background:#fff0e1;border-color:#f0caa1;color:#925826;}
@@ -7574,14 +7822,18 @@ async function renderReportStageCanvas(win, reportOptions = {}, autoPrint = fals
   const data = getReportStageSnapshotData(reportOptions.stageOrientation === 'vertical' ? 'vertical' : 'horizontal');
   const ctx = canvas.getContext('2d');
   const dpr = win.devicePixelRatio || 1;
+  const supersample = 2;
+  const renderScale = dpr * supersample;
   const cssWidth = Math.max(1, Math.round(canvas.getAttribute('width') || canvas.width || 1));
   const cssHeight = Math.max(1, Math.round(canvas.getAttribute('height') || canvas.height || 1));
-  canvas.width = Math.max(1, Math.round(cssWidth * dpr));
-  canvas.height = Math.max(1, Math.round(cssHeight * dpr));
+  canvas.width = Math.max(1, Math.round(cssWidth * renderScale));
+  canvas.height = Math.max(1, Math.round(cssHeight * renderScale));
   canvas.style.width = '100%';
   canvas.style.maxWidth = '100%';
   canvas.style.height = 'auto';
-  ctx.scale(dpr, dpr);
+  ctx.scale(renderScale, renderScale);
+  ctx.imageSmoothingEnabled = true;
+  if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, cssWidth, cssHeight);
 
