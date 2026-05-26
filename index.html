@@ -164,6 +164,8 @@ body.stage-builder-mode .si{display:none !important;}
 .pal-tile.stagebox-tile:hover{border-color:#5ec291;}
 .pal-tile.monitor-pa-tile{border-color:#e4808066;background:#201113;}
 .pal-tile.monitor-pa-tile:hover{border-color:#e48080;}
+.pal-tile.stand-tile{border-color:#cfd5dd;background:#f1f3f6;}
+.pal-tile.stand-tile:hover{border-color:#b8c1cc;background:#f7f8fa;}
 .pal-tile:active{cursor:grabbing;}
 .ti{font-size:var(--ti-size,17px);line-height:1;width:var(--ti-size,17px);height:var(--ti-size,17px);display:flex;align-items:center;justify-content:center;}
 .pal-tile .ti .icon-img{width:100%;height:100%;object-fit:contain;}
@@ -201,6 +203,8 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
 .si:hover .ib{border-color:var(--accent);}
 .si.selected .ib{border-color:var(--accent);box-shadow:0 0 0 2px rgba(232,255,71,.2);}
 .si.connecting-source .ib{border-color:var(--accent2);animation:pc 1s ease-in-out infinite;}
+.si.is-stand .ib{background:transparent;border-color:transparent;box-shadow:none;}
+.si.is-stand:hover .ib,.si.is-stand.selected .ib,.si.is-stand.dragging .ib{border-color:transparent;box-shadow:none;}
 @keyframes pc{0%,100%{box-shadow:0 0 0 2px rgba(71,196,255,.3);}50%{box-shadow:0 0 0 7px rgba(71,196,255,.07);}}
 .rot-handle{position:absolute;width:18px;height:18px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:all .12s;z-index:9;cursor:grab;padding:0;}
 .rot-handle.rot-corner{right:0;top:0;transform:translate(40%,-40%);}
@@ -224,6 +228,9 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
 body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.92);box-shadow:0 0 2px rgba(194,88,22,.24);}
 .icon-emoji{display:inline-block;line-height:1;}
 .icon-img{width:82%;height:82%;object-fit:contain;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3));pointer-events:none;user-select:none;-webkit-user-drag:none;}
+.mic-stand-badge{position:absolute;left:1px;top:1px;display:flex;align-items:center;gap:2px;padding:0;background:transparent;border:none;border-radius:0;z-index:9;pointer-events:none;}
+.mic-stand-badge img{width:21px;height:21px;object-fit:contain;filter:none;}
+.mic-stand-badge .count{font-family:'Share Tech Mono',monospace;font-size:10px;line-height:1;color:#132033;font-weight:700;text-shadow:0 0 2px rgba(255,255,255,.88);}
 /* SNAKE specific */
 .si.is-snake .ib{border-color:#c47fff55;background:#120f1a;border-radius:4px;}
 .si.is-snake:hover .ib{border-color:var(--accent4);}
@@ -348,6 +355,18 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
 .mic-library-tools button{height:26px;padding:0 8px;}
 .mic-library-list{margin-top:6px;display:flex;gap:6px;align-items:center;}
 .mic-library-list select{flex:1;min-width:0;background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;outline:none;}
+.stand-controls{display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:8px;}
+.stand-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;}
+.stand-row .stand-label{font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;}
+.stand-row input[type='checkbox']{accent-color:var(--accent2);}
+.stand-row select{min-width:70px;background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;padding:3px 6px;outline:none;}
+.stand-row select:focus{border-color:var(--accent2);}
+.drum-mic-config-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.drum-mic-box{display:flex;flex-direction:column;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:8px;}
+.drum-mic-box .drum-mic-title{font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;text-transform:uppercase;letter-spacing:.6px;}
+.drum-mic-box .drum-mic-list{display:flex;flex-direction:column;gap:5px;}
+.drum-mic-box label{font-size:11px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.drum-mic-box .empty{font-size:10px;color:var(--muted);font-style:italic;line-height:1.4;}
 .mode-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .io-pin-row{position:absolute;left:6px;right:6px;display:grid;gap:6px;justify-items:center;z-index:6;}
 .io-pin-row.inputs{bottom:calc(100% + 4px);}
@@ -713,6 +732,10 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
       <div class="pal-grid" id="accessory-pal"></div>
     </div>
     <div class="ss mode-live-only">
+      <div class="st">Stands</div>
+      <div class="pal-grid" id="stand-pal"></div>
+    </div>
+    <div class="ss mode-live-only">
       <div class="st">Cable Type</div>
       <div class="cable-colors" id="cable-colors"></div>
     </div>
@@ -818,7 +841,9 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
             <select id="mic-custom-list"></select>
             <button class="btn btn-ghost" type="button" onclick="removeSelectedCustomMicOption()">Remove</button>
           </div>
-          <div id="mic-summary" class="mic-summary">No mic pickup selected</div>
+        </div>
+        <div class="pr" id="mic-stand-wrap" style="display:none;"><label class="plbl">Mic Stand</label>
+          <div id="mic-stand-controls" class="stand-controls"></div>
         </div>
         <div class="pr" id="conn-side-wrap"><label class="plbl">Connector Side</label>
           <div class="prop-side-pad" id="prop-side-pad" role="group" aria-label="Connector side selector">
@@ -872,17 +897,26 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
         <div id="drum-extra" style="display:none;" class="snake-props">
           <div class="pr">
             <label class="plbl">Drum Mics</label>
-            <div style="display:flex;flex-direction:column;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:8px;">
-              <label style="font-size:11px;"><input type="checkbox" value="Kick" onchange="toggleDrumMic(this)"> Kick</label>
-              <label style="font-size:11px;"><input type="checkbox" value="Hi-Hat" onchange="toggleDrumMic(this)"> Hi-Hat</label>
-              <label style="font-size:11px;"><input type="checkbox" value="Snare" onchange="toggleDrumMic(this)"> Snare</label>
-              <label style="font-size:11px;"><input type="checkbox" value="Tom 1" onchange="toggleDrumMic(this)"> Tom 1</label>
-              <label style="font-size:11px;"><input type="checkbox" value="Tom 2" onchange="toggleDrumMic(this)"> Tom 2</label>
-              <label style="font-size:11px;"><input type="checkbox" value="Tom 3" onchange="toggleDrumMic(this)"> Tom 3</label>
-              <label style="font-size:11px;"><input type="checkbox" value="Ride" onchange="toggleDrumMic(this)"> Ride</label>
-              <label style="font-size:11px;"><input type="checkbox" value="Crash" onchange="toggleDrumMic(this)"> Crash</label>
-              <label style="font-size:11px;"><input type="checkbox" value="Overhead Mono" onchange="toggleDrumMic(this)"> Overhead Mono</label>
-              <label style="font-size:11px;"><input type="checkbox" value="Overheads Stereo" onchange="toggleDrumMic(this)"> Overheads Stereo</label>
+            <div class="drum-mic-config-grid">
+              <div class="drum-mic-box">
+                <div class="drum-mic-title">Drum Inputs</div>
+                <div class="drum-mic-list drum-mic-select">
+                  <label><span>Kick</span><input type="checkbox" value="Kick" onchange="toggleDrumMic(this)"></label>
+                  <label><span>Hi-Hat</span><input type="checkbox" value="Hi-Hat" onchange="toggleDrumMic(this)"></label>
+                  <label><span>Snare</span><input type="checkbox" value="Snare" onchange="toggleDrumMic(this)"></label>
+                  <label><span>Tom 1</span><input type="checkbox" value="Tom 1" onchange="toggleDrumMic(this)"></label>
+                  <label><span>Tom 2</span><input type="checkbox" value="Tom 2" onchange="toggleDrumMic(this)"></label>
+                  <label><span>Tom 3</span><input type="checkbox" value="Tom 3" onchange="toggleDrumMic(this)"></label>
+                  <label><span>Ride</span><input type="checkbox" value="Ride" onchange="toggleDrumMic(this)"></label>
+                  <label><span>Crash</span><input type="checkbox" value="Crash" onchange="toggleDrumMic(this)"></label>
+                  <label><span>Overhead Mono</span><input type="checkbox" value="Overhead Mono" onchange="toggleDrumMic(this)"></label>
+                  <label><span>Overheads Stereo</span><input type="checkbox" value="Overheads Stereo" onchange="toggleDrumMic(this)"></label>
+                </div>
+              </div>
+              <div class="drum-mic-box" id="drum-mic-stand-column">
+                <div class="drum-mic-title">Mic Stand</div>
+                <div id="drum-mic-stand-list" class="drum-mic-list"><div class="empty">Select drum inputs to assign stands.</div></div>
+              </div>
             </div>
           </div>
           <div class="pr">
@@ -962,8 +996,12 @@ const ICON_ASSET_BY_TYPE = {
   snake32:'images/snake32.png',
   s32:'images/s32.png',
   s16:'images/s16.png',
+  pulpit:'images/pulpit.png',
   di:'images/di.png',
   midipad:'images/midi_pad.png',
+  micstand:'images/mic_stand.png',
+  micstandmulti:'images/mic_stand_multiple.png',
+  sheetstand:'images/sheet_stand.png',
 };
 
 const INSTRUMENTS = [
@@ -980,6 +1018,7 @@ const INSTRUMENTS = [
   {type:'vox',       cat:'vocals',  icon:'🎤', name:'Vocal',         wide:false, size:46, connSide:'bottom'},
   {type:'bgvox',     cat:'vocals',  icon:'🎙', name:'BG Vox',        wide:false, size:46, connSide:'bottom'},
   {type:'talkback',  cat:'vocals',  icon:'📢', name:'Talkback Mic',  wide:false, size:46, connSide:'bottom'},
+  {type:'pulpit',    cat:'vocals',  icon:'🎙', name:'Pulpit',        wide:false, size:52, footprintAspect:0.9, connSide:'bottom'},
   {type:'trumpet',   cat:'brass',   icon:'🎺', name:'Trumpet',     wide:false, size:50, connSide:'bottom'},
   {type:'trombone',  cat:'brass',   icon:'🎺', name:'Trombone',    wide:false, size:56, connSide:'bottom'},
   {type:'sax',       cat:'brass',   icon:'🎷', name:'Sax',         wide:false, size:52, connSide:'bottom'},
@@ -1003,6 +1042,9 @@ const INSTRUMENTS = [
   {type:'di',        cat:'accessories',   icon:'📦', name:'DI',      wide:false, size:22, connSide:'bottom'},
   {type:'amp',       cat:'accessories', icon:'🔌', name:'Amp',         wide:false, size:60, connSide:'bottom'},
   {type:'pedals',    cat:'accessories',   icon:'🎛', name:'Pedals',      wide:false, size:48, connSide:'bottom'},
+  {type:'micstand',  cat:'stands', icon:'🎙', name:'Mic Stand',         wide:false, size:54, footprintAspect:0.44, noConnect:true},
+  {type:'micstandmulti',cat:'stands', icon:'🎙', name:'Mic Stand (Multi-Rest)', wide:false, size:58, footprintAspect:0.48, noConnect:true},
+  {type:'sheetstand',cat:'stands', icon:'🎼', name:'Sheet Stand',       wide:false, size:54, footprintAspect:0.58, noConnect:true},
   {type:'laptop',    cat:'infra',   icon:'💻', name:'Laptop',      wide:false, size:22, connSide:'right'},
   {type:'midipad',   cat:'infra',   icon:'🟦', name:'MIDI Pad',    wide:false, size:48, connSide:'right'},
 ];
@@ -1016,8 +1058,8 @@ const SNAKES = [
 
 const CABLE_TYPES = [
   {id:'xlr',      label:'XLR',       color:'#47c4ff'},
-  {id:'ts',       label:'Jack TS',   color:'#e8ff47'},
-  {id:'trs',      label:'Jack TRS',  color:'#9dff47'},
+  {id:'ts',       label:'Jack TS',   color:'#5a3a22'},
+  {id:'trs',      label:'Jack TRS',  color:'#6a4528'},
   {id:'speakon',  label:'Speakon',   color:'#ff6b47'},
   {id:'ethernet', label:'Ethernet',  color:'#ff9f47'},
   {id:'midi',     label:'MIDI',      color:'#c47fff'},
@@ -1035,6 +1077,9 @@ function normalizeCableType(typeId, fallback = 'xlr') {
 const MIC_OPTIONS_BASE = [
   'Shure SM58',
   'Shure SM57',
+  'Shure Centraverse CVG18',
+  'the t.bone Ovid',
+  'the t.bone Lucan',
   'Rode M5',
   'AKG C1000S',
   'AKG P4 (Drums)',
@@ -1106,7 +1151,7 @@ let isStageBuilderMode = false;
 function init() {
   loadPanelPrefs();
   loadCustomMicOptions();
-  buildCatTabs(); buildPalette('all'); buildSnakePalette(); buildMixerPalette(); buildStageboxPalette(); buildMonitoringPalette(); buildAccessoryPalette();
+  buildCatTabs(); buildPalette('all'); buildSnakePalette(); buildMixerPalette(); buildStageboxPalette(); buildMonitoringPalette(); buildAccessoryPalette(); buildStandPalette();
   buildCableColors();
   applyThemeMode();
   applyStageColor();
@@ -2363,7 +2408,7 @@ function getInstrumentBodyDimensionsPx(item) {
 
 function supportsStereoToggle(instrOrType) {
   const type = typeof instrOrType === 'string' ? instrOrType : (instrOrType && instrOrType.type);
-  return type === 'acguitar' || type === 'elguitar' || type === 'di';
+  return !!type && type !== 'drumkit';
 }
 
 function isSpeakerWithThru(instrOrType) {
@@ -2450,6 +2495,7 @@ function getInstrumentOutputPins(instr) {
 function getValidPinsForInstrument(instr) {
   if(!instr) return new Set();
   if(isConnectionBoxInstrument(instr)) return null;
+  if(isNonConnectableInstrument(instr)) return new Set();
   if(instr.type === 'drumkit') return new Set(getDrumMicPins(instr).map(p => p.key));
   if(isCustomIOInstrument(instr)) {
     return new Set([...getInstrumentInputPins(instr), ...getInstrumentOutputPins(instr)].map(p => p.key));
@@ -2570,11 +2616,94 @@ function supportsMicPickup(instrOrType) {
   const type = typeof instrOrType === 'string' ? instrOrType : (instrOrType && instrOrType.type);
   if(!type) return false;
   const disallowed = new Set([
-    'elguitar', 'bass', 'keys', 'vox', 'bgvox', 'talkback',
+    'elguitar', 'bass', 'keys',
     'monitor', 'mainspk', 'subwoofer', 'passivespk', 'iem', 'headphones', 'pm1', 'p16', 'ha8000', 'di', 'amp', 'pedals', 'laptop', 'midipad',
     'snake8', 'snake16', 'snake24', 'snake32', 'xr18', 'x32', 'x32compact', 'x32rack', 'wing', 'wingcompact', 'wingrack'
   ]);
   return !disallowed.has(type);
+}
+
+const MIC_STAND_IMAGE_PATH = 'images/mic_stand.png';
+function isStandType(instrOrType) {
+  if(!instrOrType) return false;
+  const instr = typeof instrOrType === 'string'
+    ? getInstrumentDefinitionByType(instrOrType)
+    : instrOrType;
+  if(instr && instr.cat === 'stands') return true;
+  const type = typeof instrOrType === 'string' ? instrOrType : (instrOrType && instrOrType.type);
+  return type === 'micstand' || type === 'sheetstand' || type === 'micstandmulti';
+}
+
+function isNonConnectableInstrument(instrOrType) {
+  const instr = (instrOrType && typeof instrOrType === 'object') ? instrOrType : getInstrumentDefinitionByType(instrOrType);
+  if(!instr) return false;
+  return !!instr.noConnect || isStandType(instr);
+}
+
+function supportsMicStandOption(instrOrType) {
+  if(!instrOrType) return false;
+  const instr = (typeof instrOrType === 'string') ? getInstrumentDefinitionByType(instrOrType) : instrOrType;
+  if(!instr) return false;
+  if(isConnectionBoxInstrument(instr) || isStandType(instr) || isNonConnectableInstrument(instr)) return false;
+  const supported = new Set([
+    'drumkit',
+    'acguitar', 'elguitar', 'bass', 'violin', 'cello', 'viola', 'harp',
+    'piano', 'keys', 'vox', 'bgvox', 'talkback', 'pulpit',
+    'trumpet', 'trombone', 'sax',
+  ]);
+  return supported.has(instr.type);
+}
+
+function normalizeDrumMicStandAssignments(raw) {
+  if(!raw || typeof raw !== 'object') return {};
+  const out = {};
+  Object.keys(raw).forEach(k => {
+    out[String(k)] = !!raw[k];
+  });
+  return out;
+}
+
+function getDrumMicStandUnitCount(label) {
+  return label === 'Overheads Stereo' ? 2 : 1;
+}
+
+function getMicStandMaxForInstrument(instr) {
+  if(!instr || !supportsMicStandOption(instr)) return 0;
+  if(instr.type === 'drumkit') {
+    const mics = Array.isArray(instr.drumMics) ? instr.drumMics : [];
+    return mics.reduce((sum, m) => sum + getDrumMicStandUnitCount(m), 0);
+  }
+  if(instr.type === 'vox' || instr.type === 'bgvox' || instr.type === 'talkback') return 1;
+  const stereoLike = !!(instr.stereo || instr.inputStereo || instr.outputStereo);
+  return stereoLike ? 2 : 1;
+}
+
+function getMicStandCount(instr) {
+  if(!instr || !supportsMicStandOption(instr)) return 0;
+  if(instr.type === 'drumkit') {
+    const selected = new Set(Array.isArray(instr.drumMics) ? instr.drumMics : []);
+    const map = normalizeDrumMicStandAssignments(instr.drumMicStandAssignments);
+    let total = 0;
+    Object.keys(map).forEach(label => {
+      if(!map[label] || !selected.has(label)) return;
+      total += getDrumMicStandUnitCount(label);
+    });
+    return total;
+  }
+  const max = getMicStandMaxForInstrument(instr);
+  const count = Math.max(0, parseInt(instr.micStandCount, 10) || 0);
+  return Math.max(0, Math.min(max, count));
+}
+
+function clampMicStandCountForInstrument(instr, value) {
+  const max = getMicStandMaxForInstrument(instr);
+  const next = Math.max(0, parseInt(value, 10) || 0);
+  return Math.max(0, Math.min(max, next));
+}
+
+function getEffectiveInstrumentImage(instr) {
+  if(!instr) return null;
+  return instr.image || getInstrumentImage(instr.type);
 }
 
 function connectorModeToCableTypes(mode) {
@@ -2854,7 +2983,8 @@ function buildTileIconHTML(instr) {
 }
 
 function buildStageIconHTML(instr, iconFontSize) {
-  if(instr.image) return `<img class="icon-img" src="${instr.image}" alt="${instr.label}" draggable="false">`;
+  const imagePath = getEffectiveInstrumentImage(instr);
+  if(imagePath) return `<img class="icon-img" src="${imagePath}" alt="${instr.label}" draggable="false">`;
   return `<span class="icon-emoji" style="font-size:${iconFontSize}px;">${instr.icon}</span>`;
 }
 
@@ -2888,6 +3018,9 @@ function cloneInstruments(list) {
   return list.map(i => ({
     ...i,
     drumMics: Array.isArray(i.drumMics) ? [...i.drumMics] : i.drumMics,
+    drumMicStandAssignments: i && i.drumMicStandAssignments && typeof i.drumMicStandAssignments === 'object'
+      ? { ...i.drumMicStandAssignments }
+      : i.drumMicStandAssignments,
   }));
 }
 
@@ -3014,7 +3147,15 @@ function serializeLayout() {
     showStageGrid: !!showStageGrid,
     isStageBuilderMode: !!isStageBuilderMode,
     stage:{widthM:stageW, depthM:stageD, showStairs:showStageStairs, themeMode, color:stageColor},
-    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,connSide,connectionBoxKind,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,isSnake,snakeViewMode,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,collapsed})=>({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs:!!haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,micModels:Object.values(pinMicAssignments||{}),micModel:Object.values(pinMicAssignments||{})[0]||'',connSide,connectionBoxKind: inferConnectionBoxKind({ connectionBoxKind, isSnake, isMixer, cat, type }) || '',isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,isSnake,snakeViewMode:normalizeSnakeViewMode(snakeViewMode),snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,collapsed:!!collapsed})),
+    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,connSide,connectionBoxKind,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,isSnake,snakeViewMode,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,drumMicStandAssignments,micStandCount,collapsed,noConnect})=>({
+      id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,
+      haUseMainInputs:!!haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,
+      micModels:Object.values(pinMicAssignments||{}),micModel:Object.values(pinMicAssignments||{})[0]||'',
+      connSide,connectionBoxKind: inferConnectionBoxKind({ connectionBoxKind, isSnake, isMixer, cat, type }) || '',
+      isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,
+      isSnake,snakeViewMode:normalizeSnakeViewMode(snakeViewMode),snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,
+      drumMics,drumMicStandAssignments,micStandCount,noConnect:!!noConnect,collapsed:!!collapsed
+    })),
     connections:connections.map(({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX,routeNX})=>({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX,routeNX})),
     stageParts:stageParts.map(({id,shape,isPrimary,label,x,y,stageNX,stageNY,widthM,depthM,color,hasSteps})=>({id,shape,isPrimary:!!isPrimary,label,x,y,stageNX,stageNY,widthM,depthM,color,hasSteps:!!hasSteps})),
   };
@@ -3036,7 +3177,7 @@ function buildCatTabs() {
 
 function buildPalette(cat) {
   const grid = document.getElementById('pal'); grid.innerHTML = '';
-  const dedicatedCats = new Set(['mixers', 'stageboxes', 'monitoring', 'accessories']);
+  const dedicatedCats = new Set(['mixers', 'stageboxes', 'monitoring', 'accessories', 'stands']);
   const baseList = INSTRUMENTS.filter(i => !dedicatedCats.has(i.cat));
   const list = cat==='all' ? baseList : baseList.filter(i=>i.cat===cat);
   list.forEach(instr => {
@@ -3196,6 +3337,20 @@ function buildAccessoryPalette() {
   const list = INSTRUMENTS.filter(i => i.cat === 'accessories');
   list.forEach(instr => {
     const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'accessory-tile');
+    t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr}; e.dataTransfer.effectAllowed='copy'; });
+    t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
+    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr}); }, { passive: false });
+    grid.appendChild(t);
+  });
+}
+
+function buildStandPalette() {
+  const grid = document.getElementById('stand-pal');
+  if(!grid) return;
+  grid.innerHTML = '';
+  const list = INSTRUMENTS.filter(i => i.cat === 'stands');
+  list.forEach(instr => {
+    const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'stand-tile');
     t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
     t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr}); }, { passive: false });
@@ -4383,6 +4538,9 @@ function addInstrument(data, x, y) {
     spkOutputMode: isSpeakerWithThru(data.type) ? normalizeSpeakerConnectorMode(data.spkOutputMode, 'xlr') : '',
     connectorMode: data.connectorMode || getDefaultConnectorMode(data.type),
     pinMicAssignments: normalizePinMicAssignments(data.pinMicAssignments),
+    micStandCount: Math.max(0, parseInt(data.micStandCount, 10) || 0),
+    drumMicStandAssignments: normalizeDrumMicStandAssignments(data.drumMicStandAssignments),
+    noConnect: !!data.noConnect || isStandType(data.type),
     connSide: data.connSide || 'bottom',
   connectionBoxKind: boxKind || '',
   isMixer: boxKind === 'mixer' || boxKind === 'stagebox',
@@ -4406,8 +4564,13 @@ function addInstrument(data, x, y) {
   });
   const created = instruments[instruments.length-1];
   normalizeConnectionBoxFlags(created);
+  created.micStandCount = clampMicStandCountForInstrument(created, created.micStandCount);
   syncInstrumentStageNormFromWorld(created, stagePx);
   if(!supportsMicPickup(created)) created.pinMicAssignments = {};
+  if(!supportsMicStandOption(created)) {
+    created.micStandCount = 0;
+    created.drumMicStandAssignments = {};
+  }
   renderInstrument(created);
   updateSnakeViewToggleUI();
   refreshCategoryCollapseButtons();
@@ -4499,6 +4662,9 @@ function renderInstrument(instr) {
     const fontSize = Math.round(Math.min(bw, bh) * 0.52);
     const facingMarkerCats = new Set(['drums', 'strings', 'keys', 'vocals', 'brass']);
     const showFacingMarker = facingMarkerCats.has(instr.cat);
+    const isStandItem = isStandType(instr);
+    if(isStandItem) el.classList.add('is-stand');
+    const isNonConnectable = isNonConnectableInstrument(instr);
     const isStereo = !!instr.stereo;
     const isDrumKit = instr.type === 'drumkit';
     const hasCustomIO = isCustomIOInstrument(instr);
@@ -4534,28 +4700,34 @@ function renderInstrument(instr) {
     const customBottomCount = hasCustomIO ? (swapCustomIORows ? inputPins.length : outputPins.length) : 0;
     const customTopClass = 'inputs';
     const customBottomClass = 'outputs';
-    const connSideControlsHTML = buildConnSideControlsHTML(side);
+    const connSideControlsHTML = isNonConnectable ? '' : buildConnSideControlsHTML(side);
+    const micStandCount = getMicStandCount(instr);
+    const showStandBadge = micStandCount > 0;
+    const standBadgeHTML = showStandBadge
+      ? `<div class="mic-stand-badge"><img src="${MIC_STAND_IMAGE_PATH}" alt="mic stand" draggable="false">${micStandCount > 1 ? `<span class="count">x${micStandCount}</span>` : ''}</div>`
+      : '';
     el.innerHTML = `
       <div class="iface" style="transform:rotate(${angle}deg);transform-origin:center center;">
         ${buildRotationHandleHTML()}
-        ${hasCustomIO && customTopCount ? `<div class="io-pin-row ${customTopClass}" style="grid-template-columns:repeat(${Math.min(customTopCount, 4)},minmax(0,1fr));">${customTopPinsHTML}</div>` : ''}
+        ${!isNonConnectable && hasCustomIO && customTopCount ? `<div class="io-pin-row ${customTopClass}" style="grid-template-columns:repeat(${Math.min(customTopCount, 4)},minmax(0,1fr));">${customTopPinsHTML}</div>` : ''}
         <div class="ib" style="width:${bw}px;height:${bh}px;font-size:${fontSize}px;">
           ${connSideControlsHTML}
           ${buildStageIconHTML(instr, fontSize)}
+          ${standBadgeHTML}
           ${showFacingMarker ? `<div class="front-edge" aria-hidden="true"></div>` : ''}
           <div class="ib-label">${instr.label}</div>
           ${instr.channel?`<div class="ich">${instr.channel}</div>`:''}
         </div>
-        ${isDrumKit ? `
+        ${!isNonConnectable && isDrumKit ? `
           <div class="drum-pin-row side-${side}">${drumPinsHTML}</div>
-        ` : hasCustomIO ? `
+        ` : (!isNonConnectable && hasCustomIO) ? `
           ${customBottomCount ? `<div class="io-pin-row ${customBottomClass}" style="grid-template-columns:repeat(${Math.min(customBottomCount, 4)},minmax(0,1fr));">${customBottomPinsHTML}</div>` : ''}
-        ` : isStereo ? `
+        ` : (!isNonConnectable && isStereo) ? `
           <div class="iconn${leftUsed?' used':''}" style="${getMainPinStyle(side, 0, 2)}" data-pin="L" title="${buildPinTitle(instr, 'L', 'Left Output')}"></div>
           <div class="iconn${rightUsed?' used':''}" style="${getMainPinStyle(side, 1, 2)}" data-pin="R" title="${buildPinTitle(instr, 'R', 'Right Output')}"></div>
           <div class="pin-tag" style="${getPinTagStyle(side, 0, 2)}">L</div>
           <div class="pin-tag" style="${getPinTagStyle(side, 1, 2)}">R</div>
-        ` : `<div class="iconn${monoUsed?' used':''}" style="${getMainPinStyle(side, 0, 1)}" data-pin="MONO" title="${buildPinTitle(instr, 'MONO', 'Output')}"></div>`}
+        ` : (!isNonConnectable ? `<div class="iconn${monoUsed?' used':''}" style="${getMainPinStyle(side, 0, 1)}" data-pin="MONO" title="${buildPinTitle(instr, 'MONO', 'Output')}"></div>` : '')}
       </div>
     `;
   }
@@ -5105,6 +5277,7 @@ function selectInstrument(id) {
   updateAngleKnobUI(ang);
   const connTypeWrap = document.getElementById('conn-type-wrap');
   const micWrap = document.getElementById('mic-wrap');
+  const micStandWrap = document.getElementById('mic-stand-wrap');
   const sideWrap = document.getElementById('conn-side-wrap');
   const stereoWrap = document.getElementById('stereo-wrap');
   const ioModeWrap = document.getElementById('io-mode-wrap');
@@ -5114,6 +5287,7 @@ function selectInstrument(id) {
   if(isConnectionBoxInstrument(instr)) {
     connTypeWrap.style.display = 'none';
     micWrap.style.display = 'none';
+    micStandWrap.style.display = 'none';
     sideWrap.style.display = 'none';
     stereoWrap.style.display = 'none';
     ioModeWrap.style.display = 'none';
@@ -5121,17 +5295,19 @@ function selectInstrument(id) {
     ampExtra.style.display = 'none';
     haExtra.style.display = 'none';
   } else {
-    connTypeWrap.style.display = isCustomIOInstrument(instr) ? 'none' : '';
-    micWrap.style.display = supportsMicPickup(instr) ? '' : 'none';
+    const isNonConnectable = isNonConnectableInstrument(instr);
+    connTypeWrap.style.display = (isCustomIOInstrument(instr) || isNonConnectable) ? 'none' : '';
+    micWrap.style.display = (!isNonConnectable && supportsMicPickup(instr)) ? '' : 'none';
+    micStandWrap.style.display = (supportsMicStandOption(instr) && instr.type !== 'drumkit') ? '' : 'none';
     document.getElementById('p-conn-type').value = instr.connectorMode || getDefaultConnectorMode(instr.type);
-    stereoWrap.style.display = supportsStereoToggle(instr) ? '' : 'none';
+    stereoWrap.style.display = (!isNonConnectable && supportsStereoToggle(instr)) ? '' : 'none';
     if(supportsStereoToggle(instr)) {
       const stereoVal = instr.type === 'di'
         ? !!(instr.stereo || instr.inputStereo || instr.outputStereo)
         : !!instr.stereo;
       document.getElementById('p-stereo-mode').checked = stereoVal;
     }
-    const showIOModeWrap = supportsInputModeToggle(instr) || supportsOutputModeToggle(instr);
+    const showIOModeWrap = !isNonConnectable && (supportsInputModeToggle(instr) || supportsOutputModeToggle(instr));
     ioModeWrap.style.display = showIOModeWrap ? '' : 'none';
     if(showIOModeWrap) {
       const inputSelect = document.getElementById('p-input-mode');
@@ -5141,7 +5317,7 @@ function selectInstrument(id) {
       inputSelect.value = instr.inputStereo ? 'stereo' : 'mono';
       outputSelect.value = instr.outputStereo ? 'stereo' : 'mono';
     }
-    const showSpeakerIOWrap = isSpeakerWithThru(instr);
+    const showSpeakerIOWrap = !isNonConnectable && isSpeakerWithThru(instr);
     speakerIOWrap.style.display = showSpeakerIOWrap ? '' : 'none';
     if(showSpeakerIOWrap) {
       const inSelect = document.getElementById('p-spk-in-mode');
@@ -5152,7 +5328,8 @@ function selectInstrument(id) {
     renderCustomMicOptionsUI();
     renderMicAssignmentsUI(instr);
     updateMicSummary(instr);
-    sideWrap.style.display = isCustomIOInstrument(instr) ? 'none' : '';
+    renderMicStandUI(instr);
+    sideWrap.style.display = (isCustomIOInstrument(instr) || isNonConnectable) ? 'none' : '';
     updateConnSideButtons(instr.connSide || 'bottom');
     ampExtra.style.display = instr.type === 'amp' ? 'block' : 'none';
     haExtra.style.display = instr.type === 'ha8000' ? 'block' : 'none';
@@ -5179,6 +5356,7 @@ function selectInstrument(id) {
   if(instr.type === 'drumkit'){
     drumExtra.style.display='block';
     syncDrumMicUI(instr);
+    renderMicStandUI(instr);
   } else {
     drumExtra.style.display='none';
   }
@@ -5317,7 +5495,7 @@ function startAngleKnobDrag(e) {
 }
 
 function setInstrumentConnSide(id, value, shouldSelect) {
-  const instr = instruments.find(i=>i.id===id); if(!instr || isConnectionBoxInstrument(instr)) return;
+  const instr = instruments.find(i=>i.id===id); if(!instr || isConnectionBoxInstrument(instr) || isNonConnectableInstrument(instr)) return;
   const allowed = new Set(['bottom','right','top','left']);
   const next = allowed.has(value) ? value : 'bottom';
   if((instr.connSide || 'bottom') === next) return;
@@ -5353,10 +5531,12 @@ function updStereoMode(value) {
     instr.inputStereo = next;
     instr.outputStereo = next;
   }
+  instr.micStandCount = clampMicStandCountForInstrument(instr, instr.micStandCount);
   pruneInvalidInstrumentPins(instr);
   markDirty();
   renderInstrument(instr);
   selectInstrument(instr.id);
+  renderMicStandUI(instr);
   updateClasses();
   render();
 }
@@ -5569,11 +5749,109 @@ function renderMicAssignmentsUI(instr) {
 }
 
 function updateMicSummary(instr) {
-  const summary = document.getElementById('mic-summary');
-  if(!summary) return;
-  const map = normalizePinMicAssignments(instr && instr.pinMicAssignments);
-  const rows = Object.keys(map).map(pin => `${pinForReport(pin)}: ${map[pin]}`);
-  summary.innerHTML = rows.length ? rows.map(v => `• ${v}`).join('<br>') : 'No mic pickup selected';
+  return;
+}
+
+function updateMicStandSummary(instr) {
+  return;
+}
+
+function setMicStandCount(value) {
+  if(!selectedId) return;
+  const instr = instruments.find(i=>i.id===selectedId);
+  if(!instr || !supportsMicStandOption(instr) || instr.type === 'drumkit') return;
+  const next = clampMicStandCountForInstrument(instr, value);
+  const prev = clampMicStandCountForInstrument(instr, instr.micStandCount);
+  if(prev === next) return;
+  pushHistoryState();
+  instr.micStandCount = next;
+  markDirty();
+  renderInstrument(instr);
+  renderMicStandUI(instr);
+  updateClasses();
+  render();
+}
+
+function setDrumMicStandAssignment(label, enabled) {
+  if(!selectedId) return;
+  const instr = instruments.find(i=>i.id===selectedId);
+  if(!instr || instr.type !== 'drumkit') return;
+  const selectedMics = new Set(Array.isArray(instr.drumMics) ? instr.drumMics : []);
+  if(!selectedMics.has(label)) return;
+  const nextMap = normalizeDrumMicStandAssignments(instr.drumMicStandAssignments);
+  const prev = !!nextMap[label];
+  const next = !!enabled;
+  if(prev === next) return;
+  pushHistoryState();
+  nextMap[label] = next;
+  instr.drumMicStandAssignments = nextMap;
+  markDirty();
+  renderInstrument(instr);
+  renderDrumMicStandColumn(instr);
+  renderMicStandUI(instr);
+  updateClasses();
+  render();
+}
+
+function renderDrumMicStandColumn(instr) {
+  const list = document.getElementById('drum-mic-stand-list');
+  if(!list) return;
+  if(!instr || instr.type !== 'drumkit') {
+    list.innerHTML = '<div class="empty">Select drum inputs to assign stands.</div>';
+    return;
+  }
+  const selected = Array.isArray(instr.drumMics) ? instr.drumMics : [];
+  const map = normalizeDrumMicStandAssignments(instr.drumMicStandAssignments);
+  if(!selected.length) {
+    list.innerHTML = '<div class="empty">Select drum inputs to assign stands.</div>';
+    return;
+  }
+  list.innerHTML = selected.map(label => {
+    const checked = !!map[label];
+    const units = getDrumMicStandUnitCount(label);
+    const suffix = units > 1 ? ` (x${units})` : '';
+    const safeLabel = String(label).replace(/'/g, "\\'");
+    return `<label><span>${label}${suffix}</span><input type="checkbox" ${checked ? 'checked' : ''} onchange="setDrumMicStandAssignment('${safeLabel}', this.checked)"></label>`;
+  }).join('');
+}
+
+function renderMicStandUI(instr) {
+  const controls = document.getElementById('mic-stand-controls');
+  if(!controls) return;
+  if(!supportsMicStandOption(instr)) {
+    controls.innerHTML = '';
+    updateMicStandSummary(instr);
+    return;
+  }
+
+  if(instr.type === 'drumkit') {
+    const selected = Array.isArray(instr.drumMics) ? instr.drumMics : [];
+    const map = normalizeDrumMicStandAssignments(instr.drumMicStandAssignments);
+    if(!selected.length) {
+      controls.innerHTML = '<div style="font-size:10px;color:var(--muted);font-style:italic;">Select drum mics first to assign stands.</div>';
+      updateMicStandSummary(instr);
+      return;
+    }
+    controls.innerHTML = selected.map(label => {
+      const checked = !!map[label];
+      const units = getDrumMicStandUnitCount(label);
+      const suffix = units > 1 ? ` (x${units})` : '';
+      const safeLabel = String(label).replace(/'/g, "\\'");
+      return `<label class="stand-row"><span class="stand-label">${label}${suffix}</span><input type="checkbox" ${checked ? 'checked' : ''} onchange="setDrumMicStandAssignment('${safeLabel}', this.checked)"></label>`;
+    }).join('');
+    updateMicStandSummary(instr);
+    return;
+  }
+
+  const max = getMicStandMaxForInstrument(instr);
+  const count = getMicStandCount(instr);
+  if(max <= 1) {
+    controls.innerHTML = `<label class="stand-row"><span class="stand-label">Use mic stand</span><input type="checkbox" ${count > 0 ? 'checked' : ''} onchange="setMicStandCount(this.checked ? 1 : 0)"></label>`;
+  } else {
+    const opts = Array.from({ length: max + 1 }, (_v, idx) => `<option value="${idx}"${idx===count?' selected':''}>${idx}</option>`).join('');
+    controls.innerHTML = `<div class="stand-row"><span class="stand-label">Mic stands (max ${max})</span><select onchange="setMicStandCount(parseInt(this.value, 10) || 0)">${opts}</select></div>`;
+  }
+  updateMicStandSummary(instr);
 }
 
 
@@ -5586,13 +5864,13 @@ function toggleDrumMic(checkbox) {
 
   if(checkbox.checked && checkbox.value === 'Overheads Stereo') {
     instr.drumMics = instr.drumMics.filter(m => m !== 'Overhead Mono');
-    const monoToggle = document.querySelector('#drum-extra input[type=checkbox][value="Overhead Mono"]');
+    const monoToggle = document.querySelector('#drum-extra .drum-mic-select input[type=checkbox][value="Overhead Mono"]');
     if(monoToggle) monoToggle.checked = false;
   }
 
   if(checkbox.checked && checkbox.value === 'Overhead Mono') {
     instr.drumMics = instr.drumMics.filter(m => m !== 'Overheads Stereo');
-    const stereoToggle = document.querySelector('#drum-extra input[type=checkbox][value="Overheads Stereo"]');
+    const stereoToggle = document.querySelector('#drum-extra .drum-mic-select input[type=checkbox][value="Overheads Stereo"]');
     if(stereoToggle) stereoToggle.checked = false;
   }
 
@@ -5605,6 +5883,9 @@ function toggleDrumMic(checkbox) {
   } else {
     if(hadMic) pushHistoryState();
     instr.drumMics = instr.drumMics.filter(m => m !== checkbox.value);
+    if(instr.drumMicStandAssignments && typeof instr.drumMicStandAssignments === 'object') {
+      delete instr.drumMicStandAssignments[checkbox.value];
+    }
   }
 
   markDirty();
@@ -5612,6 +5893,8 @@ function toggleDrumMic(checkbox) {
   pruneInvalidDrumConnections(instr);
   renderMicAssignmentsUI(instr);
   updateMicSummary(instr);
+  renderDrumMicStandColumn(instr);
+  renderMicStandUI(instr);
   renderInstrument(instr);
   updateClasses();
   render();
@@ -5619,9 +5902,10 @@ function toggleDrumMic(checkbox) {
 
 function syncDrumMicUI(instr) {
   const selected = instr.drumMics || [];
-  document.querySelectorAll('#drum-extra input[type=checkbox]').forEach(cb => {
+  document.querySelectorAll('#drum-extra .drum-mic-select input[type=checkbox]').forEach(cb => {
     cb.checked = selected.includes(cb.value);
   });
+  renderDrumMicStandColumn(instr);
   updateDrumMicSummary(instr);
 }
 
@@ -6599,6 +6883,9 @@ function loadRiderFromData(data) {
       spkOutputMode: isSpeakerWithThru(raw.type) ? normalizeSpeakerConnectorMode(raw.spkOutputMode, 'xlr') : '',
       connectorMode: raw.connectorMode || getDefaultConnectorMode(raw.type),
       pinMicAssignments: {},
+      micStandCount: Math.max(0, parseInt(raw.micStandCount, 10) || 0),
+      drumMicStandAssignments: normalizeDrumMicStandAssignments(raw.drumMicStandAssignments),
+      noConnect: !!raw.noConnect || isStandType(raw.type),
       connSide: raw.connSide || 'bottom',
       connectionBoxKind: inferConnectionBoxKind(raw) || '',
       isMixer: !!raw.isMixer,
@@ -6633,6 +6920,20 @@ function loadRiderFromData(data) {
     }
     instr.pinMicAssignments = derivePinMicAssignments(raw, instr);
     if(!supportsMicPickup(instr)) instr.pinMicAssignments = {};
+    if(!supportsMicStandOption(instr)) {
+      instr.micStandCount = 0;
+      instr.drumMicStandAssignments = {};
+    } else {
+      instr.micStandCount = clampMicStandCountForInstrument(instr, instr.micStandCount);
+      if(instr.type === 'drumkit') {
+        const selectedMics = new Set(Array.isArray(instr.drumMics) ? instr.drumMics : []);
+        const standMap = normalizeDrumMicStandAssignments(instr.drumMicStandAssignments);
+        Object.keys(standMap).forEach(key => {
+          if(!selectedMics.has(key)) delete standMap[key];
+        });
+        instr.drumMicStandAssignments = standMap;
+      }
+    }
     pruneInvalidInstrumentPins(instr);
     instruments.push(instr);
   });
@@ -7121,7 +7422,7 @@ function buildReportPinLine(instr, pin, notePrefix = '') {
   if(instr && isSnakeBox(instr)) {
     const destinationHTML = other && other.instr && isReportAccessory(other.instr)
       ? describeInlineAccessoryRouteHTML(other.instr, conn, other.pin, new Set())
-      : escapeHtml(otherText);
+      : buildReportEndpointLabelHTML(other && other.instr, other && other.pin, otherText);
     const numberMarkup = `<span class="report-inline-key report-pin-tone-${pinTone}">${escapeHtml(pinLabel)}</span>`;
     return `<div class="report-pin-line compact">
       <div class="report-pin-main">${numberMarkup} - ${destinationHTML}</div>
@@ -7131,14 +7432,23 @@ function buildReportPinLine(instr, pin, notePrefix = '') {
   const accessoryHint = other && other.instr && isReportAccessory(other.instr)
     ? `<div class="report-pin-note">Middle accessory path: ${escapeHtml(describeAccessoryChain(other.instr, conn.id, new Set()))}</div>`
     : '';
+  const endpointHTML = buildReportEndpointLabelHTML(other && other.instr, other && other.pin, otherText);
   const micNote = getPinMicNote(instr, pin);
   const extraNote = [notePrefix, micNote ? `Mic: ${micNote}` : ''].filter(Boolean).join(' · ');
   return `<div class="report-pin-line">
     <div class="report-pin-key report-pin-tone-${pinTone}">${escapeHtml(pinLabel)}</div>
-    <div class="report-pin-main">Connect to ${escapeHtml(otherText)}</div>
+    <div class="report-pin-main">Connect to ${endpointHTML}</div>
     <div class="report-pin-meta">${escapeHtml(conn.label || 'Cable')} ${extraNote ? `· ${escapeHtml(extraNote)}` : ''}</div>
     ${accessoryHint}
   </div>`;
+}
+
+function buildReportEndpointLabelHTML(instr, pin, baseText) {
+  const labelHTML = escapeHtml(String(baseText || 'Unknown'));
+  if(!instr) return labelHTML;
+  const micModel = getPinMicNote(instr, pin);
+  if(!micModel) return labelHTML;
+  return `${labelHTML} <span class="report-mic-inline">(${escapeHtml(micModel)})</span>`;
 }
 
 function getReportPinTone(instr, pin) {
@@ -7194,8 +7504,9 @@ function getReportSnapshotInstrument(instr) {
     name: instr.name || instr.type,
     type: instr.type,
     cat: instr.cat,
-    image: instr.image || getInstrumentImage(instr.type) || '',
+    image: getEffectiveInstrumentImage(instr) || '',
     icon: instr.icon || '•',
+    isStand: isStandType(instr),
     isSnake: !!isSnakeBox(instr),
     isMixer: !!isMixerBox(instr),
     collapsed: !!instr.collapsed,
@@ -7288,7 +7599,8 @@ function buildReportStageSvg(orientation) {
         : (getConnectionBoxKind(instr) === 'mixer'
           ? '#7aaed9'
           : (instr.cat === 'monitoring' ? '#cf6f6f' : '#c7d0db')));
-    const image = instr.image || getInstrumentImage(instr.type);
+    const image = getEffectiveInstrumentImage(instr);
+    const standOnly = isStandType(instr);
 
     if(isConnectionBoxInstrument(instr)) {
       const liveScale = getRackUIScale(Math.max(1, Math.round(body.width)), 80);
@@ -7299,6 +7611,12 @@ function buildReportStageSvg(orientation) {
     }
 
     const imageSvg = image ? `<image href="${escapeHtml(image)}" x="${(instr.x - bounds.left + 8).toFixed(2)}" y="${(instr.y - bounds.top + 8).toFixed(2)}" width="${Math.max(24, body.width - 16).toFixed(2)}" height="${Math.max(24, body.height - 24).toFixed(2)}" preserveAspectRatio="xMidYMid meet" />` : `<text x="${(instr.x - bounds.left + body.width / 2).toFixed(2)}" y="${(instr.y - bounds.top + body.height / 2).toFixed(2)}" text-anchor="middle" dominant-baseline="middle" font-family="Share Tech Mono, monospace" font-size="18" fill="#17324f">${escapeHtml(instr.icon || '•')}</text>`;
+    if(standOnly) {
+      return `<g>
+        ${imageSvg}
+        <text x="${(instr.x - bounds.left + body.width / 2).toFixed(2)}" y="${(instr.y - bounds.top + body.height + 12).toFixed(2)}" text-anchor="middle" font-family="Barlow, sans-serif" font-size="10" font-weight="700" fill="#102033">${title}</text>
+      </g>`;
+    }
     return `<g>
       <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" ry="10" fill="${fill}" stroke="${stroke}" stroke-width="2.2" />
       ${imageSvg}
@@ -7671,6 +7989,41 @@ function buildReportHTML(reportOptions = {}, autoPrint = false) {
     `;
   }).join('');
 
+  const diCount = instruments.filter(i => i && i.type === 'di').length;
+  const standDefinitions = INSTRUMENTS
+    .filter(def => def && def.cat === 'stands')
+    .map(def => ({
+      type: def.type,
+      label: def.name || def.label || def.type || 'Stand',
+    }));
+  const standUsage = new Map();
+  instruments.forEach(instr => {
+    if(!instr || instr.cat !== 'stands') return;
+    const key = instr.type || 'stand';
+    standUsage.set(key, (standUsage.get(key) || 0) + 1);
+  });
+  standUsage.forEach((_count, type) => {
+    if(standDefinitions.some(def => def.type === type)) return;
+    const fallbackDef = getInstrumentDefinitionByType(type);
+    standDefinitions.push({
+      type,
+      label: (fallbackDef && (fallbackDef.name || fallbackDef.label)) || String(type || 'Stand'),
+    });
+  });
+  standDefinitions.sort((a, b) => String(a.label).localeCompare(String(b.label)));
+  const utilityCountRows = [
+    { label: 'DI', count: diCount },
+    ...standDefinitions.map(def => ({
+      label: def.label,
+      count: standUsage.get(def.type) || 0,
+    })),
+  ].map(row => `
+      <tr>
+        <td>${escapeHtml(row.label)}</td>
+        <td>${row.count}</td>
+      </tr>
+    `).join('');
+
   const reportSections = reportGroups.map(group => `
     <section class="report-section">
       <h2>${escapeHtml(group.title)} (${group.items.length})</h2>
@@ -7735,10 +8088,11 @@ function buildReportHTML(reportOptions = {}, autoPrint = false) {
   .report-pin-key.report-pin-tone-default,.report-inline-key.report-pin-tone-default{background:#eceff7;border-color:#cfd8e7;color:#2f4861;}
   .report-cable-hop{display:inline-flex;align-items:center;justify-content:center;min-width:34px;padding:1px 6px;margin-right:4px;border-radius:999px;font-family:'Share Tech Mono',monospace;font-size:.72em;letter-spacing:.5px;vertical-align:baseline;border:1px solid #d4dce6;background:#f3f6fa;color:#5e6d7d;opacity:.95;}
   .report-cable-hop.report-cable-hop-xlr{background:#e8f2ff;border-color:#bfd6f5;color:#2f5f96;}
-  .report-cable-hop.report-cable-hop-jack{background:#fff0e1;border-color:#f0caa1;color:#925826;}
+  .report-cable-hop.report-cable-hop-jack{background:#efe5dd;border-color:#b39073;color:#5a3a22;}
   .report-cable-hop.report-cable-hop-ethernet{background:#e8fff2;border-color:#bce7cd;color:#26724a;}
   .report-cable-hop.report-cable-hop-speakon{background:#efe8ff;border-color:#cec0ef;color:#5b4790;}
   .report-pin-main{font-size:13px;color:#132033;font-weight:600;}
+  .report-mic-inline{font-size:.86em;font-style:italic;font-weight:500;color:#5f7084;letter-spacing:.15px;}
   .report-pin-meta{grid-column:2;font-size:11px;color:var(--muted);line-height:1.4;}
   .report-pin-note{grid-column:2;font-size:11px;color:#355977;line-height:1.4;background:#eef5fb;border-left:3px solid #b9d3ea;padding:6px 8px;border-radius:6px;}
   .report-cable-totals{margin-top:6px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#f8fbff;font-size:11px;color:#30465d;line-height:1.4;}
@@ -7776,6 +8130,13 @@ function buildReportHTML(reportOptions = {}, autoPrint = false) {
       </table>
       <div class="report-cable-size-note">Estimated from routed stage distance plus endpoint slack, then rounded up to the next stocked cable size.</div>
     ` : ''}
+    <table class="report-cable-size-table">
+      <thead>
+        <tr><th>Utility</th><th>Count</th></tr>
+      </thead>
+      <tbody>${utilityCountRows}</tbody>
+    </table>
+    <div class="report-cable-size-note">Includes DI and all stand types defined in the palette. Unused stand types are shown as 0.</div>
   </section>
 </main>
 
@@ -7940,12 +8301,14 @@ function drawReportStageSnapshot(ctx, data, byKey) {
     } else if((item.isMixer || item.cat === 'stageboxes') && !item.collapsed) {
       drawReportExpandedMixerPanel(ctx, item, byKey.get(item.id), data.connections || []);
     } else {
-      ctx.fillStyle = item.color;
-      ctx.strokeStyle = item.stroke;
-      ctx.lineWidth = 2.2;
-      roundRect(ctx, item.x, item.y, item.width, item.height, 10);
-      ctx.fill();
-      ctx.stroke();
+      if(!item.isStand) {
+        ctx.fillStyle = item.color;
+        ctx.strokeStyle = item.stroke;
+        ctx.lineWidth = 2.2;
+        roundRect(ctx, item.x, item.y, item.width, item.height, 10);
+        ctx.fill();
+        ctx.stroke();
+      }
       const img = byKey.get(item.id);
       if(img) {
         const targetW = Math.max(24, item.width - 16);
