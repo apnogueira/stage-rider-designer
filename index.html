@@ -63,6 +63,9 @@ body[data-theme='light'] .si.connbox-stagebox:hover .ib{border-color:#2f8b69;}
 body[data-theme='light'] .si.is-mixer.selected .ib{border-color:#256f9d;box-shadow:0 0 0 2px rgba(37,111,157,.22);}
 body[data-theme='light'] .si.connbox-mixer.selected .ib{border-color:#256f9d;box-shadow:0 0 0 2px rgba(37,111,157,.22);}
 body[data-theme='light'] .si.connbox-stagebox.selected .ib{border-color:#207454;box-shadow:0 0 0 2px rgba(32,116,84,.22);}
+body[data-theme='light'] .si.is-monitoring .ib{background:#ffe9e9;border-color:#cf6f6f;}
+body[data-theme='light'] .si.is-monitoring:hover .ib{border-color:#c25858;}
+body[data-theme='light'] .si.is-monitoring.selected .ib{border-color:#b64d4d;box-shadow:0 0 0 2px rgba(182,77,77,.22);}
 body[data-theme='light'] .si.is-mixer .mixer-row-label{color:#2f4e63;font-weight:700;}
 body[data-theme='light'] .si.is-connbox .mixer-row-label{color:#2f4e63;font-weight:700;}
 body[data-theme='light'] .si.is-mixer .mixer-pin{background:#ffffff;border-color:#1f6fa0;color:#163b55;font-size:calc(var(--rack-pin-font-base) * var(--port-label-scale, var(--rack-pin-scale, 1)));}
@@ -228,9 +231,9 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
 body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.92);box-shadow:0 0 2px rgba(194,88,22,.24);}
 .icon-emoji{display:inline-block;line-height:1;}
 .icon-img{width:82%;height:82%;object-fit:contain;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3));pointer-events:none;user-select:none;-webkit-user-drag:none;}
-.mic-stand-badge{position:absolute;left:1px;top:1px;display:flex;align-items:center;gap:4px;padding:0;background:transparent;border:none;border-radius:0;z-index:9;pointer-events:none;}
+.mic-stand-badge{position:absolute;left:-12px;top:-2px;display:flex;align-items:center;gap:0;padding:0;background:transparent;border:none;border-radius:0;z-index:9;pointer-events:none;}
 .mic-stand-badge img{width:42px;height:42px;object-fit:contain;filter:none;}
-.mic-stand-badge .count{font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1;color:#132033;font-weight:700;text-shadow:0 0 2px rgba(255,255,255,.88);}
+.mic-stand-badge .count{margin-left:-6px;font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1;color:#132033;font-weight:700;text-shadow:0 0 2px rgba(255,255,255,.88);}
 /* SNAKE specific */
 .si.is-snake .ib{border-color:#c47fff55;background:#120f1a;border-radius:4px;}
 .si.is-snake:hover .ib{border-color:var(--accent4);}
@@ -249,6 +252,9 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
 .si.is-mixer .ib{border-color:#47c4ff66;background:#101722;border-radius:6px;}
 .si.is-mixer:hover .ib{border-color:#47c4ff;}
 .si.is-mixer.selected .ib{border-color:#47c4ff;box-shadow:0 0 0 2px rgba(71,196,255,.2);}
+.si.is-monitoring .ib{border-color:#cf6f6f;background:#241416;border-radius:6px;}
+.si.is-monitoring:hover .ib{border-color:#e48080;}
+.si.is-monitoring.selected .ib{border-color:#e48080;box-shadow:0 0 0 2px rgba(228,128,128,.22);}
 .si.is-outlet .ib{border-color:#a8afb9;background:#8e959f;border-radius:5px;}
 .si.is-outlet:hover .ib{border-color:#b7bec8;}
 .si.is-outlet.selected .ib{border-color:#9099a4;box-shadow:0 0 0 2px rgba(150,160,172,.24);}
@@ -747,7 +753,7 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
       <div class="pal-grid" id="accessory-pal"></div>
     </div>
     <div class="ss mode-live-only">
-      <div class="st">Stands</div>
+      <div class="st">Stands and Hardware</div>
       <div class="pal-grid" id="stand-pal"></div>
     </div>
     <div class="ss mode-live-only">
@@ -1010,8 +1016,10 @@ const ICON_ASSET_BY_TYPE = {
   p16:'images/p16.png',
   pm1:'images/pm1.png',
   ha8000:'images/ha8000.png',
+  ha400:'images/ha400.png',
   mainspk:'images/main_speaker.png',
   subwoofer:'images/subwoofer.png',
+  scarlet2i2:'images/scarlet2i2.png',
   xr18:'images/xr18.png',
   m32:'images/m32.png',
   m32r:'images/m32r.png',
@@ -1032,6 +1040,7 @@ const ICON_ASSET_BY_TYPE = {
   midipad:'images/midi_pad.png',
   micstand:'images/mic_stand.png',
   micstandmulti:'images/mic_stand_multiple.png',
+  chair:'images/chair.png',
   sheetstand:'images/sheet_stand.png',
 };
 
@@ -1062,6 +1071,7 @@ const INSTRUMENTS = [
   {type:'p16',       cat:'monitoring', icon:'🔷', name:'P16',         wide:false, size:30, connSide:'top', requiresOutput:true},
   {type:'pm1',       cat:'monitoring', icon:'🔶', name:'PM1',         wide:false, size:30, connSide:'top', requiresOutput:true},
   {type:'ha8000',    cat:'monitoring', icon:'🎚', name:'HA8000',      wide:true,  size:84, connSide:'bottom', haUseMainInputs:false},
+  {type:'ha400',     cat:'monitoring', icon:'🎧', name:'HA400',       wide:false, size:30, connSide:'bottom'},
   {type:'mainspk',   cat:'monitoring', icon:'🔊', name:'Main Speaker', wide:false, size:58, connSide:'top', requiresOutput:true},
   {type:'subwoofer', cat:'monitoring', icon:'🟫', name:'Subwoofer',    wide:false, size:62, connSide:'top', requiresOutput:true},
   {type:'xr18',        cat:'mixers',  icon:'🎛', name:'XR18 Mixer',      wide:true,  size:108, connSide:'bottom', isMixer:true, mixerInputs:18, mixerInputXlrOnly:0, mixerInputCombo:16, mixerInputJackOnly:2, mixerAux:6,  mixerMain:2, mixerJackOut:0, mixerP16:1, mixerAes50:0},
@@ -1076,9 +1086,11 @@ const INSTRUMENTS = [
   {type:'di',        cat:'accessories',   icon:'📦', name:'DI',      wide:false, size:22, connSide:'bottom'},
   {type:'amp',       cat:'accessories', icon:'🔌', name:'Amp',         wide:false, size:60, connSide:'bottom'},
   {type:'pedals',    cat:'accessories',   icon:'🎛', name:'Pedals',      wide:false, size:48, connSide:'bottom'},
+  {type:'scarlet2i2',cat:'accessories', icon:'🎛', name:'Scarlett 2i2', wide:true,  size:68, connSide:'bottom'},
   {type:'outlet',    cat:'accessories', icon:'◉', name:'Outlet',   wide:false, size:30, connSide:'bottom', connectionBoxKind:'outlet', outletConnectorType:'ethernet', outletPorts:2, outletPlacement:'wall'},
   {type:'micstand',  cat:'stands', icon:'🎙', name:'Mic Stand',         wide:false, size:54, footprintAspect:0.44, noConnect:true},
   {type:'micstandmulti',cat:'stands', icon:'🎙', name:'Mic Stand (Multi-Rest)', wide:false, size:58, footprintAspect:0.48, noConnect:true},
+  {type:'chair',     cat:'stands', icon:'🪑', name:'Chair',             wide:false, size:46, footprintAspect:0.86, noConnect:true},
   {type:'sheetstand',cat:'stands', icon:'🎼', name:'Sheet Stand',       wide:false, size:54, footprintAspect:0.58, noConnect:true},
   {type:'laptop',    cat:'infra',   icon:'💻', name:'Laptop',      wide:false, size:22, connSide:'right'},
   {type:'midipad',   cat:'infra',   icon:'🟦', name:'MIDI Pad',    wide:false, size:48, connSide:'right'},
@@ -1097,6 +1109,7 @@ const CABLE_TYPES = [
   {id:'trs',      label:'Jack TRS',  color:'#6a4528'},
   {id:'speakon',  label:'Speakon',   color:'#ff6b47'},
   {id:'ethernet', label:'Ethernet',  color:'#6a6f73'},
+  {id:'usb',      label:'USB',       color:'#7c8aa5'},
   {id:'midi',     label:'MIDI',      color:'#c47fff'},
   {id:'digital',  label:'Digital',   color:'#47ffa0'},
 ];
@@ -2804,6 +2817,14 @@ function outletConnectorToCableTypes(type) {
   return ['xlr'];
 }
 
+function hasMixerUsbPort(instr) {
+  return !!(instr && instr.cat === 'mixers');
+}
+
+function hasMixerHeadphonePort(instr) {
+  return !!(instr && instr.cat === 'mixers');
+}
+
 function speakerConnectorModeToCableTypes(mode) {
   if(mode === 'jack') return ['ts'];
   if(mode === 'speakon') return ['speakon'];
@@ -2812,7 +2833,7 @@ function speakerConnectorModeToCableTypes(mode) {
 
 function isCustomIOInstrument(instrOrType) {
   const type = typeof instrOrType === 'string' ? instrOrType : (instrOrType && instrOrType.type);
-  return type === 'di' || type === 'pedals' || type === 'ha8000' || type === 'amp' || type === 'p16' || isSpeakerWithThru(type);
+  return type === 'di' || type === 'pedals' || type === 'ha8000' || type === 'ha400' || type === 'amp' || type === 'p16' || type === 'scarlet2i2' || type === 'laptop' || isSpeakerWithThru(type);
 }
 
 function supportsInputModeToggle(instr) {
@@ -2827,6 +2848,9 @@ function getInstrumentInputPins(instr) {
   if(!instr) return [];
   if(instr.type === 'p16') {
     return [{ key:'P16-IN', label:'IN' }];
+  }
+  if(instr.type === 'scarlet2i2') {
+    return [{ key:'IO-IN-1', label:'I1' }, { key:'IO-IN-2', label:'I2' }];
   }
   if(isSpeakerWithThru(instr)) {
     return [{ key:'SPK-IN', label:'IN' }];
@@ -2850,6 +2874,12 @@ function getInstrumentInputPins(instr) {
     }).flat();
     return !!instr.haUseMainInputs ? main : channels;
   }
+  if(instr.type === 'ha400') {
+    return [{ key:'IO-IN-TRS', label:'IN' }];
+  }
+  if(instr.type === 'laptop') {
+    return [{ key:'IO-IN-TRS', label:'TRS' }];
+  }
   if(instr.type === 'amp') {
     return [{ key:'AMP-IN-L', label:'I.L' }, { key:'AMP-IN-R', label:'I.R' }];
   }
@@ -2859,7 +2889,15 @@ function getInstrumentInputPins(instr) {
 function getInstrumentOutputPins(instr) {
   if(!instr) return [];
   if(instr.type === 'p16') {
-    return [{ key:'P16-THRU', label:'THRU' }];
+    return [{ key:'P16-THRU', label:'THRU' }, { key:'P16-HP', label:'HP' }];
+  }
+  if(instr.type === 'scarlet2i2') {
+    return [
+      { key:'IO-OUT-1', label:'O1' },
+      { key:'IO-OUT-2', label:'O2' },
+      { key:'IO-OUT-HP', label:'HP' },
+      { key:'IO-USB', label:'USB' },
+    ];
   }
   if(isSpeakerWithThru(instr)) {
     return [{ key:'SPK-OUT', label:'OUT' }];
@@ -2873,6 +2911,12 @@ function getInstrumentOutputPins(instr) {
   }
   if(instr.type === 'ha8000') {
     return Array.from({ length: 8 }, (_v, idx) => ({ key:`HA-OUT-${idx + 1}`, label:String(idx + 1) }));
+  }
+  if(instr.type === 'ha400') {
+    return Array.from({ length: 4 }, (_v, idx) => ({ key:`IO-OUT-${idx + 1}`, label:String(idx + 1) }));
+  }
+  if(instr.type === 'laptop') {
+    return [{ key:'IO-USB', label:'USB' }];
   }
   if(instr.type === 'amp') {
     const total = Math.max(1, Math.min(16, Number(instr.ampOutputs) || 4));
@@ -3006,7 +3050,7 @@ function supportsMicPickup(instrOrType) {
   if(!type) return false;
   const disallowed = new Set([
     'elguitar', 'bass', 'keys',
-    'monitor', 'mainspk', 'subwoofer', 'passivespk', 'iem', 'headphones', 'pm1', 'p16', 'ha8000', 'di', 'amp', 'pedals', 'laptop', 'midipad',
+    'monitor', 'mainspk', 'subwoofer', 'passivespk', 'iem', 'headphones', 'pm1', 'p16', 'ha8000', 'ha400', 'di', 'amp', 'pedals', 'laptop', 'midipad', 'scarlet2i2',
     'snake8', 'snake16', 'snake24', 'snake32', 'xr18', 'x32', 'x32compact', 'x32rack', 'wing', 'wingcompact', 'wingrack'
   ]);
   return !disallowed.has(type);
@@ -3290,7 +3334,7 @@ function normalizeAllMixerConnectionPins() {
 
 function getPinAllowedCableTypes(instr, pin) {
   const p = pinKey(pin);
-  if(!instr) return ['xlr', 'ts', 'trs', 'ethernet'];
+  if(!instr) return ['xlr', 'ts', 'trs', 'ethernet', 'usb'];
 
   if(isSpeakerWithThru(instr)) {
     if(p === 'SPK-IN') return speakerConnectorModeToCableTypes(normalizeSpeakerConnectorMode(instr.spkInputMode, 'xlr'));
@@ -3307,9 +3351,26 @@ function getPinAllowedCableTypes(instr, pin) {
     if(p.startsWith('IO-OUT-')) return ['xlr'];
   }
 
+  if(instr.type === 'scarlet2i2') {
+    if(p === 'IO-IN-1' || p === 'IO-IN-2') return ['xlr', 'ts'];
+    if(p === 'IO-OUT-1' || p === 'IO-OUT-2') return ['ts'];
+    if(p === 'IO-OUT-HP') return ['trs'];
+    if(p === 'IO-USB') return ['usb'];
+  }
+
   if(instr.type === 'ha8000') {
     if(p.startsWith('HA-IN-')) return ['ts'];
     if(p.startsWith('HA-OUT-')) return ['trs'];
+  }
+
+  if(instr.type === 'ha400') {
+    if(p === 'IO-IN-TRS') return ['trs'];
+    if(p.startsWith('IO-OUT-')) return ['trs'];
+  }
+
+  if(instr.type === 'laptop') {
+    if(p === 'IO-IN-TRS') return ['trs'];
+    if(p === 'IO-USB') return ['usb'];
   }
 
   if(isSnakeBox(instr)) {
@@ -3339,17 +3400,22 @@ function getPinAllowedCableTypes(instr, pin) {
     if(p.startsWith('MX-AUX-IN-')) return ['ts'];
     if(p.startsWith('MX-AUX-') || p.startsWith('MX-MAIN-')) return ['xlr'];
     if(p.startsWith('MX-JACK-OUT-')) return ['ts'];
+    if(p.startsWith('MX-HP-')) return ['trs'];
     if(p.startsWith('MX-P16-')) return ['ethernet'];
     if(p.startsWith('MX-AES50-')) return ['ethernet'];
+    if(p.startsWith('MX-USB-')) return ['usb'];
   }
 
-  if(instr.type === 'p16' && (p === 'P16-IN' || p === 'P16-THRU' || p === 'MONO' || p === 'L' || p === 'R')) return ['ethernet'];
+  if(instr.type === 'p16') {
+    if(p === 'P16-IN' || p === 'P16-THRU' || p === 'MONO' || p === 'L' || p === 'R') return ['ethernet'];
+    if(p === 'P16-HP') return ['trs'];
+  }
   if((instr.type === 'iem' || instr.type === 'headphones') && (p === 'MONO' || p === 'L' || p === 'R')) return ['trs'];
   if(instr.type === 'keys' && (p === 'MONO' || p === 'L' || p === 'R')) return ['xlr', 'ts'];
 
   if(p.startsWith('DM-')) return ['xlr'];
   if(p === 'L' || p === 'R' || p === 'MONO') return connectorModeToCableTypes(instr.connectorMode || getDefaultConnectorMode(instr.type));
-  return ['xlr', 'ts', 'trs'];
+  return ['xlr', 'ts', 'trs', 'usb'];
 }
 
 function getCableTypeLabel(typeId) {
@@ -3397,8 +3463,14 @@ function getPinConnectionTypeLabel(instr, pin) {
   return types.map(getCableTypeLabel).join(' / ');
 }
 
+function getPinBaseLabel(instr, pin, baseLabel) {
+  const key = pinKey(pin);
+  if(key === 'P16-HP' || key === 'IO-OUT-HP' || key.startsWith('MX-HP-')) return 'Headphones';
+  return baseLabel;
+}
+
 function buildPinTitle(instr, pin, baseLabel) {
-  return `${baseLabel} - ${getPinConnectionTypeLabel(instr, pin)}`;
+  return `${getPinBaseLabel(instr, pin, baseLabel)} - ${getPinConnectionTypeLabel(instr, pin)}`;
 }
 
 function getInstrumentImage(type) {
@@ -4037,13 +4109,21 @@ function pinForReport(pin) {
   if(drumMap[key]) return drumMap[key];
   const ioMap = {
     'IO-IN-MONO':'IN',
+    'IO-IN-1':'IN-1',
+    'IO-IN-2':'IN-2',
     'IO-IN-L':abbreviateStereoPinLabel('IN-L'),
     'IO-IN-R':abbreviateStereoPinLabel('IN-R'),
+    'IO-IN-TRS':'TRS',
     'IO-OUT-MONO':'OUT',
+    'IO-OUT-1':'OUT-1',
+    'IO-OUT-2':'OUT-2',
     'IO-OUT-L':abbreviateStereoPinLabel('OUT-L'),
     'IO-OUT-R':abbreviateStereoPinLabel('OUT-R'),
+    'IO-OUT-HP':'Headphones',
+    'IO-USB':'USB',
     'P16-IN':'IN',
     'P16-THRU':'THRU',
+    'P16-HP':'Headphones',
     'HA-IN-L':abbreviateStereoPinLabel('MAIN-L'),
     'HA-IN-R':abbreviateStereoPinLabel('MAIN-R'),
     'AMP-IN-L':abbreviateStereoPinLabel('IN-L'),
@@ -4052,6 +4132,8 @@ function pinForReport(pin) {
     'SPK-OUT':'OUT',
   };
   if(ioMap[key]) return ioMap[key];
+  const ioOutMatch = key.match(/^IO-OUT-(\d+)$/);
+  if(ioOutMatch) return `OUT-${parseInt(ioOutMatch[1], 10)}`;
   const haInMatch = key.match(/^HA-IN-(\d+)-(L|R)$/);
   if(haInMatch) return `IN-${parseInt(haInMatch[1], 10)}-${haInMatch[2]}`;
   const haOutMatch = key.match(/^HA-OUT-(\d+)$/);
@@ -4158,6 +4240,19 @@ function isPinUsed(id, pin) {
   });
 }
 
+function getConnectionsForPin(id, pin) {
+  const key = pinKey(pin);
+  return connections.filter(c => {
+    const fromKey = pinKey(c.fromPin);
+    const toKey = pinKey(c.toPin);
+    return (c.fromId === id && fromKey === key) || (c.toId === id && toKey === key);
+  });
+}
+
+function getPinConnectionCount(id, pin) {
+  return getConnectionsForPin(id, pin).length;
+}
+
 function getStereoPinSide(pin) {
   const key = pinKey(pin);
   if(key === 'L' || /-L$/.test(key)) return 'L';
@@ -4205,6 +4300,78 @@ function getCompanionPin(instr, pin, stereoSideUsed) {
   }
   if(key === 'MONO') return null;
   return getNumericCompanionPin(key, stereoSideUsed);
+}
+
+function findTsPairCompanionPin(instr, pin) {
+  const candidates = [
+    getCompanionPin(instr, pin, 'L'),
+    getCompanionPin(instr, pin, 'R'),
+  ].filter((candidate, index, arr) => candidate && candidate !== pinKey(pin) && arr.indexOf(candidate) === index);
+
+  return candidates.find(candidate => {
+    if(!isEffectiveInputPin(instr, candidate)) return false;
+    const allowed = getPinAllowedCableTypes(instr, candidate);
+    return Array.isArray(allowed) && allowed.includes('ts');
+  }) || null;
+}
+
+function isTrsSplitCapableOutput(instr, pin) {
+  if(!instr || !isEffectiveOutputPin(instr, pin)) return false;
+  const allowed = getPinAllowedCableTypes(instr, pin);
+  return Array.isArray(allowed) && allowed.length === 1 && allowed[0] === 'trs';
+}
+
+function canSourcePinAcceptAnotherConnection(instr, id, pin) {
+  if(isTrsSplitCapableOutput(instr, pin)) return getPinConnectionCount(id, pin) < 2;
+  return !isPinUsed(id, pin);
+}
+
+function resolveTrsSplitCableForPins(fromInstr, fromPin, toInstr, toPin, preferredCable = selectedCable) {
+  if(!isTrsSplitCapableOutput(fromInstr, fromPin)) return null;
+  if(!isEffectiveInputPin(toInstr, toPin)) return null;
+
+  const targetAllowed = getPinAllowedCableTypes(toInstr, toPin);
+  if(!Array.isArray(targetAllowed) || !targetAllowed.includes('ts')) return null;
+
+  const companionPin = findTsPairCompanionPin(toInstr, toPin);
+  if(!companionPin) {
+    return {
+      valid:false,
+      message:`${toInstr.label} ${pinKey(toPin)} needs a matched Jack TS pair for a TRS split.`
+    };
+  }
+
+  const sourceConnections = getConnectionsForPin(fromInstr.id, fromPin);
+  if(sourceConnections.length === 0) {
+    if(isPinUsed(toInstr.id, companionPin)) {
+      return {
+        valid:false,
+        message:`${toInstr.label} ${pinKey(companionPin)} is already in use, so the TRS split pair is unavailable.`
+      };
+    }
+  } else if(sourceConnections.length === 1) {
+    const existing = sourceConnections[0];
+    if(existing.fromId !== fromInstr.id || pinKey(existing.fromPin) !== pinKey(fromPin) || existing.toId !== toInstr.id || pinKey(existing.toPin) !== companionPin) {
+      return {
+        valid:false,
+        message:`${fromInstr.label} ${pinKey(fromPin)} can only split to the paired Jack TS inputs on one destination.`
+      };
+    }
+  } else {
+    return {
+      valid:false,
+      message:`${fromInstr.label} ${pinKey(fromPin)} already uses both sides of its TRS split.`
+    };
+  }
+
+  const cable = CABLE_TYPES.find(c => c.id === 'ts') || CABLE_TYPES[0];
+  return {
+    valid:true,
+    cableType:cable.id,
+    color:cable.color,
+    label:cable.label,
+    wasAutoChosen: preferredCable !== 'ts',
+  };
 }
 
 function buildStereoSuggestion(baseConn) {
@@ -4265,6 +4432,54 @@ function maybeSuggestStereoCompanion(baseConn) {
 
   const msg = `Stereo detected. Add second connection?\n\n${fromInstr.label} ${pinForReport(suggestion.fromPin)} -> ${toInstr.label} ${pinForReport(suggestion.toPin)}`;
   if(!confirm(msg)) return;
+
+  connections.push({
+    id: ++idCounter,
+    fromId: suggestion.fromId,
+    fromPin: suggestion.fromPin,
+    toId: suggestion.toId,
+    toPin: suggestion.toPin,
+    cableType: suggestion.cableType || baseConn.cableType,
+    color: suggestion.color || baseConn.color,
+    label: suggestion.label || baseConn.label,
+    routeX: null,
+  });
+
+  markDirty();
+  refreshConnectorStates(suggestion.fromId);
+  refreshConnectorStates(suggestion.toId);
+}
+
+function buildTrsSplitSuggestion(baseConn) {
+  const fromInstr = instruments.find(i => i.id === baseConn.fromId);
+  const toInstr = instruments.find(i => i.id === baseConn.toId);
+  if(!fromInstr || !toInstr) return null;
+  if(normalizeCableType(baseConn.cableType) !== 'ts') return null;
+  if(!isTrsSplitCapableOutput(fromInstr, baseConn.fromPin)) return null;
+
+  const companionPin = findTsPairCompanionPin(toInstr, baseConn.toPin);
+  if(!companionPin || isPinUsed(toInstr.id, companionPin)) return null;
+
+  const validation = validateConnection(
+    { id: baseConn.fromId, pin: baseConn.fromPin },
+    { id: baseConn.toId, pin: companionPin }
+  );
+  if(!validation.valid) return null;
+
+  return {
+    fromId: baseConn.fromId,
+    fromPin: baseConn.fromPin,
+    toId: baseConn.toId,
+    toPin: companionPin,
+    cableType: validation.cableType,
+    color: validation.color,
+    label: validation.label,
+  };
+}
+
+function maybeAutoAddTrsSplitCompanion(baseConn) {
+  const suggestion = buildTrsSplitSuggestion(baseConn);
+  if(!suggestion) return;
 
   connections.push({
     id: ++idCounter,
@@ -5070,6 +5285,7 @@ function renderInstrument(instr) {
   const el = document.createElement('div');
   const boxKind = getConnectionBoxKind(instr);
   el.className = 'si';
+  if(instr.cat === 'monitoring') el.classList.add('is-monitoring');
   if(boxKind) {
     el.classList.add('is-connbox', `connbox-${boxKind}`);
     // Keep legacy classes for compatibility in non-render paths.
@@ -5136,6 +5352,7 @@ function renderInstrument(instr) {
     const rightUsed = isStereo && isPinUsed(instr.id, 'R');
     const p16InUsed = isPinUsed(instr.id, 'P16-IN');
     const p16ThruUsed = isPinUsed(instr.id, 'P16-THRU');
+    const p16HpUsed = isPinUsed(instr.id, 'P16-HP');
     const drumPinsHTML = drumPins.map(p => `
       <div class="drum-pin-wrap">
         <div class="iconn drum-pin${isPinUsed(instr.id, p.key)?' used':''}" data-pin="${p.key}" title="${buildPinTitle(instr, p.key, p.name)}"></div>
@@ -5155,10 +5372,16 @@ function renderInstrument(instr) {
       </div>
     `).join('');
     const swapCustomIORows = instr.type === 'di' || instr.type === 'pedals';
+    const renderCustomIOSidePins = instr.type === 'laptop';
     const customTopPinsHTML = hasCustomIO ? (swapCustomIORows ? outputPinsHTML : inputPinsHTML) : '';
     const customTopCount = hasCustomIO ? (swapCustomIORows ? outputPins.length : inputPins.length) : 0;
     const customBottomPinsHTML = hasCustomIO ? (swapCustomIORows ? inputPinsHTML : outputPinsHTML) : '';
     const customBottomCount = hasCustomIO ? (swapCustomIORows ? inputPins.length : outputPins.length) : 0;
+    const customSidePins = renderCustomIOSidePins ? [...inputPins, ...outputPins] : [];
+    const customSidePinsHTML = customSidePins.map((p, idx) => `
+      <div class="iconn${isPinUsed(instr.id, p.key)?' used':''}" style="${getMainPinStyle(side, idx, customSidePins.length)}" data-pin="${p.key}" title="${buildPinTitle(instr, p.key, p.label)}"></div>
+      <div class="pin-tag" style="${getPinTagStyle(side, idx, customSidePins.length)}">${p.label}</div>
+    `).join('');
     const customTopClass = 'inputs';
     const customBottomClass = 'outputs';
     const connSideControlsHTML = isNonConnectable ? '' : buildConnSideControlsHTML(side);
@@ -5170,7 +5393,7 @@ function renderInstrument(instr) {
     el.innerHTML = `
       <div class="iface" style="transform:rotate(${angle}deg);transform-origin:center center;">
         ${buildRotationHandleHTML()}
-        ${!renderP16SidePins && !isNonConnectable && hasCustomIO && customTopCount ? `<div class="io-pin-row ${customTopClass}" style="grid-template-columns:repeat(${Math.min(customTopCount, 4)},minmax(0,1fr));">${customTopPinsHTML}</div>` : ''}
+        ${!renderP16SidePins && !isNonConnectable && hasCustomIO && !renderCustomIOSidePins && customTopCount ? `<div class="io-pin-row ${customTopClass}" style="grid-template-columns:repeat(${Math.min(customTopCount, 4)},minmax(0,1fr));">${customTopPinsHTML}</div>` : ''}
         <div class="ib" style="width:${bw}px;height:${bh}px;font-size:${fontSize}px;">
           ${connSideControlsHTML}
           ${buildStageIconHTML(instr, fontSize)}
@@ -5181,13 +5404,17 @@ function renderInstrument(instr) {
         </div>
         ${!isNonConnectable && isDrumKit ? `
           <div class="drum-pin-row side-${side}">${drumPinsHTML}</div>
+        ` : (!renderP16SidePins && !isNonConnectable && renderCustomIOSidePins) ? `
+          ${customSidePinsHTML}
         ` : (!renderP16SidePins && !isNonConnectable && hasCustomIO) ? `
           ${customBottomCount ? `<div class="io-pin-row ${customBottomClass}" style="grid-template-columns:repeat(${Math.min(customBottomCount, 4)},minmax(0,1fr));">${customBottomPinsHTML}</div>` : ''}
         ` : renderP16SidePins ? `
-          <div class="iconn${p16InUsed?' used':''}" style="${getMainPinStyle(side, 0, 2)}" data-pin="P16-IN" title="${buildPinTitle(instr, 'P16-IN', 'IN')}"></div>
-          <div class="iconn${p16ThruUsed?' used':''}" style="${getMainPinStyle(side, 1, 2)}" data-pin="P16-THRU" title="${buildPinTitle(instr, 'P16-THRU', 'THRU')}"></div>
-          <div class="pin-tag" style="${getPinTagStyle(side, 0, 2)}">IN</div>
-          <div class="pin-tag" style="${getPinTagStyle(side, 1, 2)}">THRU</div>
+          <div class="iconn${p16InUsed?' used':''}" style="${getMainPinStyle(side, 0, 3)}" data-pin="P16-IN" title="${buildPinTitle(instr, 'P16-IN', 'IN')}"></div>
+          <div class="iconn${p16ThruUsed?' used':''}" style="${getMainPinStyle(side, 1, 3)}" data-pin="P16-THRU" title="${buildPinTitle(instr, 'P16-THRU', 'THRU')}"></div>
+          <div class="iconn${p16HpUsed?' used':''}" style="${getMainPinStyle(side, 2, 3)}" data-pin="P16-HP" title="${buildPinTitle(instr, 'P16-HP', 'HP')}"></div>
+          <div class="pin-tag" style="${getPinTagStyle(side, 0, 3)}">I</div>
+          <div class="pin-tag" style="${getPinTagStyle(side, 1, 3)}">T</div>
+          <div class="pin-tag" style="${getPinTagStyle(side, 2, 3)}">H</div>
         ` : (!isNonConnectable && isStereo) ? `
           <div class="iconn${leftUsed?' used':''}" style="${getMainPinStyle(side, 0, 2)}" data-pin="L" title="${buildPinTitle(instr, 'L', 'Left Output')}"></div>
           <div class="iconn${rightUsed?' used':''}" style="${getMainPinStyle(side, 1, 2)}" data-pin="R" title="${buildPinTitle(instr, 'R', 'Right Output')}"></div>
@@ -5362,6 +5589,8 @@ function buildConnectionBoxHTML(instr, widthPx) {
   const jackOutCount = Math.max(0, Number(instr.mixerJackOut) || 0);
   const pmCount = Math.max(0, Number(instr.mixerP16) || 0);
   const aes50Count = Math.max(0, Number(instr.mixerAes50) || 0);
+  const hpCount = hasMixerHeadphonePort(instr) ? 1 : 0;
+  const usbCount = hasMixerUsbPort(instr) ? 1 : 0;
   const xlrOutCount = auxCount + mainCount;
   const isStagebox = instr.type === 's32' || instr.type === 's16';
   const genericInputCount = (xlrInputCount + comboInputCount + auxInputCount) > 0 ? 0 : inputs;
@@ -5451,9 +5680,21 @@ function buildConnectionBoxHTML(instr, widthPx) {
     otherPins += buildConnectionBoxPin(instr, key, `A5${i}`, `AES50 ${i}`, ' other-pin');
   }
 
+  for(let i=1;i<=hpCount;i++) {
+    const key = `MX-HP-${i}`;
+    otherPins += buildConnectionBoxPin(instr, key, 'HP', `Headphones ${i} (Jack TRS)`, ' out-pin other-pin');
+  }
+
+  for(let i=1;i<=usbCount;i++) {
+    const key = `MX-USB-${i}`;
+    otherPins += buildConnectionBoxPin(instr, key, 'USB', `USB ${i}`, ' other-pin');
+  }
+
   const otherLabelParts = [];
   if(pmCount) otherLabelParts.push('ULTRANET');
   if(aes50Count) otherLabelParts.push('AES50');
+  if(hpCount) otherLabelParts.push('HP');
+  if(usbCount) otherLabelParts.push('USB');
   const otherLabel = otherLabelParts.length ? otherLabelParts.join(' · ') : 'NONE';
 
   return `
@@ -6642,7 +6883,7 @@ function deleteInstrument(id) {
 
 
 function isOutputPin(pin) {
-  return typeof pin === 'string' && (pin === 'MONO' || pin === 'L' || pin === 'R' || pin.startsWith('DM-') || pin.startsWith('OUT-') || pin.startsWith('STAGE-OUT-') || pin.startsWith('CABLE-OUT-') || pin.startsWith('OUTLET-OUT-') || pin.startsWith('MX-AUX-') || pin.startsWith('MX-MAIN-') || pin.startsWith('MX-JACK-OUT-') || pin.startsWith('MX-P16-') || pin.startsWith('MX-AES50-') || pin.startsWith('IO-OUT-') || pin.startsWith('HA-OUT-') || pin.startsWith('AMP-OUT-') || pin === 'SPK-OUT' || pin === 'P16-THRU');
+  return typeof pin === 'string' && (pin === 'MONO' || pin === 'L' || pin === 'R' || pin.startsWith('DM-') || pin.startsWith('OUT-') || pin.startsWith('STAGE-OUT-') || pin.startsWith('CABLE-OUT-') || pin.startsWith('OUTLET-OUT-') || pin.startsWith('MX-AUX-') || pin.startsWith('MX-MAIN-') || pin.startsWith('MX-JACK-OUT-') || pin.startsWith('MX-HP-') || pin.startsWith('MX-P16-') || pin.startsWith('MX-AES50-') || pin.startsWith('IO-OUT-') || pin.startsWith('HA-OUT-') || pin.startsWith('AMP-OUT-') || pin === 'SPK-OUT' || pin === 'P16-THRU' || pin === 'P16-HP');
 }
 
 function isInputPin(pin) {
@@ -6654,10 +6895,26 @@ function isEndpointOnlyOutput(instr, pin) {
   if(!instr) return false;
   if(isSnakeBox(instr) && (key.startsWith('STAGE-OUT-') || key.startsWith('OUT-'))) return true;
   if(isOutletBox(instr) && key.startsWith('OUTLET-OUT-')) return true;
-  if(isMixerBox(instr) && (key.startsWith('MX-AUX-') || key.startsWith('MX-MAIN-') || key.startsWith('MX-JACK-OUT-') || key.startsWith('MX-P16-') || key.startsWith('MX-AES50-'))) return true;
+  if(isMixerBox(instr) && (key.startsWith('MX-AUX-') || key.startsWith('MX-MAIN-') || key.startsWith('MX-JACK-OUT-') || key.startsWith('MX-HP-') || key.startsWith('MX-P16-') || key.startsWith('MX-AES50-'))) return true;
   if(instr.type === 'ha8000' && key.startsWith('HA-OUT-')) return true;
+  if(instr.type === 'p16' && key === 'P16-HP') return true;
   if(isSpeakerWithThru(instr) && key === 'SPK-OUT') return true;
   return false;
+}
+
+function isHeadphoneOutputPin(instr, pin) {
+  const key = pinKey(pin);
+  if(!instr) return false;
+  if(instr.type === 'p16' && key === 'P16-HP') return true;
+  if(instr.type === 'scarlet2i2' && key === 'IO-OUT-HP') return true;
+  if(isMixerBox(instr) && key.startsWith('MX-HP-')) return true;
+  if(instr.type === 'ha400' && key.startsWith('IO-OUT-')) return true;
+  if(instr.type === 'ha8000' && key.startsWith('HA-OUT-')) return true;
+  return false;
+}
+
+function isHA400MonitoringInput(instr, pin) {
+  return !!(instr && instr.type === 'ha400' && pinKey(pin) === 'IO-IN-TRS');
 }
 
 function isDrumMicPin(pin) {
@@ -6713,7 +6970,7 @@ function startConnectionFromPin(id, pin, e) {
       alert(`${sourceInstr.label} is stereo. Start from L or R pin.`);
       return;
     }
-    if(isPinUsed(id, clickedPin)) {
+    if(!canSourcePinAcceptAnotherConnection(sourceInstr, id, clickedPin)) {
       alert('This pin is already connected. Remove that cable first.');
       return;
     }
@@ -6779,6 +7036,8 @@ function resolveCableForPins(fromInstr, fromPin, toInstr, toPin, preferredCable 
   const common = fromAllowed.filter(typeId => toAllowed.includes(typeId));
 
   if(!common.length) {
+    const trsSplitResolution = resolveTrsSplitCableForPins(fromInstr, fromPin, toInstr, toPin, preferredCable);
+    if(trsSplitResolution) return trsSplitResolution;
     return {
       valid:false,
       message:`${fromInstr.label} ${pinKey(fromPin)} and ${toInstr.label} ${pinKey(toPin)} have no compatible cable type.`
@@ -6816,7 +7075,7 @@ function validateConnection(fromObj, toObj) {
   const fromKey = pinKey(fromObj.pin);
   const toKey = pinKey(toObj.pin);
 
-  if(isPinUsed(fromObj.id, fromKey)) {
+  if(!canSourcePinAcceptAnotherConnection(fromInstr, fromObj.id, fromKey)) {
     return {
       valid:false,
       message:`${fromInstr.label} pin ${fromKey} is already connected.`
@@ -6837,8 +7096,8 @@ function validateConnection(fromObj, toObj) {
     };
   }
 
-  const monitoringPassThroughSource = (isSpeakerWithThru(fromInstr) && fromKey === 'SPK-OUT') || (fromInstr.type === 'p16' && fromKey === 'P16-THRU');
-  if(fromInstr.requiresOutput && !monitoringPassThroughSource) {
+  const monitoringAllowedSource = (isSpeakerWithThru(fromInstr) && fromKey === 'SPK-OUT') || (fromInstr.type === 'p16' && (fromKey === 'P16-THRU' || fromKey === 'P16-HP'));
+  if(fromInstr.requiresOutput && !monitoringAllowedSource) {
     return {
       valid:false,
       message:`${fromInstr.label} is a monitoring destination and cannot send signal.`
@@ -6853,7 +7112,8 @@ function validateConnection(fromObj, toObj) {
     };
   }
 
-  if(!isSnakeBox(fromInstr) && isEndpointOnlyOutput(fromInstr, fromObj.pin) && !toInstr.requiresOutput) {
+  const allowsHA400MonitoringFeed = isHeadphoneOutputPin(fromInstr, fromObj.pin) && isHA400MonitoringInput(toInstr, toObj.pin);
+  if(!isSnakeBox(fromInstr) && isEndpointOnlyOutput(fromInstr, fromObj.pin) && !toInstr.requiresOutput && !allowsHA400MonitoringFeed) {
     return {
       valid:false,
       message:`${fromInstr.label} output ${fromKey} can only connect to output devices.`
@@ -6931,7 +7191,7 @@ function handleConnectClick(id, pin, e) {
       alert(`${sourceInstr.label} is stereo. Start from L or R pin.`);
       return;
     }
-    if(isPinUsed(id, clickedPin)) {
+    if(!canSourcePinAcceptAnotherConnection(sourceInstr, id, clickedPin)) {
       alert('This pin is already connected. Remove that cable first.');
       return;
     }
@@ -6988,6 +7248,7 @@ function handleConnectClick(id, pin, e) {
       refreshConnectorStates(resolvedTo.id);
       maybeAutoRouteSnakeMixer(firstConn);
       maybeAutoRouteDrumkitSnake(firstConn);
+      maybeAutoAddTrsSplitCompanion(firstConn);
       maybeSuggestStereoCompanion(firstConn);
     }
     connectingFrom=null; drawingLine=null;
@@ -7802,10 +8063,14 @@ function getReportPinLabel(instr, pin) {
     if(mainOut) return `Main ${parseInt(mainOut[1], 10) === 1 ? 'L' : 'R'}`;
     const jackOut = key.match(/^MX-JACK-OUT-(\d+)$/);
     if(jackOut) return `Jack Out ${parseInt(jackOut[1], 10)}`;
+    const hpOut = key.match(/^MX-HP-(\d+)$/);
+    if(hpOut) return `Headphones ${parseInt(hpOut[1], 10)}`;
     const p16 = key.match(/^MX-P16-(\d+)$/);
     if(p16) return `P16 ${parseInt(p16[1], 10)}`;
     const aes50 = key.match(/^MX-AES50-(\d+)$/);
     if(aes50) return `AES50 ${parseInt(aes50[1], 10)}`;
+    const usb = key.match(/^MX-USB-(\d+)$/);
+    if(usb) return `USB ${parseInt(usb[1], 10)}`;
   }
   return pinForReport(key);
 }
@@ -7885,16 +8150,22 @@ function describeReportEndpoint(instr, pin, sourceConnId, visited = new Set()) {
   const base = (!pinLabel || pinLabel === 'MONO') ? instr.label : `${instr.label} ${pinLabel}`;
   if(instr.type !== 'p16' || pinKey(pin) !== 'P16-IN') return base;
 
-  const thruConn = connections.find(conn => {
-    if(conn.id === sourceConnId) return false;
-    return (conn.fromId === instr.id && pinKey(conn.fromPin) === 'P16-THRU') || (conn.toId === instr.id && pinKey(conn.toPin) === 'P16-THRU');
-  });
-  if(!thruConn) return base;
+  const downstreamPins = ['P16-THRU', 'P16-HP'];
+  const downstreamConnections = downstreamPins.map(outputPin => {
+    const conn = connections.find(conn => {
+      if(conn.id === sourceConnId) return false;
+      return (conn.fromId === instr.id && pinKey(conn.fromPin) === outputPin) || (conn.toId === instr.id && pinKey(conn.toPin) === outputPin);
+    });
+    if(!conn) return null;
+    const next = getReportOtherEndpoint(conn, instr.id);
+    if(!next || !next.instr) return null;
+    const nextLabel = describeReportEndpoint(next.instr, next.pin, conn.id, visited);
+    if(!nextLabel) return null;
+    return outputPin === 'P16-HP' ? `Headphones -> ${nextLabel}` : nextLabel;
+  }).filter(Boolean);
 
-  const next = getReportOtherEndpoint(thruConn, instr.id);
-  if(!next || !next.instr) return base;
-  const nextLabel = describeReportEndpoint(next.instr, next.pin, thruConn.id, visited);
-  return nextLabel ? `${base} -> ${nextLabel}` : base;
+  if(!downstreamConnections.length) return base;
+  return `${base} -> ${downstreamConnections.join(' + ')}`;
 }
 
 function formatInlineConnectorLabel(label) {
@@ -8046,11 +8317,19 @@ function getMixerReportPinGroups(instr) {
   const systemPins = [];
   const p16Count = Math.max(0, Number(instr.mixerP16) || 0);
   const aes50Count = Math.max(0, Number(instr.mixerAes50) || 0);
+  const hpCount = hasMixerHeadphonePort(instr) ? 1 : 0;
+  const usbCount = hasMixerUsbPort(instr) ? 1 : 0;
   if(p16Count > 0) {
     systemPins.push(...Array.from({ length: p16Count }, (_v, idx) => ({ key: `MX-P16-${idx + 1}` })));
   }
   if(aes50Count > 0) {
     systemPins.push(...Array.from({ length: aes50Count }, (_v, idx) => ({ key: `MX-AES50-${idx + 1}` })));
+  }
+  if(hpCount > 0) {
+    systemPins.push(...Array.from({ length: hpCount }, (_v, idx) => ({ key: `MX-HP-${idx + 1}` })));
+  }
+  if(usbCount > 0) {
+    systemPins.push(...Array.from({ length: usbCount }, (_v, idx) => ({ key: `MX-USB-${idx + 1}` })));
   }
   if(systemPins.length > 0) {
     outputGroups.push({ title: 'System', pins: systemPins });
@@ -8268,9 +8547,9 @@ function getReportPinTone(instr, pin) {
 
   if(key.startsWith('MX-IN-') || key.startsWith('MX-AUX-IN-')) return 'input';
   if(key === 'P16-IN') return 'input';
-  if(key === 'P16-THRU') return 'output';
-  if(key.startsWith('MX-AUX-') || key.startsWith('MX-MAIN-') || key.startsWith('MX-JACK-OUT-')) return 'output';
-  if(key.startsWith('MX-P16-') || key.startsWith('MX-AES50-')) return 'other';
+  if(key === 'P16-THRU' || key === 'P16-HP') return 'output';
+  if(key.startsWith('MX-AUX-') || key.startsWith('MX-MAIN-') || key.startsWith('MX-JACK-OUT-') || key.startsWith('MX-HP-')) return 'output';
+  if(key.startsWith('MX-P16-') || key.startsWith('MX-AES50-') || key.startsWith('MX-USB-')) return 'other';
   return 'default';
 }
 
@@ -8359,6 +8638,13 @@ function getReportSnapshotInstrument(instr) {
 
 function getReportSnapshotConnectionPoint(instr, reportItem, pin) {
   if(!instr || !reportItem) return null;
+  // For regular instruments, keep report cables anchored to item center.
+  if(!isConnectionBoxInstrument(instr) && !isOutletBox(instr)) {
+    return {
+      x: reportItem.worldX + (reportItem.width / 2),
+      y: reportItem.worldY + (reportItem.height / 2),
+    };
+  }
   const livePoint = getReportWorldCenterForPin(instr.id, pin || null);
   if(livePoint) return livePoint;
   return {
@@ -9206,12 +9492,17 @@ function drawReportStageSnapshot(ctx, data, byKey) {
       }
       const img = byKey.get(item.id);
       if(img) {
-        const targetW = Math.max(24, item.width - 16);
-        const targetH = Math.max(24, item.height - 24);
+        const isDi = item.type === 'di';
+        const targetW = Math.max(24, item.width - (isDi ? 10 : 16));
+        const targetH = Math.max(24, item.height - (isDi ? 10 : 24));
         const ratio = Math.min(targetW / img.width, targetH / img.height);
         const w = img.width * ratio;
         const h = img.height * ratio;
-        ctx.drawImage(img, item.x + (item.width - w) / 2, item.y + 8 + (targetH - h) / 2, w, h);
+        const drawX = item.x + (item.width - w) / 2;
+        const drawY = isDi
+          ? item.y + (item.height - h) / 2
+          : item.y + 8 + (targetH - h) / 2;
+        ctx.drawImage(img, drawX, drawY, w, h);
       } else {
         ctx.fillStyle = '#17324f';
         ctx.font = '18px serif';
@@ -9468,6 +9759,8 @@ function drawReportExpandedMixerPanel(ctx, item, img, reportConnections) {
   const otherPins = [];
   for(let i = 0; i < p16Count; i++) otherPins.push({ key:`MX-P16-${i + 1}`, label:`PM${i + 1}`, used:isPinUsed(item.id, `MX-P16-${i + 1}`) });
   for(let i = 0; i < aes50Count; i++) otherPins.push({ key:`MX-AES50-${i + 1}`, label:`A5${i + 1}`, used:isPinUsed(item.id, `MX-AES50-${i + 1}`) });
+  if(hasMixerHeadphonePort(item)) otherPins.push({ key:'MX-HP-1', label:'HP', used:isPinUsed(item.id, 'MX-HP-1') });
+  if(hasMixerUsbPort(item)) otherPins.push({ key:'MX-USB-1', label:'USB', used:isPinUsed(item.id, 'MX-USB-1') });
 
   ctx.fillStyle = '#edf5fb';
   ctx.strokeStyle = '#7aaed9';
@@ -9579,6 +9872,8 @@ function drawReportExpandedMixerPanel(ctx, item, img, reportConnections) {
     const otherLabelParts = [];
     if(p16Count) otherLabelParts.push('Ultranet');
     if(aes50Count) otherLabelParts.push('AES50');
+    if(hasMixerHeadphonePort(item)) otherLabelParts.push('HP');
+    if(hasMixerUsbPort(item)) otherLabelParts.push('USB');
     const otherText = otherLabelParts.join(' · ');
     drawSection('OTHERS', otherPins, '#54697f', '#d7e7f5', '#0f2c40', '#54697f', false, otherText);
   }
