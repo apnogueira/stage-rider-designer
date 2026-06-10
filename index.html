@@ -665,6 +665,14 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
               <button class="btn btn-ghost" type="button" onclick="runFileMenuAction('open-google-drive')">Google Drive</button>
             </div>
           </details>
+          <details id="file-open-recent-menu" class="header-submenu-details" ontoggle="syncHeaderMenuState('file-open-recent-menu')">
+            <summary class="btn btn-ghost header-menu-trigger">Open Recent</summary>
+            <div class="header-submenu header-submenu-nested" role="menu" aria-label="Open Recent">
+              <div id="file-open-recent-list" style="display:grid;gap:4px;min-width:260px;"></div>
+              <div class="header-submenu-divider" aria-hidden="true"></div>
+              <button class="btn btn-ghost" type="button" onclick="runFileMenuAction('clear-recent')">Clear Recent</button>
+            </div>
+          </details>
           <button class="btn btn-ghost" type="button" onclick="runFileMenuAction('save')">Save</button>
           <button class="btn btn-ghost" type="button" onclick="runFileMenuAction('save-as')">Save As</button>
           <div class="header-submenu-divider" aria-hidden="true"></div>
@@ -1197,6 +1205,8 @@ let copiedSelectionPasteCount = 0;
 const RIDER_FILE_EXTENSION = '.rider.json';
 const PANEL_PREF_STORAGE_KEY = 'stageDesigner.panelPrefs.v1';
 const GOOGLE_DRIVE_SETTINGS_STORAGE_KEY = 'stageDesigner.googleDrive.v1';
+const RECENT_RIDER_STORAGE_KEY = 'stageDesigner.recentRiders.v1';
+const RECENT_RIDER_LIMIT = 10;
 const GOOGLE_DRIVE_CLIENT_ID_DEFAULT = '1093130700852-86h3m2vltnqu9v4rqfhucsstggekufdc.apps.googleusercontent.com';
 const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const HISTORY_LIMIT = 120;
@@ -1222,6 +1232,7 @@ let googleIdentityScriptPromise = null;
 let googleDriveCurrentFileId = '';
 let googleDriveCurrentFileName = '';
 let googleDriveKnownFiles = [];
+let recentRiderFiles = [];
 let isLoadRiderPickerOpen = false;
 let isStageBuilderMode = false;
 
@@ -1232,6 +1243,7 @@ let isStageBuilderMode = false;
 function init() {
   loadPanelPrefs();
   loadGoogleDriveSettings();
+  loadRecentRiderFiles();
   loadCustomMicOptions();
   buildCatTabs(); buildPalette('all'); buildSnakePalette(); buildMixerPalette(); buildStageboxPalette(); buildMonitoringPalette(); buildAccessoryPalette(); buildStandPalette();
   buildCableColors();
@@ -1277,6 +1289,8 @@ function init() {
   document.addEventListener('touchend', endTouchPaletteDrag, { passive: false });
   document.addEventListener('touchcancel', endTouchPaletteDrag, { passive: false });
   document.addEventListener('click', handleDocumentClickForMobileMenu);
+  const recentList = document.getElementById('file-open-recent-list');
+  if(recentList) recentList.addEventListener('click', onRecentMenuClick);
   window.addEventListener('beforeunload', e => {
     if(!hasUnsavedChanges) return;
     e.preventDefault();
@@ -1295,6 +1309,7 @@ function init() {
   pushHistoryState();
   updateSnakeViewToggleUI();
   refreshCategoryCollapseButtons();
+  renderRecentMenuItems();
   render();
 }
 
@@ -1346,6 +1361,161 @@ function loadGoogleDriveSettings() {
     googleDriveCurrentFileId = '';
     googleDriveCurrentFileName = '';
   }
+}
+
+function normalizeRecentRiderEntry(raw) {
+  if(!raw || typeof raw !== 'object') return null;
+  const source = raw.source === 'google-drive' ? 'google-drive' : 'local';
+  const fileId = String(raw.fileId || '').trim();
+  const baseName = String(raw.fileName || raw.name || '').trim();
+  const fileName = source === 'google-drive'
+    ? normalizeRiderFileName(baseName || 'untitled')
+    : (baseName || 'Local file');
+  if(source === 'google-drive' && !fileId) return null;
+  return {
+    id: String(raw.id || `${source}:${fileId || fileName}:${Date.now()}`),
+    source,
+    fileId,
+    fileName,
+    updatedAt: Number(raw.updatedAt) || Date.now(),
+  };
+}
+
+function saveRecentRiderFiles() {
+  try {
+    localStorage.setItem(RECENT_RIDER_STORAGE_KEY, JSON.stringify(recentRiderFiles));
+  } catch(_err) {
+    // Ignore storage failures.
+  }
+}
+
+function loadRecentRiderFiles() {
+  try {
+    const raw = localStorage.getItem(RECENT_RIDER_STORAGE_KEY);
+    if(!raw) {
+      recentRiderFiles = [];
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    if(!Array.isArray(parsed)) {
+      recentRiderFiles = [];
+      return;
+    }
+    recentRiderFiles = parsed
+      .map(normalizeRecentRiderEntry)
+      .filter(Boolean)
+      .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
+      .slice(0, RECENT_RIDER_LIMIT);
+  } catch(_err) {
+    recentRiderFiles = [];
+  }
+}
+
+function addRecentRiderFile(entry) {
+  const normalized = normalizeRecentRiderEntry(entry);
+  if(!normalized) return;
+  const key = normalized.source === 'google-drive'
+    ? `google-drive:${normalized.fileId}`
+    : `local:${String(normalized.fileName || '').toLowerCase()}`;
+  recentRiderFiles = recentRiderFiles.filter(item => {
+    const itemKey = item.source === 'google-drive'
+      ? `google-drive:${item.fileId}`
+      : `local:${String(item.fileName || '').toLowerCase()}`;
+    return itemKey !== key;
+  });
+  normalized.updatedAt = Date.now();
+  recentRiderFiles.unshift(normalized);
+  if(recentRiderFiles.length > RECENT_RIDER_LIMIT) recentRiderFiles = recentRiderFiles.slice(0, RECENT_RIDER_LIMIT);
+  saveRecentRiderFiles();
+  renderRecentMenuItems();
+}
+
+function clearRecentRiderFiles() {
+  recentRiderFiles = [];
+  saveRecentRiderFiles();
+  renderRecentMenuItems();
+}
+
+function removeRecentRiderById(entryId) {
+  const targetId = String(entryId || '').trim();
+  if(!targetId) return;
+  const next = recentRiderFiles.filter(item => String(item.id || '') !== targetId);
+  if(next.length === recentRiderFiles.length) return;
+  recentRiderFiles = next;
+  saveRecentRiderFiles();
+  renderRecentMenuItems();
+}
+
+function renderRecentMenuItems() {
+  const list = document.getElementById('file-open-recent-list');
+  if(!list) return;
+  if(!recentRiderFiles.length) {
+    list.innerHTML = '<div style="padding:6px 8px;font-size:11px;color:#7b8693;">No recent files</div>';
+    return;
+  }
+  list.innerHTML = recentRiderFiles.map(item => {
+    const sourceLabel = item.source === 'google-drive' ? 'Google Drive' : 'Local';
+    const sourceBadgeStyle = item.source === 'google-drive'
+      ? 'background:#e6f4ff;color:#0b5c93;border-color:#b6dfff;'
+      : 'background:#f3f4f6;color:#475467;border-color:#d9dde3;';
+    const title = escapeHtml(String(item.fileName || 'Untitled'));
+    return `
+      <button class="btn btn-ghost" type="button" data-recent-id="${escapeHtml(item.id)}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;padding:6px 8px;">
+        <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${title}</span>
+        <span style="font-size:10px;border:1px solid #d0d5dd;border-radius:999px;padding:1px 6px;${sourceBadgeStyle}">${sourceLabel}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+async function openRecentRiderById(entryId) {
+  const targetId = String(entryId || '').trim();
+  if(!targetId) return;
+  const entry = recentRiderFiles.find(item => String(item.id || '') === targetId);
+  if(!entry) {
+    alert('That recent file is no longer available in this list.');
+    return;
+  }
+
+  if(hasUnsavedChanges && !confirm('You have unsaved changes. Opening a recent file will replace the current layout. Continue?')) return;
+
+  if(entry.source === 'google-drive') {
+    try {
+      const token = await ensureGoogleDriveAccess(true);
+      if(!token) return;
+      const loaded = await readRiderFromGoogleDrive(entry.fileId);
+      pushHistoryState();
+      loadRiderFromData(loaded.data);
+      setProjectNameFromFileName(loaded.fileName);
+      riderSaveLocation = 'google-drive';
+      hasRiderSavePreference = true;
+      riderSaveDirHandle = null;
+      riderFileHandle = null;
+      riderLastSavedFileName = normalizeRiderFileName(loaded.fileName || getRiderSaveFileName());
+      googleDriveCurrentFileId = String(loaded.fileId || '');
+      googleDriveCurrentFileName = riderLastSavedFileName;
+      saveGoogleDriveSettings();
+      markClean();
+      addRecentRiderFile({
+        source: 'google-drive',
+        fileId: googleDriveCurrentFileId,
+        fileName: riderLastSavedFileName,
+      });
+      return;
+    } catch(err) {
+      const message = String((err && err.message) || 'Could not open Google Drive file.');
+      if(/not\s*found|insufficient|permission|forbidden/i.test(message)) {
+        removeRecentRiderById(targetId);
+        alert('This Drive file could not be opened (moved, deleted, or no access). It was removed from Recent.');
+      } else {
+        alert(message);
+      }
+      return;
+    }
+  }
+
+  alert('For local files, your browser requires selecting the file again. Pick it in the next dialog.');
+  triggerLoadRider({ skipUnsavedPrompt: true });
 }
 
 function isGoogleDriveConfigured() {
@@ -1587,6 +1757,47 @@ async function listGoogleDriveRiderFiles(searchTerm = '') {
   return googleDriveKnownFiles;
 }
 
+function escapeGoogleDriveQueryValue(value) {
+  return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+async function listGoogleDriveFolderEntries(folderId = 'root', searchTerm = '') {
+  const safeFolderId = String(folderId || 'root').trim() || 'root';
+  const escapedFolderId = escapeGoogleDriveQueryValue(safeFolderId);
+  const baseQuery = [
+    `trashed = false`,
+    `'${escapedFolderId}' in parents`,
+    `(mimeType = 'application/vnd.google-apps.folder' or mimeType = 'application/json')`,
+  ];
+  const cleanedSearch = String(searchTerm || '').trim();
+  if(cleanedSearch) {
+    baseQuery.push(`name contains '${escapeGoogleDriveQueryValue(cleanedSearch)}'`);
+  }
+  const q = encodeURIComponent(baseQuery.join(' and '));
+  const fields = encodeURIComponent('files(id,name,mimeType,modifiedTime,size)');
+  const orderBy = encodeURIComponent('folder,name_natural');
+  const url = `https://www.googleapis.com/drive/v3/files?pageSize=200&q=${q}&fields=${fields}&orderBy=${orderBy}`;
+  const payload = await googleDriveApiRequest(url, { method: 'GET' });
+  const files = Array.isArray(payload && payload.files) ? payload.files : [];
+
+  googleDriveKnownFiles = files.map(file => {
+    const mimeType = String(file.mimeType || '');
+    const name = String(file.name || '');
+    const isFolder = mimeType === 'application/vnd.google-apps.folder';
+    const isJson = mimeType === 'application/json' || /\.json$/i.test(name);
+    return {
+      id: String(file.id || ''),
+      name: isFolder ? name : normalizeRiderFileName(name),
+      modifiedTime: String(file.modifiedTime || ''),
+      size: String(file.size || ''),
+      mimeType,
+      kind: isFolder ? 'folder' : (isJson ? 'file' : 'skip'),
+    };
+  }).filter(item => !!item.id && item.kind !== 'skip');
+
+  return googleDriveKnownFiles;
+}
+
 function formatGoogleDriveFileTimestamp(value) {
   if(!value) return '';
   const date = new Date(value);
@@ -1618,10 +1829,12 @@ async function openGoogleDriveFileDialog(options = {}) {
           <p id="gdrive-file-subtitle">Choose a Drive file.</p>
         </div>
         <div class="report-dialog-body" style="gap:10px;">
-          <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;">
-            <input id="gdrive-file-search" class="pselect" type="text" placeholder="Search files" style="background:#fff;color:#17324f;">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;">
+            <input id="gdrive-file-search" class="pselect" type="text" placeholder="Search current folder" style="background:#fff;color:#17324f;">
+            <button id="gdrive-folder-up" class="report-btn" type="button">Up</button>
             <button id="gdrive-file-refresh" class="report-btn" type="button">Refresh</button>
           </div>
+          <div id="gdrive-file-breadcrumb" style="display:flex;flex-wrap:wrap;gap:6px;min-height:20px;align-items:center;"></div>
           <div id="gdrive-file-status" style="font-size:12px;color:#4f5f73;min-height:18px;"></div>
           <div id="gdrive-file-list" style="max-height:45vh;overflow:auto;border:1px solid #d3dbe6;border-radius:10px;background:#fff;"></div>
         </div>
@@ -1640,49 +1853,88 @@ async function openGoogleDriveFileDialog(options = {}) {
   const title = document.getElementById('gdrive-file-title');
   const subtitle = document.getElementById('gdrive-file-subtitle');
   const searchInput = document.getElementById('gdrive-file-search');
+  const upBtn = document.getElementById('gdrive-folder-up');
   const refreshBtn = document.getElementById('gdrive-file-refresh');
+  const breadcrumbEl = document.getElementById('gdrive-file-breadcrumb');
   const statusEl = document.getElementById('gdrive-file-status');
   const listEl = document.getElementById('gdrive-file-list');
   const newBtn = document.getElementById('gdrive-file-new');
   const cancelBtn = document.getElementById('gdrive-file-cancel');
   const confirmBtn = document.getElementById('gdrive-file-confirm');
-  if(!title || !subtitle || !searchInput || !refreshBtn || !statusEl || !listEl || !newBtn || !cancelBtn || !confirmBtn) {
+  if(!title || !subtitle || !searchInput || !upBtn || !refreshBtn || !breadcrumbEl || !statusEl || !listEl || !newBtn || !cancelBtn || !confirmBtn) {
     return null;
   }
 
   const selection = { fileId: '', fileName: '' };
+  const path = [{ id: 'root', name: 'My Drive' }];
+  let currentFolderId = 'root';
   let active = true;
 
-  const renderRows = files => {
-    if(!files.length) {
-      listEl.innerHTML = '<div style="padding:12px;font-size:12px;color:#6b7280;">No matching Drive rider files found.</div>';
+  const renderBreadcrumb = () => {
+    breadcrumbEl.innerHTML = path.map((item, index) => {
+      const isLast = index === (path.length - 1);
+      if(isLast) {
+        return `<span style="font-size:12px;color:#17324f;font-weight:700;">${escapeHtml(item.name)}</span>`;
+      }
+      return `<button type="button" data-gdrive-path-index="${index}" style="padding:2px 6px;border:1px solid #c9d7e6;border-radius:999px;background:#fff;color:#245a86;font-size:11px;cursor:pointer;">${escapeHtml(item.name)}</button>`;
+    }).join('<span style="color:#8ea1b4;">›</span>');
+    upBtn.disabled = path.length <= 1;
+  };
+
+  const renderRows = entries => {
+    if(!entries.length) {
+      listEl.innerHTML = '<div style="padding:12px;font-size:12px;color:#6b7280;">This folder is empty.</div>';
       return;
     }
-    listEl.innerHTML = files.map(file => {
-      const id = String(file.id || '');
+    listEl.innerHTML = entries.map(entry => {
+      const id = String(entry.id || '');
+      const isFolder = entry.kind === 'folder';
       const checked = selection.fileId && selection.fileId === id ? 'border-color:#0f72a8;background:#eaf6ff;' : '';
-      const when = formatGoogleDriveFileTimestamp(file.modifiedTime);
-      const size = formatGoogleDriveFileSize(file.size);
+      const when = formatGoogleDriveFileTimestamp(entry.modifiedTime);
+      const size = formatGoogleDriveFileSize(entry.size);
+      if(isFolder) {
+        return `
+          <button type="button" data-gdrive-folder-id="${id}" style="display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-bottom:1px solid #ecf0f5;background:#fff;color:#17324f;cursor:pointer;">
+            <div style="font-weight:700;font-size:12px;line-height:1.35;">📁 ${escapeHtml(entry.name || 'Folder')}</div>
+            <div style="font-size:11px;color:#5f6b77;line-height:1.35;">Open folder</div>
+          </button>
+        `;
+      }
       return `
         <button type="button" data-gdrive-file-id="${id}" style="display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-bottom:1px solid #ecf0f5;background:#fff;color:#17324f;cursor:pointer;${checked}">
-          <div style="font-weight:700;font-size:12px;line-height:1.35;">${escapeHtml(file.name || '')}</div>
+          <div style="font-weight:700;font-size:12px;line-height:1.35;">${escapeHtml(entry.name || '')}</div>
           <div style="font-size:11px;color:#5f6b77;line-height:1.35;">${escapeHtml(when)}${when && size ? ' · ' : ''}${escapeHtml(size)}</div>
         </button>
       `;
     }).join('');
   };
 
+  const setCurrentFolder = (folderId, folderName) => {
+    currentFolderId = String(folderId || 'root').trim() || 'root';
+    const existingIndex = path.findIndex(item => item.id === currentFolderId);
+    if(existingIndex >= 0) {
+      path.splice(existingIndex + 1);
+    } else {
+      path.push({ id: currentFolderId, name: String(folderName || 'Folder') });
+    }
+    selection.fileId = '';
+    selection.fileName = '';
+  };
+
   const loadFiles = async () => {
-    statusEl.textContent = 'Loading Drive files...';
+    statusEl.textContent = 'Loading Drive folder...';
     try {
-      const files = await listGoogleDriveRiderFiles(searchInput.value || '');
+      const entries = await listGoogleDriveFolderEntries(currentFolderId, searchInput.value || '');
       if(!active) return;
-      renderRows(files);
-      statusEl.textContent = files.length ? `${files.length} file(s) found` : 'No files found';
+      renderBreadcrumb();
+      renderRows(entries);
+      const folderCount = entries.filter(item => item.kind === 'folder').length;
+      const fileCount = entries.filter(item => item.kind === 'file').length;
+      statusEl.textContent = `${folderCount} folder(s), ${fileCount} file(s)`;
     } catch(err) {
       if(!active) return;
-      listEl.innerHTML = '<div style="padding:12px;font-size:12px;color:#b24b2d;">Could not load files from Drive.</div>';
-      statusEl.textContent = (err && err.message) ? err.message : 'Could not load Drive files.';
+      listEl.innerHTML = '<div style="padding:12px;font-size:12px;color:#b24b2d;">Could not load this Drive folder.</div>';
+      statusEl.textContent = (err && err.message) ? err.message : 'Could not load Drive folder.';
     }
   };
 
@@ -1691,7 +1943,9 @@ async function openGoogleDriveFileDialog(options = {}) {
       active = false;
       overlay.classList.remove('open');
       searchInput.removeEventListener('input', onSearchInput);
+      upBtn.removeEventListener('click', onUpClick);
       refreshBtn.removeEventListener('click', onRefreshClick);
+      breadcrumbEl.removeEventListener('click', onBreadcrumbClick);
       listEl.removeEventListener('click', onListClick);
       confirmBtn.removeEventListener('click', onConfirmClick);
       newBtn.removeEventListener('click', onNewClick);
@@ -1704,14 +1958,41 @@ async function openGoogleDriveFileDialog(options = {}) {
     const onSearchInput = () => {
       loadFiles();
     };
+    const onUpClick = () => {
+      if(path.length <= 1) return;
+      path.pop();
+      currentFolderId = path[path.length - 1].id;
+      selection.fileId = '';
+      selection.fileName = '';
+      loadFiles();
+    };
     const onRefreshClick = () => {
       loadFiles();
     };
+    const onBreadcrumbClick = event => {
+      const btn = event.target && event.target.closest && event.target.closest('[data-gdrive-path-index]');
+      if(!btn) return;
+      const idx = parseInt(btn.getAttribute('data-gdrive-path-index') || '-1', 10);
+      if(Number.isNaN(idx) || idx < 0 || idx >= path.length) return;
+      path.splice(idx + 1);
+      currentFolderId = path[path.length - 1].id;
+      selection.fileId = '';
+      selection.fileName = '';
+      loadFiles();
+    };
     const onListClick = event => {
+      const folderBtn = event.target && event.target.closest && event.target.closest('[data-gdrive-folder-id]');
+      if(folderBtn) {
+        const folderId = String(folderBtn.getAttribute('data-gdrive-folder-id') || '');
+        const foundFolder = googleDriveKnownFiles.find(item => item.id === folderId && item.kind === 'folder');
+        setCurrentFolder(folderId, (foundFolder && foundFolder.name) || 'Folder');
+        loadFiles();
+        return;
+      }
       const btn = event.target && event.target.closest && event.target.closest('[data-gdrive-file-id]');
       if(!btn) return;
       selection.fileId = String(btn.getAttribute('data-gdrive-file-id') || '');
-      const found = googleDriveKnownFiles.find(file => file.id === selection.fileId);
+      const found = googleDriveKnownFiles.find(file => file.id === selection.fileId && file.kind === 'file');
       selection.fileName = normalizeRiderFileName((found && found.name) || defaultFileName);
       renderRows(googleDriveKnownFiles);
     };
@@ -1720,10 +2001,15 @@ async function openGoogleDriveFileDialog(options = {}) {
         alert(mode === 'open' ? 'Select a Google Drive file to open.' : 'Select a file to overwrite, or choose Save New.');
         return;
       }
-      done({ action: mode === 'open' ? 'open' : 'overwrite', fileId: selection.fileId, fileName: normalizeRiderFileName(selection.fileName || defaultFileName) });
+      done({
+        action: mode === 'open' ? 'open' : 'overwrite',
+        fileId: selection.fileId,
+        fileName: normalizeRiderFileName(selection.fileName || defaultFileName),
+        folderId: currentFolderId,
+      });
     };
     const onNewClick = () => {
-      done({ action: 'new', fileId: '', fileName: defaultFileName });
+      done({ action: 'new', fileId: '', fileName: defaultFileName, folderId: currentFolderId });
     };
     const onCancelClick = () => done(null);
     const onOverlayClick = event => {
@@ -1739,16 +2025,19 @@ async function openGoogleDriveFileDialog(options = {}) {
 
     title.textContent = mode === 'open' ? 'Open from Google Drive' : 'Save As to Google Drive';
     subtitle.textContent = mode === 'open'
-      ? 'Select a Stage Rider JSON file from Drive.'
-      : `Select a file to overwrite or save a new file named ${defaultFileName}.`;
+      ? 'Navigate folders and select a Stage Rider JSON file from Drive.'
+      : `Navigate folders, select a file to overwrite, or save a new file named ${defaultFileName}.`;
     confirmBtn.textContent = mode === 'open' ? 'Open' : 'Overwrite Selected';
     newBtn.style.display = mode === 'save-as' ? 'inline-flex' : 'none';
     searchInput.value = '';
     statusEl.textContent = '';
+    renderBreadcrumb();
     listEl.innerHTML = '';
 
     searchInput.addEventListener('input', onSearchInput);
+    upBtn.addEventListener('click', onUpClick);
     refreshBtn.addEventListener('click', onRefreshClick);
+    breadcrumbEl.addEventListener('click', onBreadcrumbClick);
     listEl.addEventListener('click', onListClick);
     confirmBtn.addEventListener('click', onConfirmClick);
     newBtn.addEventListener('click', onNewClick);
@@ -1766,7 +2055,11 @@ async function openGoogleDriveFileDialog(options = {}) {
 async function uploadRiderToGoogleDrive(fileName, data, options = {}) {
   const normalizedName = normalizeRiderFileName(fileName);
   const fileId = String(options.fileId || '').trim();
+  const parentFolderId = String(options.parentFolderId || '').trim();
   const metadata = { name: normalizedName, mimeType: 'application/json' };
+  if(!fileId && parentFolderId && parentFolderId !== 'root') {
+    metadata.parents = [parentFolderId];
+  }
   const boundary = `stageDesignerBoundary${Date.now()}`;
   const body = [
     `--${boundary}`,
@@ -1805,8 +2098,14 @@ async function readRiderFromGoogleDrive(fileId) {
   const metadataUrl = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(safeId)}?fields=id,name,modifiedTime,mimeType`;
   const metadata = await googleDriveApiRequest(metadataUrl, { method: 'GET' });
   const contentUrl = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(safeId)}?alt=media`;
-  const text = await googleDriveApiRequest(contentUrl, { method: 'GET' });
-  const parsed = JSON.parse(String(text || '{}'));
+  const payload = await googleDriveApiRequest(contentUrl, { method: 'GET' });
+  let parsed;
+  if(payload && typeof payload === 'object') {
+    parsed = payload;
+  } else {
+    const text = String(payload || '').trim();
+    parsed = text ? JSON.parse(text) : {};
+  }
   return {
     data: parsed,
     fileId: String((metadata && metadata.id) || safeId),
@@ -1873,10 +2172,16 @@ function closeRiderSaveMenu() {
   const menu = document.getElementById('file-menu');
   if(menu) menu.open = false;
   closeFileOpenFromMenu();
+  closeFileOpenRecentMenu();
 }
 
 function closeFileOpenFromMenu() {
   const menu = document.getElementById('file-open-from-menu');
+  if(menu) menu.open = false;
+}
+
+function closeFileOpenRecentMenu() {
+  const menu = document.getElementById('file-open-recent-menu');
   if(menu) menu.open = false;
 }
 
@@ -1915,6 +2220,11 @@ function syncHeaderMenuState(openMenuId) {
   const riderMenu = document.getElementById('file-menu');
   if(openMenuId === 'layers-menu' && layersMenu && layersMenu.open) closeRiderSaveMenu();
   if(openMenuId === 'file-menu' && riderMenu && riderMenu.open) closeLayersMenu();
+  if(openMenuId === 'file-open-from-menu') closeFileOpenRecentMenu();
+  if(openMenuId === 'file-open-recent-menu') {
+    closeFileOpenFromMenu();
+    renderRecentMenuItems();
+  }
   requestAnimationFrame(updateHeaderMenuPlacement);
 }
 
@@ -1928,6 +2238,12 @@ async function runFileMenuAction(action) {
   closeRiderSaveMenu();
   if(action === 'open-local') {
     triggerLoadRider();
+    return;
+  }
+  if(action === 'clear-recent') {
+    if(!recentRiderFiles.length) return;
+    if(!confirm('Clear all recent files?')) return;
+    clearRecentRiderFiles();
     return;
   }
   if(action === 'open-google-drive') {
@@ -1950,6 +2266,11 @@ async function runFileMenuAction(action) {
       googleDriveCurrentFileName = riderLastSavedFileName;
       saveGoogleDriveSettings();
       markClean();
+      addRecentRiderFile({
+        source: 'google-drive',
+        fileId: googleDriveCurrentFileId,
+        fileName: riderLastSavedFileName,
+      });
     } catch(err) {
       alert((err && err.message) ? err.message : 'Could not open file from Google Drive.');
     }
@@ -1983,6 +2304,14 @@ async function runFileMenuAction(action) {
     runExportAction('pdf');
     return;
   }
+}
+
+function onRecentMenuClick(event) {
+  const btn = event && event.target && event.target.closest ? event.target.closest('[data-recent-id]') : null;
+  if(!btn) return;
+  const entryId = String(btn.getAttribute('data-recent-id') || '').trim();
+  if(!entryId) return;
+  openRecentRiderById(entryId);
 }
 
 function handleDocumentClickForMobileMenu(e) {
@@ -8342,6 +8671,7 @@ async function saveRiderToGoogleDrive(fileName, mode = 'save') {
   const targetName = normalizeRiderFileName(fileName || googleDriveCurrentFileName || getRiderSaveFileName());
   let targetFileId = '';
   let targetFileName = targetName;
+  let targetParentFolderId = '';
 
   if(mode === 'save' && googleDriveCurrentFileId) {
     targetFileId = googleDriveCurrentFileId;
@@ -8354,14 +8684,17 @@ async function saveRiderToGoogleDrive(fileName, mode = 'save') {
     if(selection.action === 'overwrite' && selection.fileId) {
       targetFileId = String(selection.fileId || '');
       targetFileName = normalizeRiderFileName(selection.fileName || targetName);
+      targetParentFolderId = '';
     } else {
       targetFileId = '';
       targetFileName = targetName;
+      targetParentFolderId = String(selection.folderId || '').trim();
     }
   }
 
   const uploaded = await uploadRiderToGoogleDrive(targetFileName, data, {
     fileId: targetFileId,
+    parentFolderId: targetParentFolderId,
   });
 
   riderSaveLocation = 'google-drive';
@@ -8373,6 +8706,11 @@ async function saveRiderToGoogleDrive(fileName, mode = 'save') {
   googleDriveCurrentFileName = riderLastSavedFileName;
   saveGoogleDriveSettings();
   markClean();
+  addRecentRiderFile({
+    source: 'google-drive',
+    fileId: googleDriveCurrentFileId,
+    fileName: riderLastSavedFileName,
+  });
 }
 
 async function saveRiderToLocalTarget(fileName, mode = 'save') {
@@ -8383,6 +8721,7 @@ async function saveRiderToLocalTarget(fileName, mode = 'save') {
       const overwrite = !!riderLastSavedFileName && normalizeRiderFileName(riderLastSavedFileName) === targetName;
       await writeRiderToDirectory(riderSaveDirHandle, data, targetName, { overwrite });
       markClean();
+      addRecentRiderFile({ source: 'local', fileName: targetName });
       return;
     }
 
@@ -8390,6 +8729,7 @@ async function saveRiderToLocalTarget(fileName, mode = 'save') {
       await writeRiderToHandle(riderFileHandle, data);
       riderLastSavedFileName = targetName;
       markClean();
+      addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName });
       return;
     }
 
@@ -8399,6 +8739,7 @@ async function saveRiderToLocalTarget(fileName, mode = 'save') {
       riderSaveDirHandle = directoryHandle;
       await writeRiderToDirectory(directoryHandle, data, targetName, { overwrite: true });
       markClean();
+      addRecentRiderFile({ source: 'local', fileName: targetName });
       return;
     }
 
@@ -8417,6 +8758,7 @@ async function saveRiderToLocalTarget(fileName, mode = 'save') {
       await writeRiderToHandle(handle, data);
       riderLastSavedFileName = normalizeRiderFileName(handle.name || targetName);
       markClean();
+      addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName });
       return;
     }
   } catch(err) {
@@ -8425,6 +8767,7 @@ async function saveRiderToLocalTarget(fileName, mode = 'save') {
 
   saveRiderByDownload(data, targetName);
   markClean();
+  addRecentRiderFile({ source: 'local', fileName: targetName });
 }
 
 async function saveRiderFromFileMenu(forcePrompt) {
@@ -8482,9 +8825,10 @@ async function saveRiderAs() {
   await saveRiderFromFileMenu(true);
 }
 
-function triggerLoadRider() {
+function triggerLoadRider(options = {}) {
+  const skipUnsavedPrompt = !!(options && options.skipUnsavedPrompt);
   if(isLoadRiderPickerOpen) return;
-  if(hasUnsavedChanges && !confirm('You have unsaved changes. Loading a rider will replace the current layout. Continue?')) return;
+  if(!skipUnsavedPrompt && hasUnsavedChanges && !confirm('You have unsaved changes. Loading a rider will replace the current layout. Continue?')) return;
 
   if(supportsFileSystemLoad()) {
     (async () => {
@@ -8510,6 +8854,7 @@ function triggerLoadRider() {
         riderSaveLocation = 'local';
         hasRiderSavePreference = true;
         markClean();
+        addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName });
       } catch(err) {
         if(err && err.name === 'AbortError') return;
         alert('Could not load rider file. Please select a valid JSON rider.');
@@ -8549,6 +8894,7 @@ function handleLoadRiderFile(e) {
       loadRiderFromData(data);
       setProjectNameFromFileName(file.name);
       markClean();
+      addRecentRiderFile({ source: 'local', fileName: normalizeRiderFileName(file.name) });
     } catch (err) {
       alert('Could not load rider file. Please select a valid JSON rider.');
     }
