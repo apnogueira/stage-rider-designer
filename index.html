@@ -91,14 +91,21 @@ header{display:flex;align-items:center;gap:10px;padding:7px 14px;background:var(
 .logo span{color:var(--muted);}
 header .sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
 .header-btns{display:flex;gap:5px;}
-.quick-left-toggle{display:flex;gap:5px;}
 .header-menu-popover{display:flex;align-items:center;gap:8px;}
 .header-menu-group{position:relative;}
 .header-menu-trigger{list-style:none;}
 .header-menu-trigger::-webkit-details-marker{display:none;}
-.header-submenu{position:absolute;top:calc(100% + 6px);right:0;min-width:170px;display:none;flex-direction:column;gap:4px;padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.24);z-index:220;}
+.header-submenu{position:absolute;top:calc(100% + 6px);left:0;right:auto;min-width:170px;display:none;flex-direction:column;gap:4px;padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.24);z-index:220;}
 .header-menu-group[open] .header-submenu{display:flex;}
 .header-submenu .btn{width:100%;text-align:left;}
+.header-submenu-divider{height:1px;background:var(--border);margin:4px 2px;}
+.header-submenu-details{position:relative;}
+.header-submenu-details > summary.btn{width:100%;text-align:left;list-style:none;}
+.header-submenu-details > summary.btn::-webkit-details-marker{display:none;}
+.header-submenu-nested{position:absolute;top:0;left:calc(100% + 6px);right:auto;min-width:170px;display:none;flex-direction:column;gap:4px;padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.24);z-index:230;}
+.header-submenu-details[open] .header-submenu-nested{display:flex;}
+.header-submenu.open-left{left:auto;right:0;}
+.header-submenu-nested.open-left{left:auto;right:calc(100% + 6px);}
 .mode-builder-only{display:none;}
 body.stage-builder-mode .mode-live-only{display:none !important;}
 body.stage-builder-mode .mode-builder-only{display:block;}
@@ -107,7 +114,7 @@ body.stage-builder-mode .si{display:none !important;}
 .mobile-only{display:none !important;}
 .mobile-menu-btn{display:none;width:30px;height:30px;padding:0;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:16px;line-height:1;cursor:pointer;align-items:center;justify-content:center;}
 .mobile-menu-btn:hover{border-color:var(--accent2);color:var(--accent2);}
-.project-name-wrap{display:flex;align-items:center;gap:6px;margin-left:auto;}
+.project-name-wrap{display:flex;align-items:center;gap:6px;}
 .project-name-label{font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;letter-spacing:.8px;white-space:nowrap;}
 .project-name-input{width:190px;max-width:32vw;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--text);font-size:11px;font-family:'Share Tech Mono',monospace;outline:none;}
 .project-name-input:focus{border-color:var(--accent2);}
@@ -118,17 +125,25 @@ body.stage-builder-mode .si{display:none !important;}
 .btn-primary:hover{background:#d4e83d;}
 .btn-danger{background:transparent;border:1px solid var(--accent3);color:var(--accent3);}
 .btn-danger:hover{background:var(--accent3);color:#fff;}
+.mode-toggle-active{border-color:var(--accent2) !important;color:var(--accent2) !important;background:rgba(71,196,255,.12) !important;}
 .zoom-controls{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;}
 .zoom-btn{width:20px;height:20px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;cursor:pointer;line-height:1;}
 .zoom-btn:hover{border-color:var(--accent2);color:var(--accent2);}
 .zoom-range{width:90px;accent-color:var(--accent2);}
 .zoom-value{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent2);width:40px;text-align:right;}
+.header-menu-popover{order:1;}
+.project-name-wrap{order:2;}
+.zoom-controls{order:3;margin-left:auto;}
+.mobile-menu-btn{order:4;}
 /* LAYOUT */
 .workspace{display:flex;flex:1;overflow:hidden;}
-.workspace.left-collapsed .sidebar{display:none;}
+.workspace.left-collapsed .sidebar{display:flex;width:12px;min-width:12px;background:transparent;border-right:none;overflow:visible;}
+.workspace.left-collapsed .sidebar .ss{display:none;}
 .workspace.right-collapsed .rpanel{display:none;}
 /* SIDEBAR */
-.sidebar{width:208px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.sidebar{width:208px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;overflow-x:visible;position:relative;}
+.sidebar-collapse-handle{position:absolute;top:8px;right:-12px;width:24px;height:28px;border:1px solid var(--border);border-left:none;border-radius:0 8px 8px 0;background:var(--surface);color:var(--accent2);font-family:'Share Tech Mono',monospace;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:40;box-shadow:0 6px 14px rgba(0,0,0,.2);}
+.sidebar-collapse-handle:hover{border-color:var(--accent2);color:#fff;background:rgba(71,196,255,.18);}
 .ss{padding:9px 10px;border-bottom:1px solid var(--border);}
 .drop-delete-zone{transition:background .12s,border-color .12s,box-shadow .12s;}
 .drop-delete-zone.delete-target-active{box-shadow:inset 0 0 0 2px rgba(255,107,71,.45);background:linear-gradient(180deg, rgba(255,107,71,.12), rgba(255,107,71,.02));}
@@ -313,6 +328,7 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
 .stage-part.shape-circle{border-radius:50%;}
 .stage-part.has-steps::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(to bottom, rgba(10,11,13,.22) 0 2px, rgba(10,11,13,0) 2px 7px),linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.06));pointer-events:none;}
 .stage-part .part-label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:'Share Tech Mono',monospace;font-size:9px;padding:2px 5px;background:rgba(10,11,13,.42);color:#f5f7fb;border-radius:3px;pointer-events:none;white-space:nowrap;opacity:.82;}
+.stage-part.is-built-in-stairs{cursor:default;pointer-events:none;box-shadow:0 2px 10px rgba(0,0,0,.18);}
 body:not(.stage-builder-mode) .stage-part{pointer-events:none;}
 body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgba(10,11,13,.28);color:rgba(255,255,255,.82);} 
 .report-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;background:rgba(5,8,16,.68);backdrop-filter:blur(4px);padding:18px;}
@@ -447,18 +463,6 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
     display: none;
   }
 
-  .quick-left-toggle {
-    order: 1;
-    width: auto;
-    flex: 0 0 auto;
-  }
-
-  .quick-left-toggle .btn {
-    width: auto;
-    padding: 5px 8px;
-    font-size: 10px;
-  }
-
   .project-name-wrap {
     order: 2;
     width: auto;
@@ -483,6 +487,7 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
     order: 3;
     width: auto;
     flex: 0 0 auto;
+    margin-left: auto;
     gap: 4px;
     padding: 2px 5px;
   }
@@ -563,6 +568,17 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
     box-shadow: none;
   }
 
+  .header-menu-popover .header-submenu-details {
+    width: 100%;
+  }
+
+  .header-menu-popover .header-submenu-nested {
+    position: static;
+    min-width: 0;
+    margin-top: 6px;
+    box-shadow: none;
+  }
+
   .workspace {
     display: grid;
     grid-template-columns: 112px 1fr;
@@ -574,10 +590,10 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
   }
 
   .workspace.left-collapsed {
-    grid-template-columns: 1fr;
+    grid-template-columns: 12px 1fr;
     grid-template-areas:
-      'stage'
-      'rpanel';
+      'sidebar stage'
+      'sidebar rpanel';
     grid-template-rows: 64dvh auto;
   }
 
@@ -637,29 +653,28 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
 </head>
 <body>
 <header>
-  <div class="logo">STAGE<span>/</span>MAP</div>
-  <div class="sep"></div>
-  <button id="mobile-menu-btn" class="mobile-menu-btn" type="button" onclick="toggleMobileMenu()" aria-label="Open menu" aria-expanded="false">☰</button>
-  <div class="zoom-controls" title="Stage zoom">
-    <button class="zoom-btn" onclick="changeZoom(-0.1)">-</button>
-    <input id="zoom-range" class="zoom-range" type="range" min="50" max="220" step="5" value="100" oninput="setZoom(this.value/100)">
-    <button class="zoom-btn" onclick="changeZoom(0.1)">+</button>
-    <button class="zoom-btn" style="width:auto;padding:0 5px;font-size:10px;" onclick="resetZoom()">1:1</button>
-    <span id="zoom-value" class="zoom-value">100%</span>
-  </div>
-  <button id="mode-toggle-btn" class="btn btn-ghost" type="button" onclick="toggleStageBuilderMode()">Stage Builder: OFF</button>
-  <div class="quick-left-toggle">
-    <button id="toggle-left-panel" class="btn btn-ghost" type="button" onclick="togglePanel('left')">Hide Left</button>
-  </div>
-  <div class="project-name-wrap">
-    <label class="project-name-label" for="project-name">Project</label>
-    <input id="project-name" class="project-name-input" type="text" value="untitled-project" oninput="updateProjectName(this.value)">
-  </div>
   <div id="header-menu-popover" class="header-menu-popover">
     <div class="header-btns">
-      <button id="mode-toggle-mobile" class="btn btn-ghost mobile-only" type="button" onclick="toggleStageBuilderMode()">Stage Builder: OFF</button>
-      <button class="btn btn-ghost" onclick="undoAction()">Undo</button>
-      <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+      <details id="file-menu" class="header-menu-group" ontoggle="syncHeaderMenuState('file-menu')">
+        <summary class="btn btn-ghost header-menu-trigger">File</summary>
+        <div class="header-submenu" role="menu" aria-label="File menu">
+          <details id="file-open-from-menu" class="header-submenu-details" ontoggle="syncHeaderMenuState('file-open-from-menu')">
+            <summary class="btn btn-ghost header-menu-trigger">Open from</summary>
+            <div class="header-submenu header-submenu-nested" role="menu" aria-label="Open from">
+              <button class="btn btn-ghost" type="button" onclick="runFileMenuAction('open-local')">Local</button>
+              <button class="btn btn-ghost" type="button" onclick="runFileMenuAction('open-google-drive')">Google Drive</button>
+            </div>
+          </details>
+          <button class="btn btn-ghost" type="button" onclick="runFileMenuAction('save')">Save</button>
+          <button class="btn btn-ghost" type="button" onclick="runFileMenuAction('save-as')">Save As</button>
+          <div class="header-submenu-divider" aria-hidden="true"></div>
+          <button class="btn btn-ghost" type="button" onclick="runFileMenuAction('undo')">Undo</button>
+          <button class="btn btn-ghost" type="button" onclick="runFileMenuAction('clear')">Clear</button>
+          <div class="header-submenu-divider" aria-hidden="true"></div>
+          <button class="btn btn-ghost" type="button" onclick="runFileMenuAction('export-png')">Export PNG</button>
+          <button class="btn btn-primary" type="button" onclick="runFileMenuAction('export-pdf')">Export PDF</button>
+        </div>
+      </details>
       <details id="layers-menu" class="header-menu-group" ontoggle="syncHeaderMenuState('layers-menu')">
         <summary class="btn btn-ghost header-menu-trigger">Layers</summary>
         <div class="header-submenu" role="menu" aria-label="Layer actions">
@@ -669,18 +684,20 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
           <button class="btn btn-ghost" type="button" onclick="layerAction('back')">Send to Back</button>
         </div>
       </details>
-      <details id="rider-save-menu" class="header-menu-group" ontoggle="syncHeaderMenuState('rider-save-menu')">
-        <summary class="btn btn-ghost header-menu-trigger">Save/Load</summary>
-        <div class="header-submenu" role="menu" aria-label="Save and load menu">
-          <button class="btn btn-ghost" type="button" onclick="runRiderMenuAction('load')">Load</button>
-          <button class="btn btn-ghost" type="button" onclick="runRiderMenuAction('save')">Save</button>
-          <button class="btn btn-ghost" type="button" onclick="runRiderMenuAction('save-as')">Save As</button>
-        </div>
-      </details>
-      <button class="btn btn-ghost" type="button" onclick="runExportAction('png')">Export PNG</button>
-      <button class="btn btn-primary" type="button" onclick="runExportAction('pdf')">Export PDF</button>
+      <button id="mode-toggle-mobile" class="btn btn-ghost mobile-only" type="button" onclick="toggleStageBuilderMode()">Stage Builder: OFF</button>
     </div>
   </div>
+  <div class="project-name-wrap">
+    <label class="project-name-label" for="project-name">Project</label>
+    <input id="project-name" class="project-name-input" type="text" value="untitled-project" oninput="updateProjectName(this.value)">
+  </div>
+  <div class="zoom-controls" title="Stage zoom">
+    <button class="zoom-btn" onclick="changeZoom(-0.1)">-</button>
+    <input id="zoom-range" class="zoom-range" type="range" min="50" max="220" step="5" value="100" oninput="setZoom(this.value/100)">
+    <button class="zoom-btn" onclick="changeZoom(0.1)">+</button>
+    <span id="zoom-value" class="zoom-value">100%</span>
+  </div>
+  <button id="mobile-menu-btn" class="mobile-menu-btn" type="button" onclick="toggleMobileMenu()" aria-label="Open menu" aria-expanded="false">☰</button>
 </header>
 
 <input id="rider-file" type="file" accept="application/json,.json" style="display:none;">
@@ -688,9 +705,10 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
 <div class="workspace" id="workspace-root">
   <!-- LEFT -->
   <div class="sidebar drop-delete-zone" id="delete-sidebar-zone">
+    <button id="toggle-left-panel" class="sidebar-collapse-handle" type="button" onclick="togglePanel('left')" aria-label="Collapse left sidebar" title="Collapse sidebar">❮</button>
     <div class="ss">
-      <div class="st">Stage Dimensions</div>
-      <div style="font-size:10px;color:var(--muted);line-height:1.55;">Main stage size and steps are now edited in Stage Builder mode from shape properties.</div>
+      <div class="st">Stage Options</div>
+      <button id="mode-toggle-sidebar" class="btn btn-ghost" type="button" onclick="toggleStageBuilderMode()" style="width:100%;margin-bottom:7px;">Stage Builder: OFF</button>
       <input id="dim-w" type="hidden" value="7.5">
       <input id="dim-d" type="hidden" value="4.4">
       <input id="stage-stairs-toggle" type="hidden" value="1">
@@ -1178,6 +1196,9 @@ let copiedSelection = null;
 let copiedSelectionPasteCount = 0;
 const RIDER_FILE_EXTENSION = '.rider.json';
 const PANEL_PREF_STORAGE_KEY = 'stageDesigner.panelPrefs.v1';
+const GOOGLE_DRIVE_SETTINGS_STORAGE_KEY = 'stageDesigner.googleDrive.v1';
+const GOOGLE_DRIVE_CLIENT_ID_DEFAULT = '1093130700852-86h3m2vltnqu9v4rqfhucsstggekufdc.apps.googleusercontent.com';
+const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const HISTORY_LIMIT = 120;
 let historyStack = [];
 let redoStack = [];
@@ -1191,6 +1212,16 @@ let isRightPanelCollapsed = false;
 let riderFileHandle = null;
 let riderSaveDirHandle = null;
 let riderLastSavedFileName = '';
+let riderSaveLocation = 'local';
+let hasRiderSavePreference = false;
+let googleDriveClientId = '';
+let googleDriveAccessToken = '';
+let googleDriveTokenExpiryTs = 0;
+let googleDriveTokenClient = null;
+let googleIdentityScriptPromise = null;
+let googleDriveCurrentFileId = '';
+let googleDriveCurrentFileName = '';
+let googleDriveKnownFiles = [];
 let isLoadRiderPickerOpen = false;
 let isStageBuilderMode = false;
 
@@ -1200,12 +1231,15 @@ let isStageBuilderMode = false;
 
 function init() {
   loadPanelPrefs();
+  loadGoogleDriveSettings();
   loadCustomMicOptions();
   buildCatTabs(); buildPalette('all'); buildSnakePalette(); buildMixerPalette(); buildStageboxPalette(); buildMonitoringPalette(); buildAccessoryPalette(); buildStandPalette();
   buildCableColors();
   applyThemeMode();
   applyStageColor();
   syncRackVisualScale();
+  ensureDefaultMainStagePart(stagePx);
+  ensureDefaultStageStairsPart(stagePx);
   resizeCanvas(); updateStage(true);
   window.addEventListener('resize', () => {
     if(window.innerWidth > 860) closeMobileMenu();
@@ -1287,6 +1321,499 @@ function loadPanelPrefs() {
   }
 }
 
+function saveGoogleDriveSettings() {
+  try {
+    localStorage.setItem(GOOGLE_DRIVE_SETTINGS_STORAGE_KEY, JSON.stringify({
+      clientId: String(googleDriveClientId || '').trim(),
+      currentFileId: String(googleDriveCurrentFileId || '').trim(),
+      currentFileName: String(googleDriveCurrentFileName || '').trim(),
+    }));
+  } catch(_err) {
+    // Ignore storage failures.
+  }
+}
+
+function loadGoogleDriveSettings() {
+  try {
+    const raw = localStorage.getItem(GOOGLE_DRIVE_SETTINGS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    const fromStorage = String((parsed && parsed.clientId) || '').trim();
+    googleDriveClientId = fromStorage || String(GOOGLE_DRIVE_CLIENT_ID_DEFAULT || '').trim();
+    googleDriveCurrentFileId = String((parsed && parsed.currentFileId) || '').trim();
+    googleDriveCurrentFileName = normalizeRiderFileName((parsed && parsed.currentFileName) || '');
+  } catch(_err) {
+    googleDriveClientId = String(GOOGLE_DRIVE_CLIENT_ID_DEFAULT || '').trim();
+    googleDriveCurrentFileId = '';
+    googleDriveCurrentFileName = '';
+  }
+}
+
+function isGoogleDriveConfigured() {
+  return !!String(googleDriveClientId || '').trim();
+}
+
+function resetGoogleDriveSession() {
+  googleDriveAccessToken = '';
+  googleDriveTokenExpiryTs = 0;
+  googleDriveTokenClient = null;
+}
+
+async function openGoogleDriveSettingsDialog() {
+  return await new Promise(resolve => {
+    let overlay = document.getElementById('gdrive-settings-modal');
+    if(!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'gdrive-settings-modal';
+      overlay.className = 'report-modal';
+      overlay.innerHTML = `
+        <div class="report-dialog" role="dialog" aria-modal="true" aria-labelledby="gdrive-settings-title" style="max-width:620px;">
+          <div class="report-dialog-header">
+            <h2 id="gdrive-settings-title">Google Drive Settings</h2>
+            <p>Set your OAuth Web Client ID once for this app/session environment.</p>
+          </div>
+          <div class="report-dialog-body">
+            <label style="display:grid;gap:6px;">
+              <span style="font-size:12px;color:#4f5f73;font-weight:600;">OAuth Client ID</span>
+              <input id="gdrive-client-id" class="pselect" type="text" placeholder="YOUR_CLIENT_ID.apps.googleusercontent.com" style="background:#fff;color:#17324f;">
+            </label>
+            <div style="font-size:12px;color:#4f5f73;line-height:1.45;">
+              This value is public-safe in browser apps. Do not paste a client secret here.
+            </div>
+          </div>
+          <div class="report-dialog-actions" style="justify-content:space-between;">
+            <button id="gdrive-settings-clear" class="report-btn" type="button">Clear Drive Link</button>
+            <div style="display:flex;gap:8px;">
+              <button id="gdrive-settings-cancel" class="report-btn" type="button">Cancel</button>
+              <button id="gdrive-settings-save" class="report-btn primary" type="button">Save</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+
+    const input = document.getElementById('gdrive-client-id');
+    const clearBtn = document.getElementById('gdrive-settings-clear');
+    const cancelBtn = document.getElementById('gdrive-settings-cancel');
+    const saveBtn = document.getElementById('gdrive-settings-save');
+    if(!input || !clearBtn || !cancelBtn || !saveBtn) {
+      resolve(false);
+      return;
+    }
+
+    const done = result => {
+      overlay.classList.remove('open');
+      clearBtn.removeEventListener('click', onClear);
+      cancelBtn.removeEventListener('click', onCancel);
+      saveBtn.removeEventListener('click', onSave);
+      overlay.removeEventListener('click', onOverlayClick);
+      document.removeEventListener('keydown', onKeyDown);
+      resolve(result);
+    };
+
+    const onClear = () => {
+      googleDriveCurrentFileId = '';
+      googleDriveCurrentFileName = '';
+      riderSaveLocation = 'local';
+      hasRiderSavePreference = true;
+      saveGoogleDriveSettings();
+      done(true);
+    };
+    const onCancel = () => done(false);
+    const onSave = () => {
+      const next = String(input.value || '').trim();
+      if(!next) {
+        alert('Enter a valid OAuth Client ID.');
+        return;
+      }
+      googleDriveClientId = next;
+      resetGoogleDriveSession();
+      saveGoogleDriveSettings();
+      done(true);
+    };
+    const onOverlayClick = e => {
+      if(e.target === overlay) done(false);
+    };
+    const onKeyDown = e => {
+      if(!overlay.classList.contains('open')) return;
+      if(e.key === 'Escape') {
+        e.preventDefault();
+        done(false);
+      }
+    };
+
+    input.value = String(googleDriveClientId || '').trim();
+    clearBtn.addEventListener('click', onClear);
+    cancelBtn.addEventListener('click', onCancel);
+    saveBtn.addEventListener('click', onSave);
+    overlay.addEventListener('click', onOverlayClick);
+    document.addEventListener('keydown', onKeyDown);
+    overlay.classList.add('open');
+    setTimeout(() => {
+      input.focus();
+      input.select();
+    }, 0);
+  });
+}
+
+async function ensureGoogleIdentityScript() {
+  if(window.google && window.google.accounts && window.google.accounts.oauth2) return;
+  if(googleIdentityScriptPromise) {
+    await googleIdentityScriptPromise;
+    return;
+  }
+  googleIdentityScriptPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Could not load Google Identity Services script.'));
+    document.head.appendChild(script);
+  });
+  await googleIdentityScriptPromise;
+}
+
+async function requestGoogleDriveToken(interactive = true) {
+  if(!isGoogleDriveConfigured()) {
+    if(!interactive) return null;
+    const ok = await openGoogleDriveSettingsDialog();
+    if(!ok) return null;
+  }
+
+  await ensureGoogleIdentityScript();
+  if(!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
+    throw new Error('Google Identity Services is unavailable.');
+  }
+
+  if(!googleDriveTokenClient) {
+    googleDriveTokenClient = window.google.accounts.oauth2.initTokenClient({
+      client_id: googleDriveClientId,
+      scope: GOOGLE_DRIVE_SCOPE,
+      callback: () => {},
+      error_callback: () => {},
+    });
+  }
+
+  return await new Promise((resolve, reject) => {
+    googleDriveTokenClient.callback = response => {
+      if(response && response.error) {
+        reject(new Error(response.error_description || response.error || 'Google auth failed.'));
+        return;
+      }
+      googleDriveAccessToken = String(response.access_token || '').trim();
+      const expiresIn = Math.max(60, parseInt(response.expires_in, 10) || 3600);
+      googleDriveTokenExpiryTs = Date.now() + (expiresIn * 1000);
+      resolve(googleDriveAccessToken || null);
+    };
+    googleDriveTokenClient.error_callback = error => {
+      reject(new Error((error && (error.message || error.type)) || 'Google auth request failed.'));
+    };
+    googleDriveTokenClient.requestAccessToken({ prompt: interactive ? 'consent' : '' });
+  });
+}
+
+async function ensureGoogleDriveAccess(interactive = true) {
+  const safetyWindowMs = 60 * 1000;
+  if(googleDriveAccessToken && Date.now() < (googleDriveTokenExpiryTs - safetyWindowMs)) {
+    return googleDriveAccessToken;
+  }
+  return await requestGoogleDriveToken(interactive);
+}
+
+async function googleDriveApiRequest(url, options = {}) {
+  const interactive = options.interactive !== false;
+  const token = await ensureGoogleDriveAccess(interactive);
+  if(!token) return null;
+
+  const headers = Object.assign({}, options.headers || {}, {
+    Authorization: `Bearer ${token}`,
+  });
+  const requestInit = Object.assign({}, options, { headers });
+  let res = await fetch(url, requestInit);
+
+  if((res.status === 401 || res.status === 403) && interactive) {
+    googleDriveAccessToken = '';
+    googleDriveTokenExpiryTs = 0;
+    const refreshed = await ensureGoogleDriveAccess(true);
+    if(!refreshed) return null;
+    const retryHeaders = Object.assign({}, options.headers || {}, {
+      Authorization: `Bearer ${refreshed}`,
+    });
+    res = await fetch(url, Object.assign({}, options, { headers: retryHeaders }));
+  }
+
+  if(!res.ok) {
+    let message = `Google Drive request failed (${res.status}).`;
+    try {
+      const payload = await res.json();
+      const apiMessage = payload && payload.error && payload.error.message;
+      if(apiMessage) message = apiMessage;
+    } catch(_err) {
+      // Keep default message.
+    }
+    throw new Error(message);
+  }
+
+  if(res.status === 204) return null;
+  const contentType = String(res.headers.get('content-type') || '').toLowerCase();
+  if(contentType.includes('application/json')) return await res.json();
+  return await res.text();
+}
+
+async function listGoogleDriveRiderFiles(searchTerm = '') {
+  const baseQuery = [
+    `trashed = false`,
+    `mimeType = 'application/json'`,
+    `name contains '${RIDER_FILE_EXTENSION}'`,
+  ];
+  const cleanedSearch = String(searchTerm || '').trim().replace(/'/g, "\\'");
+  if(cleanedSearch) {
+    baseQuery.push(`name contains '${cleanedSearch}'`);
+  }
+  const q = encodeURIComponent(baseQuery.join(' and '));
+  const fields = encodeURIComponent('files(id,name,modifiedTime,size,webViewLink)');
+  const orderBy = encodeURIComponent('modifiedTime desc');
+  const url = `https://www.googleapis.com/drive/v3/files?pageSize=50&q=${q}&fields=${fields}&orderBy=${orderBy}`;
+  const payload = await googleDriveApiRequest(url, { method: 'GET' });
+  const files = Array.isArray(payload && payload.files) ? payload.files : [];
+  googleDriveKnownFiles = files.map(file => ({
+    id: String(file.id || ''),
+    name: normalizeRiderFileName(file.name || ''),
+    modifiedTime: String(file.modifiedTime || ''),
+    size: String(file.size || ''),
+    webViewLink: String(file.webViewLink || ''),
+  })).filter(file => !!file.id);
+  return googleDriveKnownFiles;
+}
+
+function formatGoogleDriveFileTimestamp(value) {
+  if(!value) return '';
+  const date = new Date(value);
+  if(Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString();
+}
+
+function formatGoogleDriveFileSize(value) {
+  const num = Number(value);
+  if(!Number.isFinite(num) || num <= 0) return '';
+  if(num < 1024) return `${num} B`;
+  if(num < 1024 * 1024) return `${(num / 1024).toFixed(1)} KB`;
+  return `${(num / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+async function openGoogleDriveFileDialog(options = {}) {
+  const mode = options.mode === 'save-as' ? 'save-as' : 'open';
+  const defaultFileName = normalizeRiderFileName(options.defaultFileName || getRiderSaveFileName());
+
+  let overlay = document.getElementById('gdrive-file-modal');
+  if(!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'gdrive-file-modal';
+    overlay.className = 'report-modal';
+    overlay.innerHTML = `
+      <div class="report-dialog" role="dialog" aria-modal="true" aria-labelledby="gdrive-file-title" style="max-width:760px;">
+        <div class="report-dialog-header">
+          <h2 id="gdrive-file-title">Google Drive</h2>
+          <p id="gdrive-file-subtitle">Choose a Drive file.</p>
+        </div>
+        <div class="report-dialog-body" style="gap:10px;">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;">
+            <input id="gdrive-file-search" class="pselect" type="text" placeholder="Search files" style="background:#fff;color:#17324f;">
+            <button id="gdrive-file-refresh" class="report-btn" type="button">Refresh</button>
+          </div>
+          <div id="gdrive-file-status" style="font-size:12px;color:#4f5f73;min-height:18px;"></div>
+          <div id="gdrive-file-list" style="max-height:45vh;overflow:auto;border:1px solid #d3dbe6;border-radius:10px;background:#fff;"></div>
+        </div>
+        <div class="report-dialog-actions" style="display:flex;justify-content:space-between;align-items:center;">
+          <button id="gdrive-file-new" class="report-btn" type="button">Save New</button>
+          <div style="display:flex;gap:8px;">
+            <button id="gdrive-file-cancel" class="report-btn" type="button">Cancel</button>
+            <button id="gdrive-file-confirm" class="report-btn primary" type="button">Open</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  }
+
+  const title = document.getElementById('gdrive-file-title');
+  const subtitle = document.getElementById('gdrive-file-subtitle');
+  const searchInput = document.getElementById('gdrive-file-search');
+  const refreshBtn = document.getElementById('gdrive-file-refresh');
+  const statusEl = document.getElementById('gdrive-file-status');
+  const listEl = document.getElementById('gdrive-file-list');
+  const newBtn = document.getElementById('gdrive-file-new');
+  const cancelBtn = document.getElementById('gdrive-file-cancel');
+  const confirmBtn = document.getElementById('gdrive-file-confirm');
+  if(!title || !subtitle || !searchInput || !refreshBtn || !statusEl || !listEl || !newBtn || !cancelBtn || !confirmBtn) {
+    return null;
+  }
+
+  const selection = { fileId: '', fileName: '' };
+  let active = true;
+
+  const renderRows = files => {
+    if(!files.length) {
+      listEl.innerHTML = '<div style="padding:12px;font-size:12px;color:#6b7280;">No matching Drive rider files found.</div>';
+      return;
+    }
+    listEl.innerHTML = files.map(file => {
+      const id = String(file.id || '');
+      const checked = selection.fileId && selection.fileId === id ? 'border-color:#0f72a8;background:#eaf6ff;' : '';
+      const when = formatGoogleDriveFileTimestamp(file.modifiedTime);
+      const size = formatGoogleDriveFileSize(file.size);
+      return `
+        <button type="button" data-gdrive-file-id="${id}" style="display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-bottom:1px solid #ecf0f5;background:#fff;color:#17324f;cursor:pointer;${checked}">
+          <div style="font-weight:700;font-size:12px;line-height:1.35;">${escapeHtml(file.name || '')}</div>
+          <div style="font-size:11px;color:#5f6b77;line-height:1.35;">${escapeHtml(when)}${when && size ? ' · ' : ''}${escapeHtml(size)}</div>
+        </button>
+      `;
+    }).join('');
+  };
+
+  const loadFiles = async () => {
+    statusEl.textContent = 'Loading Drive files...';
+    try {
+      const files = await listGoogleDriveRiderFiles(searchInput.value || '');
+      if(!active) return;
+      renderRows(files);
+      statusEl.textContent = files.length ? `${files.length} file(s) found` : 'No files found';
+    } catch(err) {
+      if(!active) return;
+      listEl.innerHTML = '<div style="padding:12px;font-size:12px;color:#b24b2d;">Could not load files from Drive.</div>';
+      statusEl.textContent = (err && err.message) ? err.message : 'Could not load Drive files.';
+    }
+  };
+
+  return await new Promise(resolve => {
+    const done = result => {
+      active = false;
+      overlay.classList.remove('open');
+      searchInput.removeEventListener('input', onSearchInput);
+      refreshBtn.removeEventListener('click', onRefreshClick);
+      listEl.removeEventListener('click', onListClick);
+      confirmBtn.removeEventListener('click', onConfirmClick);
+      newBtn.removeEventListener('click', onNewClick);
+      cancelBtn.removeEventListener('click', onCancelClick);
+      overlay.removeEventListener('click', onOverlayClick);
+      document.removeEventListener('keydown', onKeyDown);
+      resolve(result);
+    };
+
+    const onSearchInput = () => {
+      loadFiles();
+    };
+    const onRefreshClick = () => {
+      loadFiles();
+    };
+    const onListClick = event => {
+      const btn = event.target && event.target.closest && event.target.closest('[data-gdrive-file-id]');
+      if(!btn) return;
+      selection.fileId = String(btn.getAttribute('data-gdrive-file-id') || '');
+      const found = googleDriveKnownFiles.find(file => file.id === selection.fileId);
+      selection.fileName = normalizeRiderFileName((found && found.name) || defaultFileName);
+      renderRows(googleDriveKnownFiles);
+    };
+    const onConfirmClick = () => {
+      if(!selection.fileId) {
+        alert(mode === 'open' ? 'Select a Google Drive file to open.' : 'Select a file to overwrite, or choose Save New.');
+        return;
+      }
+      done({ action: mode === 'open' ? 'open' : 'overwrite', fileId: selection.fileId, fileName: normalizeRiderFileName(selection.fileName || defaultFileName) });
+    };
+    const onNewClick = () => {
+      done({ action: 'new', fileId: '', fileName: defaultFileName });
+    };
+    const onCancelClick = () => done(null);
+    const onOverlayClick = event => {
+      if(event.target === overlay) done(null);
+    };
+    const onKeyDown = event => {
+      if(!overlay.classList.contains('open')) return;
+      if(event.key === 'Escape') {
+        event.preventDefault();
+        done(null);
+      }
+    };
+
+    title.textContent = mode === 'open' ? 'Open from Google Drive' : 'Save As to Google Drive';
+    subtitle.textContent = mode === 'open'
+      ? 'Select a Stage Rider JSON file from Drive.'
+      : `Select a file to overwrite or save a new file named ${defaultFileName}.`;
+    confirmBtn.textContent = mode === 'open' ? 'Open' : 'Overwrite Selected';
+    newBtn.style.display = mode === 'save-as' ? 'inline-flex' : 'none';
+    searchInput.value = '';
+    statusEl.textContent = '';
+    listEl.innerHTML = '';
+
+    searchInput.addEventListener('input', onSearchInput);
+    refreshBtn.addEventListener('click', onRefreshClick);
+    listEl.addEventListener('click', onListClick);
+    confirmBtn.addEventListener('click', onConfirmClick);
+    newBtn.addEventListener('click', onNewClick);
+    cancelBtn.addEventListener('click', onCancelClick);
+    overlay.addEventListener('click', onOverlayClick);
+    document.addEventListener('keydown', onKeyDown);
+    overlay.classList.add('open');
+    setTimeout(() => {
+      searchInput.focus();
+    }, 0);
+    loadFiles();
+  });
+}
+
+async function uploadRiderToGoogleDrive(fileName, data, options = {}) {
+  const normalizedName = normalizeRiderFileName(fileName);
+  const fileId = String(options.fileId || '').trim();
+  const metadata = { name: normalizedName, mimeType: 'application/json' };
+  const boundary = `stageDesignerBoundary${Date.now()}`;
+  const body = [
+    `--${boundary}`,
+    'Content-Type: application/json; charset=UTF-8',
+    '',
+    JSON.stringify(metadata),
+    `--${boundary}`,
+    'Content-Type: application/json; charset=UTF-8',
+    '',
+    JSON.stringify(data, null, 2),
+    `--${boundary}--`,
+  ].join('\r\n');
+
+  const uploadUrl = fileId
+    ? `https://www.googleapis.com/upload/drive/v3/files/${encodeURIComponent(fileId)}?uploadType=multipart&fields=id,name,modifiedTime`
+    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,modifiedTime';
+  const method = fileId ? 'PATCH' : 'POST';
+
+  const payload = await googleDriveApiRequest(uploadUrl, {
+    method,
+    headers: {
+      'Content-Type': `multipart/related; boundary=${boundary}`,
+    },
+    body,
+  });
+
+  return {
+    id: String((payload && payload.id) || fileId || ''),
+    name: normalizeRiderFileName((payload && payload.name) || normalizedName),
+  };
+}
+
+async function readRiderFromGoogleDrive(fileId) {
+  const safeId = String(fileId || '').trim();
+  if(!safeId) throw new Error('Missing Google Drive file id.');
+  const metadataUrl = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(safeId)}?fields=id,name,modifiedTime,mimeType`;
+  const metadata = await googleDriveApiRequest(metadataUrl, { method: 'GET' });
+  const contentUrl = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(safeId)}?alt=media`;
+  const text = await googleDriveApiRequest(contentUrl, { method: 'GET' });
+  const parsed = JSON.parse(String(text || '{}'));
+  return {
+    data: parsed,
+    fileId: String((metadata && metadata.id) || safeId),
+    fileName: normalizeRiderFileName((metadata && metadata.name) || getRiderSaveFileName()),
+  };
+}
+
 function applyPanelVisibility() {
   const workspace = document.getElementById('workspace-root');
   isRightPanelCollapsed = false;
@@ -1296,7 +1823,11 @@ function applyPanelVisibility() {
   }
 
   const leftBtn = document.getElementById('toggle-left-panel');
-  if(leftBtn) leftBtn.textContent = isLeftPanelCollapsed ? '->' : '<-';
+  if(leftBtn) {
+    leftBtn.textContent = isLeftPanelCollapsed ? '❯' : '❮';
+    leftBtn.setAttribute('aria-label', isLeftPanelCollapsed ? 'Expand left sidebar' : 'Collapse left sidebar');
+    leftBtn.setAttribute('title', isLeftPanelCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
+  }
 
   resizeCanvas();
   updateStage(true);
@@ -1339,7 +1870,13 @@ function closeExportMenu() {
 }
 
 function closeRiderSaveMenu() {
-  const menu = document.getElementById('rider-save-menu');
+  const menu = document.getElementById('file-menu');
+  if(menu) menu.open = false;
+  closeFileOpenFromMenu();
+}
+
+function closeFileOpenFromMenu() {
+  const menu = document.getElementById('file-open-from-menu');
   if(menu) menu.open = false;
 }
 
@@ -1348,24 +1885,104 @@ function closeLayersMenu() {
   if(menu) menu.open = false;
 }
 
+function updateHeaderMenuPlacement() {
+  const viewportPad = 8;
+  const submenus = Array.from(document.querySelectorAll('.header-menu-group[open] > .header-submenu'));
+  submenus.forEach(menu => {
+    menu.classList.remove('open-left');
+    const rect = menu.getBoundingClientRect();
+    if(rect.right > (window.innerWidth - viewportPad)) {
+      menu.classList.add('open-left');
+    }
+  });
+
+  const nestedMenus = Array.from(document.querySelectorAll('.header-submenu-details[open] > .header-submenu-nested'));
+  nestedMenus.forEach(menu => {
+    menu.classList.remove('open-left');
+    const rect = menu.getBoundingClientRect();
+    if(rect.right > (window.innerWidth - viewportPad)) {
+      menu.classList.add('open-left');
+    }
+    const nextRect = menu.getBoundingClientRect();
+    if(nextRect.left < viewportPad) {
+      menu.classList.remove('open-left');
+    }
+  });
+}
+
 function syncHeaderMenuState(openMenuId) {
   const layersMenu = document.getElementById('layers-menu');
-  const riderMenu = document.getElementById('rider-save-menu');
+  const riderMenu = document.getElementById('file-menu');
   if(openMenuId === 'layers-menu' && layersMenu && layersMenu.open) closeRiderSaveMenu();
-  if(openMenuId === 'rider-save-menu' && riderMenu && riderMenu.open) closeLayersMenu();
+  if(openMenuId === 'file-menu' && riderMenu && riderMenu.open) closeLayersMenu();
+  requestAnimationFrame(updateHeaderMenuPlacement);
 }
 
 function runRiderMenuAction(action) {
+  if(action === 'load') return runFileMenuAction('open-local');
+  if(action === 'save-as') return runFileMenuAction('save-as');
+  return runFileMenuAction('save');
+}
+
+async function runFileMenuAction(action) {
   closeRiderSaveMenu();
-  if(action === 'load') {
+  if(action === 'open-local') {
     triggerLoadRider();
     return;
   }
-  if(action === 'save-as') {
-    saveRiderAs();
+  if(action === 'open-google-drive') {
+    if(hasUnsavedChanges && !confirm('You have unsaved changes. Opening from Google Drive will replace the current layout. Continue?')) return;
+    try {
+      const token = await ensureGoogleDriveAccess(true);
+      if(!token) return;
+      const choice = await openGoogleDriveFileDialog({ mode: 'open' });
+      if(!choice || choice.action !== 'open' || !choice.fileId) return;
+      const loaded = await readRiderFromGoogleDrive(choice.fileId);
+      pushHistoryState();
+      loadRiderFromData(loaded.data);
+      setProjectNameFromFileName(loaded.fileName);
+      riderSaveLocation = 'google-drive';
+      hasRiderSavePreference = true;
+      riderSaveDirHandle = null;
+      riderFileHandle = null;
+      riderLastSavedFileName = normalizeRiderFileName(loaded.fileName || getRiderSaveFileName());
+      googleDriveCurrentFileId = String(loaded.fileId || '');
+      googleDriveCurrentFileName = riderLastSavedFileName;
+      saveGoogleDriveSettings();
+      markClean();
+    } catch(err) {
+      alert((err && err.message) ? err.message : 'Could not open file from Google Drive.');
+    }
     return;
   }
-  saveRider();
+  if(action === 'save') {
+    saveRiderFromFileMenu(false);
+    return;
+  }
+  if(action === 'save-as') {
+    saveRiderFromFileMenu(true);
+    return;
+  }
+  if(action === 'google-drive-settings') {
+    await openGoogleDriveSettingsDialog();
+    return;
+  }
+  if(action === 'undo') {
+    undoAction();
+    return;
+  }
+  if(action === 'clear') {
+    clearAll();
+    return;
+  }
+  if(action === 'export-png') {
+    runExportAction('png');
+    return;
+  }
+  if(action === 'export-pdf') {
+    runExportAction('pdf');
+    return;
+  }
 }
 
 function handleDocumentClickForMobileMenu(e) {
@@ -1378,9 +1995,13 @@ function handleDocumentClickForMobileMenu(e) {
   }
   const exportMenu = document.getElementById('export-menu');
   if(exportMenu && exportMenu.open && !exportMenu.contains(t)) closeExportMenu();
-  const riderMenu = document.getElementById('rider-save-menu');
+  const riderMenu = document.getElementById('file-menu');
   if(riderMenu && riderMenu.open && !riderMenu.contains(t)) closeRiderSaveMenu();
 }
+
+window.addEventListener('resize', () => {
+  requestAnimationFrame(updateHeaderMenuPlacement);
+});
 
 function getModeHintText() {
   if(isStageBuilderMode) return 'Stage Builder: add shapes, drag to position, and edit size/color on the right panel';
@@ -1409,9 +2030,51 @@ function ensureDefaultMainStagePart(frame = stagePx) {
     widthM: Math.max(2, Math.min(80, Number(stageW) || 7.5)),
     depthM: Math.max(2, Math.min(50, Number(stageD) || 4.4)),
     color: /^#[0-9a-fA-F]{6}$/.test(String(stageColor || '')) ? stageColor : DEFAULT_STAGE_COLOR,
-    hasSteps: !!showStageStairs,
+    hasSteps: false,
   };
   stageParts.unshift(part);
+  return part;
+}
+
+function ensureDefaultStageStairsPart(frame = stagePx) {
+  if(!showMainStage) return null;
+  const f = normalizeStageFrame(frame);
+  if(!f) return null;
+  let part = stageParts.find(p => String(p.label || '').trim().toUpperCase() === 'STAIRS' && p.shape === 'rect');
+  const stairsWidthM = 2;
+  const stairsDepthM = 0.75;
+  const widthPx = Math.min(f.width, stairsWidthM * pxPerM);
+  const depthPx = Math.min(f.height, stairsDepthM * pxPerM);
+  const x = f.left + ((f.width - widthPx) / 2);
+  const y = f.top + f.height - depthPx;
+  if(!part) {
+    part = {
+      id: ++stagePartIdCounter,
+      shape: 'rect',
+      isPrimary: false,
+      label: 'STAIRS',
+      x,
+      y,
+      stageNX: (x - f.left) / f.width,
+      stageNY: (y - f.top) / f.height,
+      widthM: stairsWidthM,
+      depthM: stairsDepthM,
+      color: '#d8a35a',
+      hasSteps: true,
+    };
+    const primaryIndex = stageParts.findIndex(p => !!p.isPrimary);
+    if(primaryIndex >= 0) stageParts.splice(primaryIndex + 1, 0, part);
+    else stageParts.unshift(part);
+    return part;
+  }
+  part.x = x;
+  part.y = y;
+  part.stageNX = (x - f.left) / f.width;
+  part.stageNY = (y - f.top) / f.height;
+  part.widthM = stairsWidthM;
+  part.depthM = stairsDepthM;
+  part.color = '#d8a35a';
+  part.hasSteps = true;
   return part;
 }
 
@@ -1425,7 +2088,7 @@ function syncPrimaryPartFromStageSettings(part, frame = stagePx) {
   part.widthM = Math.max(2, Math.min(80, Number(stageW) || 7.5));
   part.depthM = Math.max(2, Math.min(50, Number(stageD) || 4.4));
   part.color = /^#[0-9a-fA-F]{6}$/.test(String(stageColor || '')) ? stageColor : DEFAULT_STAGE_COLOR;
-  part.hasSteps = !!showStageStairs;
+  part.hasSteps = false;
   part.x = f.left;
   part.y = f.top;
   part.stageNX = 0;
@@ -1437,18 +2100,19 @@ function syncStageSettingsFromPrimaryPart(part) {
   stageW = Math.max(2, Math.min(80, parseFloat(part.widthM) || stageW || 7.5));
   stageD = Math.max(2, Math.min(50, parseFloat(part.depthM) || stageD || 4.4));
   if(/^#[0-9a-fA-F]{6}$/.test(String(part.color || ''))) stageColor = part.color;
-  showStageStairs = !!part.hasSteps;
+  showStageStairs = false;
 }
 
 function updateModeToggleButton() {
   const labels = isStageBuilderMode ? 'Stage Builder: ON' : 'Stage Builder: OFF';
-  const ids = ['mode-toggle-btn', 'mode-toggle-mobile'];
+  const ids = ['mode-toggle-sidebar', 'mode-toggle-mobile'];
   ids.forEach(id => {
     const btn = document.getElementById(id);
     if(!btn) return;
     btn.textContent = labels;
-    btn.classList.toggle('btn-primary', isStageBuilderMode);
-    btn.classList.toggle('btn-ghost', !isStageBuilderMode);
+    btn.classList.add('btn-ghost');
+    btn.classList.remove('btn-primary');
+    btn.classList.toggle('mode-toggle-active', isStageBuilderMode);
   });
 }
 
@@ -2009,7 +2673,7 @@ function handleKeyboardShortcuts(e) {
 
   if(key === 's') {
     e.preventDefault();
-    runRiderMenuAction('save');
+    runFileMenuAction('save');
     return;
   }
 
@@ -2482,6 +3146,16 @@ function setProjectNameFromFileName(fileName) {
 
 function getRiderSaveFileName() {
   return sanitizeProjectName(projectName) + RIDER_FILE_EXTENSION;
+}
+
+function getProjectNameFromRiderFileName(fileName) {
+  let withoutExt = normalizeRiderFileName(fileName || getRiderSaveFileName());
+  if(withoutExt.toLowerCase().endsWith(RIDER_FILE_EXTENSION.toLowerCase())) {
+    withoutExt = withoutExt.slice(0, -RIDER_FILE_EXTENSION.length);
+  } else {
+    withoutExt = withoutExt.replace(/\.[^.]+$/, '');
+  }
+  return withoutExt || 'untitled-project';
 }
 
 function normalizeSnakeChannels(value) {
@@ -3578,7 +4252,7 @@ function applySnapshot(snapshot, keepCleanState) {
   projectName = snapshot.projectName || 'untitled-project';
   stageW = snapshot.stageW;
   stageD = snapshot.stageD;
-  showStageStairs = !!snapshot.showStageStairs;
+  showStageStairs = false;
   showMainStage = snapshot.showMainStage !== false;
   showStageGrid = snapshot.showStageGrid !== false;
   themeMode = snapshot.themeMode === 'dark' ? 'dark' : DEFAULT_THEME_MODE;
@@ -3592,6 +4266,7 @@ function applySnapshot(snapshot, keepCleanState) {
     const fallbackPrimary = ensureDefaultMainStagePart(stagePx);
     if(fallbackPrimary) fallbackPrimary.label = 'WORK STAGE';
   }
+  ensureDefaultStageStairsPart(stagePx);
   normalizeAllSnakeConnectionPins();
   selectedId = snapshot.selectedId || null;
   selectedStagePartId = snapshot.selectedStagePartId || null;
@@ -3927,6 +4602,7 @@ function updateStage(skipDirty) {
   if(primaryPart) {
     syncPrimaryPartFromStageSettings(primaryPart, stagePx);
   }
+  ensureDefaultStageStairsPart(stagePx);
   syncAllInstrumentsWorldFromStageNorm(stagePx);
   syncAllStagePartsWorldFromNorm(stagePx);
   syncAllConnectionsRouteWorldFromNorm(stagePx);
@@ -7460,6 +8136,8 @@ function clearAll() {
   const stairsToggle = document.getElementById('stage-stairs-toggle');
   if(stairsToggle) stairsToggle.checked = false;
   applyStageStairs();
+  ensureDefaultMainStagePart(stagePx);
+  ensureDefaultStageStairsPart(stagePx);
   updateSelectionPanels();
   updateSnakeViewToggleUI();
   refreshCategoryCollapseButtons();
@@ -7558,69 +8236,186 @@ async function writeRiderToHandle(handle, data) {
   await writable.close();
 }
 
-function saveRiderByDownload(data) {
-  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = getRiderSaveFileName();
-  a.click();
-  URL.revokeObjectURL(url);
+function openSaveTargetDialog(options = {}) {
+  const mode = options.mode === 'save-as' ? 'save-as' : 'save';
+  const defaultName = normalizeRiderFileName(options.fileName || getRiderSaveFileName());
+  const defaultLocation = options.location === 'google-drive' ? 'google-drive' : 'local';
+
+  return new Promise(resolve => {
+    let overlay = document.getElementById('save-target-modal');
+    if(!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'save-target-modal';
+      overlay.className = 'report-modal';
+      overlay.innerHTML = `
+        <div class="report-dialog" role="dialog" aria-modal="true" aria-labelledby="save-target-title" style="max-width:520px;">
+          <div class="report-dialog-header">
+            <h2 id="save-target-title">Save Project</h2>
+            <p>Confirm file name and where to save.</p>
+          </div>
+          <div class="report-dialog-body">
+            <div style="display:grid;gap:12px;">
+              <label style="display:grid;gap:6px;">
+                <span style="font-size:12px;color:#4f5f73;font-weight:600;">File name</span>
+                <input id="save-target-name" class="pselect" type="text" style="background:#fff;color:#17324f;">
+              </label>
+              <label style="display:grid;gap:6px;">
+                <span style="font-size:12px;color:#4f5f73;font-weight:600;">Location</span>
+                <select id="save-target-location" class="pselect" style="background:#fff;color:#17324f;">
+                  <option value="local">Local</option>
+                  <option value="google-drive">Google Drive</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <div class="report-dialog-actions">
+            <button id="save-target-cancel" class="report-btn" type="button">Cancel</button>
+            <button id="save-target-confirm" class="report-btn primary" type="button">Save</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+
+    const title = document.getElementById('save-target-title');
+    const nameInput = document.getElementById('save-target-name');
+    const locationSelect = document.getElementById('save-target-location');
+    const cancelBtn = document.getElementById('save-target-cancel');
+    const confirmBtn = document.getElementById('save-target-confirm');
+    if(!title || !nameInput || !locationSelect || !cancelBtn || !confirmBtn) {
+      resolve(null);
+      return;
+    }
+
+    const done = result => {
+      overlay.classList.remove('open');
+      cancelBtn.removeEventListener('click', onCancel);
+      confirmBtn.removeEventListener('click', onConfirm);
+      overlay.removeEventListener('click', onOverlayClick);
+      document.removeEventListener('keydown', onKeyDown);
+      resolve(result);
+    };
+
+    const onCancel = () => done(null);
+    const onConfirm = () => {
+      const fileName = normalizeRiderFileName(nameInput.value || defaultName);
+      const location = locationSelect.value === 'google-drive' ? 'google-drive' : 'local';
+      done({ mode, fileName, location });
+    };
+    const onOverlayClick = e => {
+      if(e.target === overlay) done(null);
+    };
+    const onKeyDown = e => {
+      if(!overlay.classList.contains('open')) return;
+      if(e.key === 'Escape') {
+        e.preventDefault();
+        done(null);
+        return;
+      }
+      if(e.key === 'Enter') {
+        e.preventDefault();
+        onConfirm();
+      }
+    };
+
+    title.textContent = mode === 'save-as' ? 'Save Project As' : 'Save Project';
+    confirmBtn.textContent = mode === 'save-as' ? 'Save As' : 'Save';
+    nameInput.value = defaultName;
+    locationSelect.value = defaultLocation;
+    cancelBtn.addEventListener('click', onCancel);
+    confirmBtn.addEventListener('click', onConfirm);
+    overlay.addEventListener('click', onOverlayClick);
+    document.addEventListener('keydown', onKeyDown);
+    overlay.classList.add('open');
+    setTimeout(() => {
+      nameInput.focus();
+      nameInput.select();
+    }, 0);
+  });
 }
 
-async function saveRider() {
-  const data = serializeLayout();
-  try {
-    const targetName = getRiderSaveFileName();
+async function saveRiderToGoogleDrive(fileName, mode = 'save') {
+  const token = await ensureGoogleDriveAccess(true);
+  if(!token) return;
 
-    if(riderSaveDirHandle && supportsFileSystemDirectory()) {
-      const overwrite = !!riderLastSavedFileName && normalizeRiderFileName(riderLastSavedFileName) === normalizeRiderFileName(targetName);
+  const data = serializeLayout();
+  const targetName = normalizeRiderFileName(fileName || googleDriveCurrentFileName || getRiderSaveFileName());
+  let targetFileId = '';
+  let targetFileName = targetName;
+
+  if(mode === 'save' && googleDriveCurrentFileId) {
+    targetFileId = googleDriveCurrentFileId;
+    targetFileName = normalizeRiderFileName(googleDriveCurrentFileName || targetName);
+  }
+
+  if(mode === 'save-as') {
+    const selection = await openGoogleDriveFileDialog({ mode: 'save-as', defaultFileName: targetName });
+    if(!selection) return;
+    if(selection.action === 'overwrite' && selection.fileId) {
+      targetFileId = String(selection.fileId || '');
+      targetFileName = normalizeRiderFileName(selection.fileName || targetName);
+    } else {
+      targetFileId = '';
+      targetFileName = targetName;
+    }
+  }
+
+  const uploaded = await uploadRiderToGoogleDrive(targetFileName, data, {
+    fileId: targetFileId,
+  });
+
+  riderSaveLocation = 'google-drive';
+  hasRiderSavePreference = true;
+  riderSaveDirHandle = null;
+  riderFileHandle = null;
+  riderLastSavedFileName = normalizeRiderFileName(uploaded.name || targetFileName);
+  googleDriveCurrentFileId = String(uploaded.id || targetFileId || '');
+  googleDriveCurrentFileName = riderLastSavedFileName;
+  saveGoogleDriveSettings();
+  markClean();
+}
+
+async function saveRiderToLocalTarget(fileName, mode = 'save') {
+  const data = serializeLayout();
+  const targetName = normalizeRiderFileName(fileName || getRiderSaveFileName());
+  try {
+    if(mode === 'save' && riderSaveDirHandle && supportsFileSystemDirectory()) {
+      const overwrite = !!riderLastSavedFileName && normalizeRiderFileName(riderLastSavedFileName) === targetName;
       await writeRiderToDirectory(riderSaveDirHandle, data, targetName, { overwrite });
       markClean();
       return;
     }
 
-    if(riderFileHandle) {
-      if(normalizeRiderFileName(riderFileHandle.name || '') === normalizeRiderFileName(targetName)) {
-        await writeRiderToHandle(riderFileHandle, data);
-        riderLastSavedFileName = normalizeRiderFileName(targetName);
-        markClean();
-        return;
-      }
-      await saveRiderAs();
+    if(mode === 'save' && riderFileHandle && normalizeRiderFileName(riderFileHandle.name || '') === targetName) {
+      await writeRiderToHandle(riderFileHandle, data);
+      riderLastSavedFileName = targetName;
+      markClean();
       return;
     }
 
-    await saveRiderAs();
-    return;
-  } catch(err) {
-    if(err && err.name === 'AbortError') return;
-    // Permissions/API write failures fall back to download save.
-  }
-  saveRiderByDownload(data);
-  markClean();
-}
-
-async function saveRiderAs() {
-  const data = serializeLayout();
-  try {
     if(supportsFileSystemDirectory()) {
       const directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
       if(!directoryHandle) return;
-      const suggested = getRiderSaveFileName();
-      const entered = prompt('Save As filename', suggested);
-      if(entered == null) return;
-      const chosenName = normalizeRiderFileName(entered || suggested);
       riderSaveDirHandle = directoryHandle;
-      await writeRiderToDirectory(directoryHandle, data, chosenName, { overwrite: true });
+      await writeRiderToDirectory(directoryHandle, data, targetName, { overwrite: true });
       markClean();
       return;
     }
 
-    const handle = await ensureRiderSaveHandle();
-    if(handle) {
+    const pickerOpts = {
+      suggestedName: targetName,
+      types: [{
+        description: 'Stage Rider JSON',
+        accept: { 'application/json': ['.json'] },
+      }],
+    };
+    if(supportsFileSystemSave()) {
+      const handle = await window.showSaveFilePicker(pickerOpts);
+      if(!handle) return;
+      riderFileHandle = handle;
+      riderSaveDirHandle = null;
       await writeRiderToHandle(handle, data);
-      riderLastSavedFileName = normalizeRiderFileName(handle.name || getRiderSaveFileName());
+      riderLastSavedFileName = normalizeRiderFileName(handle.name || targetName);
       markClean();
       return;
     }
@@ -7628,8 +8423,63 @@ async function saveRiderAs() {
     if(err && err.name === 'AbortError') return;
   }
 
-  saveRiderByDownload(data);
+  saveRiderByDownload(data, targetName);
   markClean();
+}
+
+async function saveRiderFromFileMenu(forcePrompt) {
+  const drivePreferred = riderSaveLocation === 'google-drive' ? googleDriveCurrentFileName : '';
+  const preferredName = riderLastSavedFileName || drivePreferred || getRiderSaveFileName();
+  try {
+    if(!forcePrompt && hasRiderSavePreference) {
+      projectName = getProjectNameFromRiderFileName(preferredName);
+      updateProjectNameUI();
+      if(riderSaveLocation === 'google-drive') {
+        await saveRiderToGoogleDrive(preferredName, 'save');
+        return;
+      }
+      await saveRiderToLocalTarget(preferredName, 'save');
+      return;
+    }
+
+    const choice = await openSaveTargetDialog({
+      mode: forcePrompt ? 'save-as' : 'save',
+      fileName: preferredName,
+      location: riderSaveLocation,
+    });
+    if(!choice) return;
+
+    projectName = getProjectNameFromRiderFileName(choice.fileName);
+    updateProjectNameUI();
+    riderSaveLocation = choice.location;
+    hasRiderSavePreference = true;
+
+    if(choice.location === 'google-drive') {
+      await saveRiderToGoogleDrive(choice.fileName, choice.mode);
+      return;
+    }
+    await saveRiderToLocalTarget(choice.fileName, choice.mode);
+  } catch(err) {
+    alert((err && err.message) ? err.message : 'Could not save rider file.');
+  }
+}
+
+function saveRiderByDownload(data, fileName = getRiderSaveFileName()) {
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = normalizeRiderFileName(fileName);
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function saveRider() {
+  await saveRiderFromFileMenu(false);
+}
+
+async function saveRiderAs() {
+  await saveRiderFromFileMenu(true);
 }
 
 function triggerLoadRider() {
@@ -7657,6 +8507,8 @@ function triggerLoadRider() {
         riderSaveDirHandle = null;
         riderFileHandle = handle;
         riderLastSavedFileName = normalizeRiderFileName(file.name);
+        riderSaveLocation = 'local';
+        hasRiderSavePreference = true;
         markClean();
       } catch(err) {
         if(err && err.name === 'AbortError') return;
@@ -7687,6 +8539,8 @@ function handleLoadRiderFile(e) {
   riderSaveDirHandle = null;
   riderFileHandle = null;
   riderLastSavedFileName = '';
+  riderSaveLocation = 'local';
+  hasRiderSavePreference = true;
   pushHistoryState();
   const reader = new FileReader();
   reader.onload = () => {
@@ -7728,7 +8582,7 @@ function loadRiderFromData(data) {
 
   stageW = Math.max(2, Math.min(80, parseFloat(stage.widthM) || 7.5));
   stageD = Math.max(2, Math.min(50, parseFloat(stage.depthM) || 4.4));
-  showStageStairs = !!stage.showStairs;
+  showStageStairs = false;
   themeMode = stage.themeMode === 'dark' ? 'dark' : DEFAULT_THEME_MODE;
   stageColor = /^#[0-9a-fA-F]{6}$/.test(String(stage.color || '')) ? stage.color : DEFAULT_STAGE_COLOR;
   document.getElementById('dim-w').value = stageW;
@@ -7869,9 +8723,10 @@ function loadRiderFromData(data) {
       defaultPrimary.widthM = stageW;
       defaultPrimary.depthM = stageD;
       defaultPrimary.color = stageColor;
-      defaultPrimary.hasSteps = showStageStairs;
+      defaultPrimary.hasSteps = false;
     }
   }
+  ensureDefaultStageStairsPart(stagePx);
 
   const maxInstrId = instruments.reduce((m, i) => Math.max(m, i.id), 0);
   const maxConnId = connections.reduce((m, c) => Math.max(m, c.id), 0);
