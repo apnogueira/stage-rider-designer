@@ -10795,7 +10795,7 @@ function openReportWindow(reportOptions = {}, autoPrint = false) {
     win = reportPreviewWindow;
   } else {
     // Reuse a named window to avoid spawning locked popups and keep main editor interactive.
-    win = window.open('', 'stage_ryder_report_window');
+    win = window.open('', 'stage_rider_report_window');
     reportPreviewWindow = win || null;
   }
   if(!win) {

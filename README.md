@@ -1,6 +1,6 @@
-# Stage Ryder Designer
+# Stage Rider Designer
 
-Stage Ryder Designer is a browser-based stage plotting, audio patching, and reporting tool for live production planning.
+Stage Rider Designer is a browser-based stage plotting, audio patching, and reporting tool for live production planning.
 
 It is designed to be practical for real-world stage and monitor workflows: quick visual layout, fast pin-to-pin routing, mix console and snake mapping, and production-ready reports.
 
