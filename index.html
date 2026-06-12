@@ -1955,11 +1955,7 @@ async function openGoogleDrivePickerDialog(options = {}) {
 }
 
 async function openGoogleDriveFileDialog(options = {}) {
-  try {
-    return await openGoogleDrivePickerDialog(options);
-  } catch(err) {
-    return await openGoogleDriveFileDialogLegacy(options);
-  }
+  return await openGoogleDriveFileDialogLegacy(options);
 }
 
 async function openGoogleDriveFileDialogLegacy(options = {}) {
@@ -1978,8 +1974,9 @@ async function openGoogleDriveFileDialogLegacy(options = {}) {
           <p id="gdrive-file-subtitle">Choose a Drive file.</p>
         </div>
         <div class="report-dialog-body" style="gap:10px;">
-          <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;align-items:center;">
             <input id="gdrive-file-search" class="pselect" type="text" placeholder="Search current folder" style="background:#fff;color:#17324f;">
+            <button id="gdrive-file-browse" class="report-btn" type="button">Browse</button>
             <button id="gdrive-folder-up" class="report-btn" type="button">Up</button>
             <button id="gdrive-file-refresh" class="report-btn" type="button">Refresh</button>
           </div>
@@ -2002,6 +1999,7 @@ async function openGoogleDriveFileDialogLegacy(options = {}) {
   const title = document.getElementById('gdrive-file-title');
   const subtitle = document.getElementById('gdrive-file-subtitle');
   const searchInput = document.getElementById('gdrive-file-search');
+  const browseBtn = document.getElementById('gdrive-file-browse');
   const upBtn = document.getElementById('gdrive-folder-up');
   const refreshBtn = document.getElementById('gdrive-file-refresh');
   const breadcrumbEl = document.getElementById('gdrive-file-breadcrumb');
@@ -2010,7 +2008,7 @@ async function openGoogleDriveFileDialogLegacy(options = {}) {
   const newBtn = document.getElementById('gdrive-file-new');
   const cancelBtn = document.getElementById('gdrive-file-cancel');
   const confirmBtn = document.getElementById('gdrive-file-confirm');
-  if(!title || !subtitle || !searchInput || !upBtn || !refreshBtn || !breadcrumbEl || !statusEl || !listEl || !newBtn || !cancelBtn || !confirmBtn) {
+  if(!title || !subtitle || !searchInput || !browseBtn || !upBtn || !refreshBtn || !breadcrumbEl || !statusEl || !listEl || !newBtn || !cancelBtn || !confirmBtn) {
     return null;
   }
 
@@ -2092,6 +2090,7 @@ async function openGoogleDriveFileDialogLegacy(options = {}) {
       active = false;
       overlay.classList.remove('open');
       searchInput.removeEventListener('input', onSearchInput);
+      browseBtn.removeEventListener('click', onBrowseClick);
       upBtn.removeEventListener('click', onUpClick);
       refreshBtn.removeEventListener('click', onRefreshClick);
       breadcrumbEl.removeEventListener('click', onBreadcrumbClick);
@@ -2106,6 +2105,15 @@ async function openGoogleDriveFileDialogLegacy(options = {}) {
 
     const onSearchInput = () => {
       loadFiles();
+    };
+    const onBrowseClick = async () => {
+      try {
+        const picked = await openGoogleDrivePickerDialog({ mode, defaultFileName });
+        if(!picked) return;
+        done(picked);
+      } catch(err) {
+        alert((err && err.message) ? err.message : 'Could not open Google Drive picker.');
+      }
     };
     const onUpClick = () => {
       if(path.length <= 1) return;
@@ -2184,6 +2192,7 @@ async function openGoogleDriveFileDialogLegacy(options = {}) {
     listEl.innerHTML = '';
 
     searchInput.addEventListener('input', onSearchInput);
+    browseBtn.addEventListener('click', onBrowseClick);
     upBtn.addEventListener('click', onUpClick);
     refreshBtn.addEventListener('click', onRefreshClick);
     breadcrumbEl.addEventListener('click', onBreadcrumbClick);
