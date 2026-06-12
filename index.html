@@ -1974,10 +1974,9 @@ async function openGoogleDriveFileDialogLegacy(options = {}) {
           <p id="gdrive-file-subtitle">Choose a Drive file.</p>
         </div>
         <div class="report-dialog-body" style="gap:10px;">
-          <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;align-items:center;">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;">
             <input id="gdrive-file-search" class="pselect" type="text" placeholder="Search current folder" style="background:#fff;color:#17324f;">
             <button id="gdrive-file-browse" class="report-btn" type="button">Browse</button>
-            <button id="gdrive-folder-up" class="report-btn" type="button">Up</button>
             <button id="gdrive-file-refresh" class="report-btn" type="button">Refresh</button>
           </div>
           <div id="gdrive-file-breadcrumb" style="display:flex;flex-wrap:wrap;gap:6px;min-height:20px;align-items:center;"></div>
@@ -2000,7 +1999,6 @@ async function openGoogleDriveFileDialogLegacy(options = {}) {
   const subtitle = document.getElementById('gdrive-file-subtitle');
   const searchInput = document.getElementById('gdrive-file-search');
   const browseBtn = document.getElementById('gdrive-file-browse');
-  const upBtn = document.getElementById('gdrive-folder-up');
   const refreshBtn = document.getElementById('gdrive-file-refresh');
   const breadcrumbEl = document.getElementById('gdrive-file-breadcrumb');
   const statusEl = document.getElementById('gdrive-file-status');
@@ -2008,7 +2006,7 @@ async function openGoogleDriveFileDialogLegacy(options = {}) {
   const newBtn = document.getElementById('gdrive-file-new');
   const cancelBtn = document.getElementById('gdrive-file-cancel');
   const confirmBtn = document.getElementById('gdrive-file-confirm');
-  if(!title || !subtitle || !searchInput || !browseBtn || !upBtn || !refreshBtn || !breadcrumbEl || !statusEl || !listEl || !newBtn || !cancelBtn || !confirmBtn) {
+  if(!title || !subtitle || !searchInput || !browseBtn || !refreshBtn || !breadcrumbEl || !statusEl || !listEl || !newBtn || !cancelBtn || !confirmBtn) {
     return null;
   }
 
@@ -2025,7 +2023,6 @@ async function openGoogleDriveFileDialogLegacy(options = {}) {
       }
       return `<button type="button" data-gdrive-path-index="${index}" style="padding:2px 6px;border:1px solid #c9d7e6;border-radius:999px;background:#fff;color:#245a86;font-size:11px;cursor:pointer;">${escapeHtml(item.name)}</button>`;
     }).join('<span style="color:#8ea1b4;">›</span>');
-    upBtn.disabled = path.length <= 1;
   };
 
   const renderRows = entries => {
@@ -2091,7 +2088,6 @@ async function openGoogleDriveFileDialogLegacy(options = {}) {
       overlay.classList.remove('open');
       searchInput.removeEventListener('input', onSearchInput);
       browseBtn.removeEventListener('click', onBrowseClick);
-      upBtn.removeEventListener('click', onUpClick);
       refreshBtn.removeEventListener('click', onRefreshClick);
       breadcrumbEl.removeEventListener('click', onBreadcrumbClick);
       listEl.removeEventListener('click', onListClick);
@@ -2114,14 +2110,6 @@ async function openGoogleDriveFileDialogLegacy(options = {}) {
       } catch(err) {
         alert((err && err.message) ? err.message : 'Could not open Google Drive picker.');
       }
-    };
-    const onUpClick = () => {
-      if(path.length <= 1) return;
-      path.pop();
-      currentFolderId = path[path.length - 1].id;
-      selection.fileId = '';
-      selection.fileName = '';
-      loadFiles();
     };
     const onRefreshClick = () => {
       loadFiles();
@@ -2193,7 +2181,6 @@ async function openGoogleDriveFileDialogLegacy(options = {}) {
 
     searchInput.addEventListener('input', onSearchInput);
     browseBtn.addEventListener('click', onBrowseClick);
-    upBtn.addEventListener('click', onUpClick);
     refreshBtn.addEventListener('click', onRefreshClick);
     breadcrumbEl.addEventListener('click', onBreadcrumbClick);
     listEl.addEventListener('click', onListClick);
@@ -8755,7 +8742,8 @@ function openSaveTargetDialog(options = {}) {
               </label>
             </div>
           </div>
-          <div class="report-dialog-actions">
+          <div class="report-dialog-actions" style="justify-content:space-between;">
+            <button id="save-target-browse" class="report-btn" type="button">Browse...</button>
             <button id="save-target-cancel" class="report-btn" type="button">Cancel</button>
             <button id="save-target-confirm" class="report-btn primary" type="button">Save</button>
           </div>
@@ -8767,17 +8755,20 @@ function openSaveTargetDialog(options = {}) {
     const title = document.getElementById('save-target-title');
     const nameInput = document.getElementById('save-target-name');
     const locationSelect = document.getElementById('save-target-location');
+    const browseBtn = document.getElementById('save-target-browse');
     const cancelBtn = document.getElementById('save-target-cancel');
     const confirmBtn = document.getElementById('save-target-confirm');
-    if(!title || !nameInput || !locationSelect || !cancelBtn || !confirmBtn) {
+    if(!title || !nameInput || !locationSelect || !browseBtn || !cancelBtn || !confirmBtn) {
       resolve(null);
       return;
     }
 
     const done = result => {
       overlay.classList.remove('open');
+      browseBtn.removeEventListener('click', onBrowse);
       cancelBtn.removeEventListener('click', onCancel);
       confirmBtn.removeEventListener('click', onConfirm);
+      locationSelect.removeEventListener('change', onLocationChange);
       overlay.removeEventListener('click', onOverlayClick);
       document.removeEventListener('keydown', onKeyDown);
       resolve(result);
@@ -8788,6 +8779,67 @@ function openSaveTargetDialog(options = {}) {
       const fileName = normalizeRiderFileName(nameInput.value || defaultName);
       const location = locationSelect.value === 'google-drive' ? 'google-drive' : 'local';
       done({ mode, fileName, location });
+    };
+    const onBrowse = async () => {
+      const location = locationSelect.value === 'google-drive' ? 'google-drive' : 'local';
+      const fileName = normalizeRiderFileName(nameInput.value || defaultName);
+      if(location === 'google-drive') {
+        try {
+          const selection = await openGoogleDriveFileDialog({ mode: 'save-as', defaultFileName: fileName });
+          if(!selection) return;
+          const nextName = normalizeRiderFileName(selection.fileName || fileName);
+          nameInput.value = nextName;
+          done({
+            mode: 'save-as',
+            fileName: nextName,
+            location,
+            driveSelection: selection,
+          });
+        } catch(err) {
+          alert((err && err.message) ? err.message : 'Could not open Google Drive browser.');
+        }
+        return;
+      }
+
+      try {
+        if(supportsFileSystemSave()) {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: fileName,
+            types: [{
+              description: 'Stage Rider JSON',
+              accept: { 'application/json': ['.json'] },
+            }],
+          });
+          if(!handle) return;
+          const nextName = normalizeRiderFileName(handle.name || fileName);
+          nameInput.value = nextName;
+          done({
+            mode: 'save-as',
+            fileName: nextName,
+            location,
+            localFileHandle: handle,
+          });
+          return;
+        }
+        if(supportsFileSystemDirectory()) {
+          const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+          if(!dirHandle) return;
+          done({
+            mode: 'save-as',
+            fileName,
+            location,
+            localDirectoryHandle: dirHandle,
+          });
+          return;
+        }
+      } catch(err) {
+        if(err && err.name === 'AbortError') return;
+      }
+
+      alert('Local browse is not available in this browser. Use Save to download instead.');
+    };
+    const onLocationChange = () => {
+      browseBtn.textContent = locationSelect.value === 'google-drive' ? 'Browse Drive...' : 'Browse Local...';
     };
     const onOverlayClick = e => {
       if(e.target === overlay) done(null);
@@ -8809,6 +8861,10 @@ function openSaveTargetDialog(options = {}) {
     confirmBtn.textContent = mode === 'save-as' ? 'Save As' : 'Save';
     nameInput.value = defaultName;
     locationSelect.value = defaultLocation;
+    onLocationChange();
+    browseBtn.style.display = mode === 'save-as' ? 'inline-flex' : 'none';
+    browseBtn.addEventListener('click', onBrowse);
+    locationSelect.addEventListener('change', onLocationChange);
     cancelBtn.addEventListener('click', onCancel);
     confirmBtn.addEventListener('click', onConfirm);
     overlay.addEventListener('click', onOverlayClick);
@@ -8821,12 +8877,13 @@ function openSaveTargetDialog(options = {}) {
   });
 }
 
-async function saveRiderToGoogleDrive(fileName, mode = 'save') {
+async function saveRiderToGoogleDrive(fileName, mode = 'save', options = {}) {
   const token = await ensureGoogleDriveAccess(true);
   if(!token) return;
 
   const data = serializeLayout();
   const targetName = normalizeRiderFileName(fileName || googleDriveCurrentFileName || getRiderSaveFileName());
+  const preselected = options && options.driveSelection ? options.driveSelection : null;
   let targetFileId = '';
   let targetFileName = targetName;
   let targetParentFolderId = '';
@@ -8841,7 +8898,7 @@ async function saveRiderToGoogleDrive(fileName, mode = 'save') {
   }
 
   if(mode === 'save-as') {
-    const selection = await openGoogleDriveFileDialog({ mode: 'save-as', defaultFileName: targetName });
+    const selection = preselected || await openGoogleDriveFileDialog({ mode: 'save-as', defaultFileName: targetName });
     if(!selection) return;
     if(selection.action === 'overwrite' && selection.fileId) {
       targetFileId = String(selection.fileId || '');
@@ -8875,10 +8932,31 @@ async function saveRiderToGoogleDrive(fileName, mode = 'save') {
   });
 }
 
-async function saveRiderToLocalTarget(fileName, mode = 'save') {
+async function saveRiderToLocalTarget(fileName, mode = 'save', options = {}) {
   const data = serializeLayout();
   const targetName = normalizeRiderFileName(fileName || getRiderSaveFileName());
+  const directFileHandle = options && options.localFileHandle ? options.localFileHandle : null;
+  const directDirectoryHandle = options && options.localDirectoryHandle ? options.localDirectoryHandle : null;
   try {
+    if(mode === 'save-as' && directFileHandle) {
+      riderFileHandle = directFileHandle;
+      riderSaveDirHandle = null;
+      await writeRiderToHandle(directFileHandle, data);
+      riderLastSavedFileName = normalizeRiderFileName(directFileHandle.name || targetName);
+      markClean();
+      addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName });
+      return;
+    }
+
+    if(mode === 'save-as' && directDirectoryHandle) {
+      riderSaveDirHandle = directDirectoryHandle;
+      const saved = await writeRiderToDirectory(directDirectoryHandle, data, targetName, { overwrite: true });
+      riderLastSavedFileName = normalizeRiderFileName(saved.fileName || targetName);
+      markClean();
+      addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName });
+      return;
+    }
+
     if(mode === 'save' && riderSaveDirHandle && supportsFileSystemDirectory()) {
       const overwrite = !!riderLastSavedFileName && normalizeRiderFileName(riderLastSavedFileName) === targetName;
       await writeRiderToDirectory(riderSaveDirHandle, data, targetName, { overwrite });
@@ -8960,10 +9038,15 @@ async function saveRiderFromFileMenu(forcePrompt) {
     hasRiderSavePreference = true;
 
     if(choice.location === 'google-drive') {
-      await saveRiderToGoogleDrive(choice.fileName, choice.mode);
+      await saveRiderToGoogleDrive(choice.fileName, choice.mode, {
+        driveSelection: choice.driveSelection || null,
+      });
       return;
     }
-    await saveRiderToLocalTarget(choice.fileName, choice.mode);
+    await saveRiderToLocalTarget(choice.fileName, choice.mode, {
+      localFileHandle: choice.localFileHandle || null,
+      localDirectoryHandle: choice.localDirectoryHandle || null,
+    });
   } catch(err) {
     alert((err && err.message) ? err.message : 'Could not save rider file.');
   }
