@@ -1208,6 +1208,7 @@ const GOOGLE_DRIVE_SETTINGS_STORAGE_KEY = 'stageDesigner.googleDrive.v1';
 const RECENT_RIDER_STORAGE_KEY = 'stageDesigner.recentRiders.v1';
 const RECENT_RIDER_LIMIT = 10;
 const GOOGLE_DRIVE_CLIENT_ID_DEFAULT = '1093130700852-86h3m2vltnqu9v4rqfhucsstggekufdc.apps.googleusercontent.com';
+const GOOGLE_PICKER_API_KEY_DEFAULT = '';
 const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const HISTORY_LIMIT = 120;
 let historyStack = [];
@@ -1229,8 +1230,11 @@ let googleDriveAccessToken = '';
 let googleDriveTokenExpiryTs = 0;
 let googleDriveTokenClient = null;
 let googleIdentityScriptPromise = null;
+let googleApiScriptPromise = null;
+let googlePickerReadyPromise = null;
 let googleDriveCurrentFileId = '';
 let googleDriveCurrentFileName = '';
+let googlePickerApiKey = '';
 let googleDriveKnownFiles = [];
 let recentRiderFiles = [];
 let isLoadRiderPickerOpen = false;
@@ -1340,6 +1344,7 @@ function saveGoogleDriveSettings() {
   try {
     localStorage.setItem(GOOGLE_DRIVE_SETTINGS_STORAGE_KEY, JSON.stringify({
       clientId: String(googleDriveClientId || '').trim(),
+      pickerApiKey: String(googlePickerApiKey || '').trim(),
       currentFileId: String(googleDriveCurrentFileId || '').trim(),
       currentFileName: String(googleDriveCurrentFileName || '').trim(),
     }));
@@ -1354,10 +1359,12 @@ function loadGoogleDriveSettings() {
     const parsed = raw ? JSON.parse(raw) : null;
     const fromStorage = String((parsed && parsed.clientId) || '').trim();
     googleDriveClientId = fromStorage || String(GOOGLE_DRIVE_CLIENT_ID_DEFAULT || '').trim();
+    googlePickerApiKey = String((parsed && parsed.pickerApiKey) || '').trim() || String(GOOGLE_PICKER_API_KEY_DEFAULT || '').trim();
     googleDriveCurrentFileId = String((parsed && parsed.currentFileId) || '').trim();
     googleDriveCurrentFileName = normalizeRiderFileName((parsed && parsed.currentFileName) || '');
   } catch(_err) {
     googleDriveClientId = String(GOOGLE_DRIVE_CLIENT_ID_DEFAULT || '').trim();
+    googlePickerApiKey = String(GOOGLE_PICKER_API_KEY_DEFAULT || '').trim();
     googleDriveCurrentFileId = '';
     googleDriveCurrentFileName = '';
   }
@@ -1546,6 +1553,10 @@ async function openGoogleDriveSettingsDialog() {
               <span style="font-size:12px;color:#4f5f73;font-weight:600;">OAuth Client ID</span>
               <input id="gdrive-client-id" class="pselect" type="text" placeholder="YOUR_CLIENT_ID.apps.googleusercontent.com" style="background:#fff;color:#17324f;">
             </label>
+            <label style="display:grid;gap:6px;">
+              <span style="font-size:12px;color:#4f5f73;font-weight:600;">Google Picker API Key (optional but recommended)</span>
+              <input id="gdrive-picker-api-key" class="pselect" type="text" placeholder="AIza..." style="background:#fff;color:#17324f;">
+            </label>
             <div style="font-size:12px;color:#4f5f73;line-height:1.45;">
               This value is public-safe in browser apps. Do not paste a client secret here.
             </div>
@@ -1563,10 +1574,11 @@ async function openGoogleDriveSettingsDialog() {
     }
 
     const input = document.getElementById('gdrive-client-id');
+    const pickerKeyInput = document.getElementById('gdrive-picker-api-key');
     const clearBtn = document.getElementById('gdrive-settings-clear');
     const cancelBtn = document.getElementById('gdrive-settings-cancel');
     const saveBtn = document.getElementById('gdrive-settings-save');
-    if(!input || !clearBtn || !cancelBtn || !saveBtn) {
+    if(!input || !pickerKeyInput || !clearBtn || !cancelBtn || !saveBtn) {
       resolve(false);
       return;
     }
@@ -1584,6 +1596,7 @@ async function openGoogleDriveSettingsDialog() {
     const onClear = () => {
       googleDriveCurrentFileId = '';
       googleDriveCurrentFileName = '';
+      googlePickerApiKey = '';
       riderSaveLocation = 'local';
       hasRiderSavePreference = true;
       saveGoogleDriveSettings();
@@ -1596,8 +1609,11 @@ async function openGoogleDriveSettingsDialog() {
         alert('Enter a valid OAuth Client ID.');
         return;
       }
+      const nextPickerKey = String(pickerKeyInput.value || '').trim();
       googleDriveClientId = next;
+      googlePickerApiKey = nextPickerKey;
       resetGoogleDriveSession();
+      googlePickerReadyPromise = null;
       saveGoogleDriveSettings();
       done(true);
     };
@@ -1613,6 +1629,7 @@ async function openGoogleDriveSettingsDialog() {
     };
 
     input.value = String(googleDriveClientId || '').trim();
+    pickerKeyInput.value = String(googlePickerApiKey || '').trim();
     clearBtn.addEventListener('click', onClear);
     cancelBtn.addEventListener('click', onCancel);
     saveBtn.addEventListener('click', onSave);
@@ -1813,7 +1830,139 @@ function formatGoogleDriveFileSize(value) {
   return `${(num / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+async function ensureGoogleApiScript() {
+  if(window.gapi && typeof window.gapi.load === 'function') return;
+  if(googleApiScriptPromise) {
+    await googleApiScriptPromise;
+    return;
+  }
+  googleApiScriptPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://apis.google.com/js/api.js';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Could not load Google APIs script.'));
+    document.head.appendChild(script);
+  });
+  await googleApiScriptPromise;
+}
+
+function getGoogleCloudProjectNumberFromClientId() {
+  const raw = String(googleDriveClientId || '').trim();
+  const match = raw.match(/^(\d+)-/);
+  return match ? match[1] : '';
+}
+
+async function ensureGooglePickerApi() {
+  await ensureGoogleApiScript();
+  if(window.google && window.google.picker && typeof window.google.picker.PickerBuilder === 'function') return;
+  if(googlePickerReadyPromise) {
+    await googlePickerReadyPromise;
+    return;
+  }
+  googlePickerReadyPromise = new Promise((resolve, reject) => {
+    if(!window.gapi || typeof window.gapi.load !== 'function') {
+      reject(new Error('Google API loader is unavailable.'));
+      return;
+    }
+    window.gapi.load('picker', {
+      callback: () => resolve(),
+      onerror: () => reject(new Error('Could not load Google Picker API.')),
+      timeout: 10000,
+      ontimeout: () => reject(new Error('Google Picker API load timed out.')),
+    });
+  });
+  await googlePickerReadyPromise;
+}
+
+async function openGoogleDrivePickerDialog(options = {}) {
+  const mode = options.mode === 'save-as' ? 'save-as' : 'open';
+  const defaultFileName = normalizeRiderFileName(options.defaultFileName || getRiderSaveFileName());
+  const token = await ensureGoogleDriveAccess(true);
+  if(!token) return null;
+  await ensureGooglePickerApi();
+  if(!window.google || !window.google.picker || typeof window.google.picker.PickerBuilder !== 'function') {
+    throw new Error('Google Picker is unavailable.');
+  }
+
+  const picker = window.google.picker;
+  const docsView = new picker.DocsView(picker.ViewId.DOCS)
+    .setIncludeFolders(true)
+    .setSelectFolderEnabled(false)
+    .setMimeTypes('application/json');
+
+  let builder = new picker.PickerBuilder()
+    .setOAuthToken(token)
+    .setOrigin(window.location.origin)
+    .addView(docsView)
+    .setCallback(data => {
+      const action = data && data[picker.Response.ACTION];
+      if(action === picker.Action.CANCEL) {
+        resolver(null);
+        return;
+      }
+      if(action !== picker.Action.PICKED) return;
+      const docs = data[picker.Response.DOCUMENTS] || [];
+      const first = docs[0] || null;
+      if(!first) {
+        resolver(null);
+        return;
+      }
+
+      const docId = String(first[picker.Document.ID] || first.id || '').trim();
+      const name = normalizeRiderFileName(String(first[picker.Document.NAME] || first.name || defaultFileName));
+      const mimeType = String(first[picker.Document.MIME_TYPE] || first.mimeType || '').trim();
+      if(mode === 'open') {
+        if(!docId) {
+          resolver(null);
+          return;
+        }
+        resolver({ action: 'open', fileId: docId, fileName: name });
+        return;
+      }
+
+      const isFolder = mimeType === 'application/vnd.google-apps.folder';
+      if(isFolder) {
+        resolver({ action: 'new', fileId: '', fileName: defaultFileName, folderId: docId || 'root' });
+      } else {
+        resolver({ action: 'overwrite', fileId: docId, fileName: name, folderId: '' });
+      }
+    });
+
+  const appId = getGoogleCloudProjectNumberFromClientId();
+  if(appId) builder = builder.setAppId(appId);
+  const apiKey = String(googlePickerApiKey || '').trim();
+  if(apiKey) builder = builder.setDeveloperKey(apiKey);
+
+  if(mode === 'save-as') {
+    const foldersView = new picker.DocsView(picker.ViewId.FOLDERS)
+      .setIncludeFolders(true)
+      .setSelectFolderEnabled(true);
+    builder = builder.addView(foldersView);
+  }
+
+  let done = false;
+  let resolver = () => {};
+  return await new Promise(resolve => {
+    resolver = result => {
+      if(done) return;
+      done = true;
+      resolve(result);
+    };
+    builder.build().setVisible(true);
+  });
+}
+
 async function openGoogleDriveFileDialog(options = {}) {
+  try {
+    return await openGoogleDrivePickerDialog(options);
+  } catch(err) {
+    return await openGoogleDriveFileDialogLegacy(options);
+  }
+}
+
+async function openGoogleDriveFileDialogLegacy(options = {}) {
   const mode = options.mode === 'save-as' ? 'save-as' : 'open';
   const defaultFileName = normalizeRiderFileName(options.defaultFileName || getRiderSaveFileName());
 
@@ -8676,6 +8825,10 @@ async function saveRiderToGoogleDrive(fileName, mode = 'save') {
   if(mode === 'save' && googleDriveCurrentFileId) {
     targetFileId = googleDriveCurrentFileId;
     targetFileName = normalizeRiderFileName(googleDriveCurrentFileName || targetName);
+  }
+
+  if(mode === 'save' && !googleDriveCurrentFileId) {
+    mode = 'save-as';
   }
 
   if(mode === 'save-as') {
