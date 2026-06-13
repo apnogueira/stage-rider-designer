@@ -34,13 +34,13 @@ body[data-theme='light'] .pal-tile.snake-tile{background:#f4edf9;border-color:#b
 body[data-theme='light'] .pal-tile.mixer-tile{background:#eaf3fb;border-color:#9cc4e6;}
 body[data-theme='light'] .pal-tile.stagebox-tile{background:#e9f8f0;border-color:#87bea8;}
 body[data-theme='light'] .pal-tile.monitor-tile,
-body[data-theme='light'] .pal-tile.monitor-pa-tile{background:#ffe9e9;border-color:#e7a7a7;}
-body[data-theme='light'] .pal-tile.accessory-tile{background:#fff5e8;border-color:#e4c295;}
+body[data-theme='light'] .pal-tile.monitor-pa-tile{background:#fff5e8;border-color:#e4c295;}
+body[data-theme='light'] .pal-tile.accessory-tile{background:#ffe9e9;border-color:#e7a7a7;}
 body[data-theme='light'] .pal-tile.mixer-tile:hover{border-color:#4c8fbe;}
 body[data-theme='light'] .pal-tile.stagebox-tile:hover{border-color:#2f8b69;}
 body[data-theme='light'] .pal-tile.monitor-tile:hover,
-body[data-theme='light'] .pal-tile.monitor-pa-tile:hover{border-color:#c76868;}
-body[data-theme='light'] .pal-tile.accessory-tile:hover{border-color:#c98b3f;}
+body[data-theme='light'] .pal-tile.monitor-pa-tile:hover{border-color:#c98b3f;}
+body[data-theme='light'] .pal-tile.accessory-tile:hover{border-color:#c76868;}
 body[data-theme='light'] .si.is-snake .ib{background:#f1e8f9;border-color:#b999dc;}
 body[data-theme='light'] .si.connbox-snake .ib{background:#f1e8f9;border-color:#b999dc;}
 body[data-theme='light'] .snake-badge{background:rgba(122,75,178,.12);border-color:#b999dc;color:#60318f;}
@@ -63,9 +63,9 @@ body[data-theme='light'] .si.connbox-stagebox:hover .ib{border-color:#2f8b69;}
 body[data-theme='light'] .si.is-mixer.selected .ib{border-color:#256f9d;box-shadow:0 0 0 2px rgba(37,111,157,.22);}
 body[data-theme='light'] .si.connbox-mixer.selected .ib{border-color:#256f9d;box-shadow:0 0 0 2px rgba(37,111,157,.22);}
 body[data-theme='light'] .si.connbox-stagebox.selected .ib{border-color:#207454;box-shadow:0 0 0 2px rgba(32,116,84,.22);}
-body[data-theme='light'] .si.is-monitoring .ib{background:#ffe9e9;border-color:#cf6f6f;}
-body[data-theme='light'] .si.is-monitoring:hover .ib{border-color:#c25858;}
-body[data-theme='light'] .si.is-monitoring.selected .ib{border-color:#b64d4d;box-shadow:0 0 0 2px rgba(182,77,77,.22);}
+body[data-theme='light'] .si.is-monitoring .ib{background:#fff5e8;border-color:#c98b3f;}
+body[data-theme='light'] .si.is-monitoring:hover .ib{border-color:#b6772c;}
+body[data-theme='light'] .si.is-monitoring.selected .ib{border-color:#b6772c;box-shadow:0 0 0 2px rgba(201,139,63,.22);}
 body[data-theme='light'] .si.is-mixer .mixer-row-label{color:#2f4e63;font-weight:700;}
 body[data-theme='light'] .si.is-connbox .mixer-row-label{color:#2f4e63;font-weight:700;}
 body[data-theme='light'] .si.is-mixer .mixer-pin{background:#ffffff;border-color:#1f6fa0;color:#163b55;font-size:calc(var(--rack-pin-font-base) * var(--port-label-scale, var(--rack-pin-scale, 1)));}
@@ -135,6 +135,12 @@ body.stage-builder-mode .si{display:none !important;}
 .project-name-wrap{order:2;}
 .zoom-controls{order:3;margin-left:auto;}
 .mobile-menu-btn{order:4;}
+.scene-tabs-bar{display:none;align-items:flex-end;gap:6px;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;max-width:100%;overflow-x:auto;}
+.scene-tabs-bar.visible{display:flex;}
+.scene-tab{padding:6px 10px;border-radius:7px 7px 0 0;border:1px solid var(--border);border-bottom:none;background:var(--bg);color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:10px;line-height:1;cursor:pointer;white-space:nowrap;user-select:none;}
+.scene-tab:hover{color:var(--accent2);border-color:var(--accent2);}
+.scene-tab.active{background:var(--panel);color:var(--text);border-color:var(--accent2);}
+.scene-tab.dragging{opacity:.65;}
 /* LAYOUT */
 .workspace{display:flex;flex:1;overflow:hidden;}
 .workspace.left-collapsed .sidebar{display:flex;width:12px;min-width:12px;background:transparent;border-right:none;overflow:visible;}
@@ -180,8 +186,10 @@ body.stage-builder-mode .si{display:none !important;}
 .pal-tile.snake-tile:hover{border-color:var(--accent4);}
 .pal-tile.stagebox-tile{border-color:#5ec29166;background:#0f1a14;}
 .pal-tile.stagebox-tile:hover{border-color:#5ec291;}
-.pal-tile.monitor-pa-tile{border-color:#e4808066;background:#201113;}
-.pal-tile.monitor-pa-tile:hover{border-color:#e48080;}
+.pal-tile.monitor-pa-tile{border-color:#e4b26666;background:#20170f;}
+.pal-tile.monitor-pa-tile:hover{border-color:#e4b266;}
+.pal-tile.accessory-tile{border-color:#e4808066;background:#201113;}
+.pal-tile.accessory-tile:hover{border-color:#e48080;}
 .pal-tile.stand-tile{border-color:#cfd5dd;background:#f1f3f6;}
 .pal-tile.stand-tile:hover{border-color:#b8c1cc;background:#f7f8fa;}
 .pal-tile:active{cursor:grabbing;}
@@ -267,9 +275,9 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
 .si.is-mixer .ib{border-color:#47c4ff66;background:#101722;border-radius:6px;}
 .si.is-mixer:hover .ib{border-color:#47c4ff;}
 .si.is-mixer.selected .ib{border-color:#47c4ff;box-shadow:0 0 0 2px rgba(71,196,255,.2);}
-.si.is-monitoring .ib{border-color:#cf6f6f;background:#241416;border-radius:6px;}
-.si.is-monitoring:hover .ib{border-color:#e48080;}
-.si.is-monitoring.selected .ib{border-color:#e48080;box-shadow:0 0 0 2px rgba(228,128,128,.22);}
+.si.is-monitoring .ib{border-color:#c98b3f;background:#241b12;border-radius:6px;}
+.si.is-monitoring:hover .ib{border-color:#e4b266;}
+.si.is-monitoring.selected .ib{border-color:#e4b266;box-shadow:0 0 0 2px rgba(228,178,102,.22);}
 .si.is-outlet .ib{border-color:#a8afb9;background:#8e959f;border-radius:5px;}
 .si.is-outlet:hover .ib{border-color:#b7bec8;}
 .si.is-outlet.selected .ib{border-color:#9099a4;box-shadow:0 0 0 2px rgba(150,160,172,.24);}
@@ -680,16 +688,23 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
           <button class="btn btn-ghost" type="button" onclick="runFileMenuAction('clear')">Clear</button>
           <div class="header-submenu-divider" aria-hidden="true"></div>
           <button class="btn btn-ghost" type="button" onclick="runFileMenuAction('export-png')">Export PNG</button>
-          <button class="btn btn-primary" type="button" onclick="runFileMenuAction('export-pdf')">Export PDF</button>
+          <button class="btn btn-ghost" type="button" onclick="runFileMenuAction('export-pdf')">Export PDF</button>
         </div>
       </details>
       <details id="layers-menu" class="header-menu-group" ontoggle="syncHeaderMenuState('layers-menu')">
-        <summary class="btn btn-ghost header-menu-trigger">Layers</summary>
-        <div class="header-submenu" role="menu" aria-label="Layer actions">
+        <summary class="btn btn-ghost header-menu-trigger">Arrange</summary>
+        <div class="header-submenu" role="menu" aria-label="Arrange actions">
           <button class="btn btn-ghost" type="button" onclick="layerAction('forward')">Bring Forward</button>
           <button class="btn btn-ghost" type="button" onclick="layerAction('front')">Bring to Front</button>
           <button class="btn btn-ghost" type="button" onclick="layerAction('backward')">Send Backward</button>
           <button class="btn btn-ghost" type="button" onclick="layerAction('back')">Send to Back</button>
+        </div>
+      </details>
+      <details id="scenes-menu" class="header-menu-group" ontoggle="syncHeaderMenuState('scenes-menu')">
+        <summary class="btn btn-ghost header-menu-trigger">Scenes</summary>
+        <div class="header-submenu" role="menu" aria-label="Scene actions">
+          <button class="btn btn-ghost" type="button" onclick="runSceneMenuAction('create')">Create Scene</button>
+          <button class="btn btn-ghost" type="button" onclick="runSceneMenuAction('delete')">Delete Scene</button>
         </div>
       </details>
       <button id="mode-toggle-mobile" class="btn btn-ghost mobile-only" type="button" onclick="toggleStageBuilderMode()">Stage Builder: OFF</button>
@@ -707,6 +722,7 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
   </div>
   <button id="mobile-menu-btn" class="mobile-menu-btn" type="button" onclick="toggleMobileMenu()" aria-label="Open menu" aria-expanded="false">☰</button>
 </header>
+<div id="scene-tabs-bar" class="scene-tabs-bar" aria-label="Scene tabs"></div>
 
 <input id="rider-file" type="file" accept="application/json,.json" style="display:none;">
 
@@ -1202,11 +1218,14 @@ let hasInitialized = false;
 let projectName = 'untitled-project';
 let copiedSelection = null;
 let copiedSelectionPasteCount = 0;
+let copiedSelectionSceneId = null;
 const RIDER_FILE_EXTENSION = '.rider.json';
 const PANEL_PREF_STORAGE_KEY = 'stageDesigner.panelPrefs.v1';
 const GOOGLE_DRIVE_SETTINGS_STORAGE_KEY = 'stageDesigner.googleDrive.v1';
 const RECENT_RIDER_STORAGE_KEY = 'stageDesigner.recentRiders.v1';
 const RECENT_RIDER_LIMIT = 10;
+const RECENT_LOCAL_HANDLE_DB_NAME = 'stageDesigner.localRecentHandles.v1';
+const RECENT_LOCAL_HANDLE_STORE = 'handles';
 const GOOGLE_DRIVE_CLIENT_ID_DEFAULT = '1093130700852-86h3m2vltnqu9v4rqfhucsstggekufdc.apps.googleusercontent.com';
 const GOOGLE_PICKER_API_KEY_DEFAULT = '';
 const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
@@ -1237,6 +1256,11 @@ let googleDriveCurrentFileName = '';
 let googlePickerApiKey = '';
 let googleDriveKnownFiles = [];
 let recentRiderFiles = [];
+let recentLocalHandleDbPromise = null;
+let scenes = [];
+let activeSceneId = null;
+let sceneIdCounter = 0;
+let sceneTabDragId = null;
 let isLoadRiderPickerOpen = false;
 let isStageBuilderMode = false;
 
@@ -1310,6 +1334,7 @@ function init() {
   applyZoom();
   ensureDefaultMainStagePart(stagePx);
   updateStage(true);
+  ensureSceneSystemInitialized();
   pushHistoryState();
   updateSnakeViewToggleUI();
   refreshCategoryCollapseButtons();
@@ -1384,8 +1409,99 @@ function normalizeRecentRiderEntry(raw) {
     source,
     fileId,
     fileName,
+    localHandleId: source === 'local' ? String(raw.localHandleId || raw.id || '').trim() : '',
     updatedAt: Number(raw.updatedAt) || Date.now(),
   };
+}
+
+function supportsRecentLocalHandleStore() {
+  return typeof indexedDB !== 'undefined';
+}
+
+function getRecentLocalHandleDb() {
+  if(!supportsRecentLocalHandleStore()) return Promise.resolve(null);
+  if(recentLocalHandleDbPromise) return recentLocalHandleDbPromise;
+  recentLocalHandleDbPromise = new Promise(resolve => {
+    try {
+      const req = indexedDB.open(RECENT_LOCAL_HANDLE_DB_NAME, 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if(!db.objectStoreNames.contains(RECENT_LOCAL_HANDLE_STORE)) {
+          db.createObjectStore(RECENT_LOCAL_HANDLE_STORE);
+        }
+      };
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    } catch(_err) {
+      resolve(null);
+    }
+  });
+  return recentLocalHandleDbPromise;
+}
+
+async function setRecentLocalHandle(handleId, fileHandle) {
+  const key = String(handleId || '').trim();
+  if(!key || !fileHandle) return;
+  const db = await getRecentLocalHandleDb();
+  if(!db) return;
+  await new Promise(resolve => {
+    try {
+      const tx = db.transaction(RECENT_LOCAL_HANDLE_STORE, 'readwrite');
+      tx.objectStore(RECENT_LOCAL_HANDLE_STORE).put(fileHandle, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+      tx.onabort = () => resolve();
+    } catch(_err) {
+      resolve();
+    }
+  });
+}
+
+async function getRecentLocalHandle(handleId) {
+  const key = String(handleId || '').trim();
+  if(!key) return null;
+  const db = await getRecentLocalHandleDb();
+  if(!db) return null;
+  return await new Promise(resolve => {
+    try {
+      const tx = db.transaction(RECENT_LOCAL_HANDLE_STORE, 'readonly');
+      const req = tx.objectStore(RECENT_LOCAL_HANDLE_STORE).get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    } catch(_err) {
+      resolve(null);
+    }
+  });
+}
+
+async function removeRecentLocalHandle(handleId) {
+  const key = String(handleId || '').trim();
+  if(!key) return;
+  const db = await getRecentLocalHandleDb();
+  if(!db) return;
+  await new Promise(resolve => {
+    try {
+      const tx = db.transaction(RECENT_LOCAL_HANDLE_STORE, 'readwrite');
+      tx.objectStore(RECENT_LOCAL_HANDLE_STORE).delete(key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+      tx.onabort = () => resolve();
+    } catch(_err) {
+      resolve();
+    }
+  });
+}
+
+function persistRecentLocalHandleAsync(handleId, fileHandle) {
+  setRecentLocalHandle(handleId, fileHandle).catch(() => {
+    // Ignore persistence failures and keep recent metadata.
+  });
+}
+
+function removeRecentLocalHandleAsync(handleId) {
+  removeRecentLocalHandle(handleId).catch(() => {
+    // Ignore cleanup failures.
+  });
 }
 
 function saveRecentRiderFiles() {
@@ -1424,20 +1540,34 @@ function addRecentRiderFile(entry) {
   const key = normalized.source === 'google-drive'
     ? `google-drive:${normalized.fileId}`
     : `local:${String(normalized.fileName || '').toLowerCase()}`;
+  const removedLocals = [];
   recentRiderFiles = recentRiderFiles.filter(item => {
     const itemKey = item.source === 'google-drive'
       ? `google-drive:${item.fileId}`
       : `local:${String(item.fileName || '').toLowerCase()}`;
+    if(itemKey === key && item.source === 'local' && item.localHandleId) {
+      removedLocals.push(item.localHandleId);
+    }
     return itemKey !== key;
   });
+  removedLocals.forEach(removeRecentLocalHandleAsync);
   normalized.updatedAt = Date.now();
+  if(normalized.source === 'local' && !normalized.localHandleId) {
+    normalized.localHandleId = normalized.id;
+  }
   recentRiderFiles.unshift(normalized);
   if(recentRiderFiles.length > RECENT_RIDER_LIMIT) recentRiderFiles = recentRiderFiles.slice(0, RECENT_RIDER_LIMIT);
   saveRecentRiderFiles();
   renderRecentMenuItems();
+  if(normalized.source === 'local' && entry && entry.localFileHandle) {
+    persistRecentLocalHandleAsync(normalized.localHandleId || normalized.id, entry.localFileHandle);
+  }
 }
 
 function clearRecentRiderFiles() {
+  recentRiderFiles.forEach(item => {
+    if(item && item.source === 'local' && item.localHandleId) removeRecentLocalHandleAsync(item.localHandleId);
+  });
   recentRiderFiles = [];
   saveRecentRiderFiles();
   renderRecentMenuItems();
@@ -1446,8 +1576,12 @@ function clearRecentRiderFiles() {
 function removeRecentRiderById(entryId) {
   const targetId = String(entryId || '').trim();
   if(!targetId) return;
+  const removed = recentRiderFiles.find(item => String(item.id || '') === targetId) || null;
   const next = recentRiderFiles.filter(item => String(item.id || '') !== targetId);
   if(next.length === recentRiderFiles.length) return;
+  if(removed && removed.source === 'local' && removed.localHandleId) {
+    removeRecentLocalHandleAsync(removed.localHandleId);
+  }
   recentRiderFiles = next;
   saveRecentRiderFiles();
   renderRecentMenuItems();
@@ -1521,7 +1655,55 @@ async function openRecentRiderById(entryId) {
     }
   }
 
-  alert('For local files, your browser requires selecting the file again. Pick it in the next dialog.');
+  const localHandleId = String(entry.localHandleId || entry.id || '').trim();
+  if(localHandleId) {
+    try {
+      const handle = await getRecentLocalHandle(localHandleId);
+      if(handle) {
+        if(typeof handle.queryPermission === 'function') {
+          const state = await handle.queryPermission({ mode: 'read' });
+          if(state !== 'granted') {
+            if(typeof handle.requestPermission === 'function') {
+              const requestState = await handle.requestPermission({ mode: 'read' });
+              if(requestState !== 'granted') throw new Error('Permission to read this local file was denied.');
+            } else {
+              throw new Error('Permission to read this local file was denied.');
+            }
+          }
+        }
+
+        const file = await handle.getFile();
+        const text = await file.text();
+        const data = JSON.parse(text);
+        pushHistoryState();
+        loadRiderFromData(data);
+        setProjectNameFromFileName(file.name || entry.fileName || 'untitled');
+        riderSaveDirHandle = null;
+        riderFileHandle = handle;
+        riderLastSavedFileName = normalizeRiderFileName(file.name || entry.fileName || getRiderSaveFileName());
+        riderSaveLocation = 'local';
+        hasRiderSavePreference = true;
+        markClean();
+        addRecentRiderFile({
+          id: entry.id,
+          source: 'local',
+          fileName: riderLastSavedFileName,
+          localHandleId,
+          localFileHandle: handle,
+        });
+        return;
+      }
+    } catch(err) {
+      const msg = String((err && err.message) || '');
+      if(/not\s*found|deleted|permission|denied|gone|unavailable/i.test(msg)) {
+        removeRecentRiderById(targetId);
+        alert('That local file is no longer available (moved/deleted/no permission). It was removed from Recent.');
+        return;
+      }
+    }
+  }
+
+  alert('This local recent entry has no reusable file handle yet. Select it once, and it will open directly from Recent next time.');
   triggerLoadRider({ skipUnsavedPrompt: true });
 }
 
@@ -2352,6 +2534,11 @@ function closeLayersMenu() {
   if(menu) menu.open = false;
 }
 
+function closeScenesMenu() {
+  const menu = document.getElementById('scenes-menu');
+  if(menu) menu.open = false;
+}
+
 function updateHeaderMenuPlacement() {
   const viewportPad = 8;
   const submenus = Array.from(document.querySelectorAll('.header-menu-group[open] > .header-submenu'));
@@ -2380,8 +2567,16 @@ function updateHeaderMenuPlacement() {
 function syncHeaderMenuState(openMenuId) {
   const layersMenu = document.getElementById('layers-menu');
   const riderMenu = document.getElementById('file-menu');
+  const scenesMenu = document.getElementById('scenes-menu');
   if(openMenuId === 'layers-menu' && layersMenu && layersMenu.open) closeRiderSaveMenu();
-  if(openMenuId === 'file-menu' && riderMenu && riderMenu.open) closeLayersMenu();
+  if(openMenuId === 'file-menu' && riderMenu && riderMenu.open) {
+    closeLayersMenu();
+    closeScenesMenu();
+  }
+  if(openMenuId === 'scenes-menu' && scenesMenu && scenesMenu.open) {
+    closeLayersMenu();
+    closeRiderSaveMenu();
+  }
   if(openMenuId === 'file-open-from-menu') closeFileOpenRecentMenu();
   if(openMenuId === 'file-open-recent-menu') {
     closeFileOpenFromMenu();
@@ -2394,6 +2589,17 @@ function runRiderMenuAction(action) {
   if(action === 'load') return runFileMenuAction('open-local');
   if(action === 'save-as') return runFileMenuAction('save-as');
   return runFileMenuAction('save');
+}
+
+function runSceneMenuAction(action) {
+  closeScenesMenu();
+  if(action === 'create') {
+    createSceneFromCurrent();
+    return;
+  }
+  if(action === 'delete') {
+    deleteCurrentScene();
+  }
 }
 
 async function runFileMenuAction(action) {
@@ -2488,11 +2694,212 @@ function handleDocumentClickForMobileMenu(e) {
   if(exportMenu && exportMenu.open && !exportMenu.contains(t)) closeExportMenu();
   const riderMenu = document.getElementById('file-menu');
   if(riderMenu && riderMenu.open && !riderMenu.contains(t)) closeRiderSaveMenu();
+  const scenesMenu = document.getElementById('scenes-menu');
+  if(scenesMenu && scenesMenu.open && !scenesMenu.contains(t)) closeScenesMenu();
 }
 
 window.addEventListener('resize', () => {
   requestAnimationFrame(updateHeaderMenuPlacement);
 });
+
+function cloneSceneState(state) {
+  const raw = state && typeof state === 'object' ? state : {};
+  return {
+    ...raw,
+    instruments: cloneInstruments(Array.isArray(raw.instruments) ? raw.instruments : []),
+    connections: cloneConnections(Array.isArray(raw.connections) ? raw.connections : []),
+    stageParts: cloneStageParts(Array.isArray(raw.stageParts) ? raw.stageParts : []),
+  };
+}
+
+function captureSceneState() {
+  const snapshot = captureSnapshot();
+  delete snapshot.projectName;
+  return cloneSceneState(snapshot);
+}
+
+function getActiveSceneIndex() {
+  return scenes.findIndex(scene => scene.id === activeSceneId);
+}
+
+function getActiveScene() {
+  const idx = getActiveSceneIndex();
+  return idx >= 0 ? scenes[idx] : null;
+}
+
+function ensureSceneSystemInitialized() {
+  if(Array.isArray(scenes) && scenes.length > 0 && getActiveScene()) {
+    renderSceneTabs();
+    return;
+  }
+  const firstId = 1;
+  sceneIdCounter = Math.max(sceneIdCounter || 0, firstId);
+  scenes = [{
+    id: firstId,
+    name: `Scene ${indexToLetters(1)}`,
+    state: captureSceneState(),
+  }];
+  activeSceneId = firstId;
+  renderSceneTabs();
+}
+
+function getNextDefaultSceneName() {
+  const existing = new Set(scenes.map(scene => String(scene.name || '').trim().toLowerCase()));
+  let idx = 1;
+  while(idx < 5000) {
+    const candidate = `Scene ${indexToLetters(idx)}`;
+    if(!existing.has(candidate.toLowerCase())) return candidate;
+    idx += 1;
+  }
+  return `Scene ${Date.now()}`;
+}
+
+function saveCurrentSceneState() {
+  const current = getActiveScene();
+  if(!current) return;
+  current.state = captureSceneState();
+}
+
+function resetHistoryForCurrentScene() {
+  historyStack = [captureSnapshot()];
+  redoStack = [];
+}
+
+function applySceneById(sceneId) {
+  const target = scenes.find(scene => scene.id === sceneId);
+  if(!target) return;
+  const snapshot = {
+    ...cloneSceneState(target.state),
+    projectName,
+  };
+  applySnapshot(snapshot, false, true);
+  resetHistoryForCurrentScene();
+  renderSceneTabs();
+}
+
+function switchToScene(sceneId) {
+  const nextId = Number(sceneId) || 0;
+  if(!nextId || nextId === activeSceneId) return;
+  saveCurrentSceneState();
+  activeSceneId = nextId;
+  applySceneById(nextId);
+}
+
+function moveSceneTab(sceneId, targetSceneId, placeAfter) {
+  const fromId = Number(sceneId) || 0;
+  const targetId = Number(targetSceneId) || 0;
+  if(!fromId || !targetId || fromId === targetId) return;
+  const fromIndex = scenes.findIndex(scene => scene.id === fromId);
+  const targetIndex = scenes.findIndex(scene => scene.id === targetId);
+  if(fromIndex < 0 || targetIndex < 0) return;
+
+  saveCurrentSceneState();
+  const [moving] = scenes.splice(fromIndex, 1);
+  let insertIndex = scenes.findIndex(scene => scene.id === targetId);
+  if(insertIndex < 0) insertIndex = scenes.length;
+  if(placeAfter) insertIndex += 1;
+  if(insertIndex < 0) insertIndex = 0;
+  if(insertIndex > scenes.length) insertIndex = scenes.length;
+  scenes.splice(insertIndex, 0, moving);
+  renderSceneTabs();
+  markDirty();
+}
+
+function renderSceneTabs() {
+  const bar = document.getElementById('scene-tabs-bar');
+  if(!bar) return;
+  if(!Array.isArray(scenes) || scenes.length <= 1) {
+    bar.classList.remove('visible');
+    bar.innerHTML = '';
+    return;
+  }
+
+  bar.classList.add('visible');
+  bar.innerHTML = '';
+  scenes.forEach((scene, index) => {
+    const tab = document.createElement('button');
+    tab.type = 'button';
+    tab.className = `scene-tab${scene.id === activeSceneId ? ' active' : ''}`;
+    tab.textContent = `${index + 1}. ${String(scene.name || `Scene ${indexToLetters(index + 1)}`)}`;
+    tab.dataset.sceneId = String(scene.id);
+    tab.draggable = true;
+    tab.addEventListener('click', () => switchToScene(scene.id));
+    tab.addEventListener('dblclick', () => {
+      const next = prompt('Rename scene', String(scene.name || ''));
+      if(next == null) return;
+      const cleaned = String(next).trim();
+      if(!cleaned) return;
+      scene.name = cleaned;
+      renderSceneTabs();
+      markDirty();
+    });
+    tab.addEventListener('dragstart', e => {
+      sceneTabDragId = scene.id;
+      tab.classList.add('dragging');
+      if(e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(scene.id));
+      }
+    });
+    tab.addEventListener('dragend', () => {
+      sceneTabDragId = null;
+      tab.classList.remove('dragging');
+    });
+    tab.addEventListener('dragover', e => {
+      e.preventDefault();
+      if(e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    });
+    tab.addEventListener('drop', e => {
+      e.preventDefault();
+      const draggingId = Number(sceneTabDragId || 0);
+      if(!draggingId || draggingId === scene.id) return;
+      const rect = tab.getBoundingClientRect();
+      const placeAfter = e.clientX > (rect.left + (rect.width / 2));
+      moveSceneTab(draggingId, scene.id, placeAfter);
+    });
+    bar.appendChild(tab);
+  });
+}
+
+function createSceneFromCurrent() {
+  ensureSceneSystemInitialized();
+  saveCurrentSceneState();
+  const source = getActiveScene();
+  const sourceState = source ? cloneSceneState(source.state) : captureSceneState();
+  sceneIdCounter = Math.max(sceneIdCounter, ...scenes.map(scene => scene.id || 0)) + 1;
+  const newScene = {
+    id: sceneIdCounter,
+    name: getNextDefaultSceneName(),
+    state: sourceState,
+  };
+  const currentIndex = Math.max(0, getActiveSceneIndex());
+  scenes.splice(currentIndex + 1, 0, newScene);
+  activeSceneId = newScene.id;
+  applySceneById(newScene.id);
+  markDirty();
+}
+
+function deleteCurrentScene() {
+  ensureSceneSystemInitialized();
+  if(scenes.length <= 1) {
+    alert('At least one scene is required.');
+    return;
+  }
+  const currentIndex = getActiveSceneIndex();
+  if(currentIndex < 0) return;
+  const current = scenes[currentIndex];
+  const sceneNumber = currentIndex + 1;
+  const sceneName = String(current.name || `Scene ${indexToLetters(sceneNumber)}`);
+  const ok = confirm(`Are you sure you want to delete scene ${sceneNumber}: ${sceneName}?`);
+  if(!ok) return;
+
+  saveCurrentSceneState();
+  scenes.splice(currentIndex, 1);
+  const nextIndex = Math.max(0, Math.min(currentIndex, scenes.length - 1));
+  activeSceneId = scenes[nextIndex].id;
+  applySceneById(activeSceneId);
+  markDirty();
+}
 
 function getModeHintText() {
   if(isStageBuilderMode) return 'Stage Builder: add shapes, drag to position, and edit size/color on the right panel';
@@ -3071,6 +3478,7 @@ function copySelectedItemToClipboard() {
       item: cloneInstruments([instr])[0],
     };
     copiedSelectionPasteCount = 0;
+    copiedSelectionSceneId = activeSceneId;
     return true;
   }
   if(selectedStagePartId) {
@@ -3081,6 +3489,7 @@ function copySelectedItemToClipboard() {
       item: cloneStageParts([part])[0],
     };
     copiedSelectionPasteCount = 0;
+    copiedSelectionSceneId = activeSceneId;
     return true;
   }
   return false;
@@ -3089,23 +3498,33 @@ function copySelectedItemToClipboard() {
 function pasteCopiedItemFromClipboard() {
   if(!copiedSelection || !copiedSelection.item) return false;
 
-  const pasteStep = copiedSelectionPasteCount + 1;
-  const offset = 24 * pasteStep;
-  copiedSelectionPasteCount = pasteStep;
+  let offset = 0;
+  if(copiedSelectionSceneId != null && copiedSelectionSceneId !== activeSceneId) {
+    copiedSelectionPasteCount = 0;
+    copiedSelectionSceneId = activeSceneId;
+    offset = 0;
+  } else {
+    const pasteStep = copiedSelectionPasteCount + 1;
+    copiedSelectionPasteCount = pasteStep;
+    offset = 24 * pasteStep;
+  }
 
   pushHistoryState();
 
   if(copiedSelection.kind === 'instrument') {
     const source = cloneInstruments([copiedSelection.item])[0];
     if(!source) return false;
+    const sourceId = Number(source.id) || 0;
+    const canReuseIdAcrossScenes = copiedSelectionSceneId != null && copiedSelectionSceneId !== activeSceneId && sourceId > 0 && !instruments.some(i => i && i.id === sourceId);
     const pasted = {
       ...source,
-      id: ++idCounter,
+      id: canReuseIdAcrossScenes ? sourceId : ++idCounter,
       x: (Number(source.x) || 0) + offset,
       y: (Number(source.y) || 0) + offset,
       stageNX: null,
       stageNY: null,
     };
+    if(canReuseIdAcrossScenes) idCounter = Math.max(idCounter, pasted.id);
     normalizeConnectionBoxFlags(pasted);
     pasted.micStandCount = clampMicStandCountForInstrument(pasted, pasted.micStandCount);
     syncInstrumentStageNormFromWorld(pasted, stagePx);
@@ -3127,14 +3546,17 @@ function pasteCopiedItemFromClipboard() {
   if(copiedSelection.kind === 'stagePart') {
     const source = cloneStageParts([copiedSelection.item])[0];
     if(!source) return false;
+    const sourceId = Number(source.id) || 0;
+    const canReuseIdAcrossScenes = copiedSelectionSceneId != null && copiedSelectionSceneId !== activeSceneId && sourceId > 0 && !stageParts.some(p => p && p.id === sourceId);
     const pasted = {
       ...source,
-      id: ++stagePartIdCounter,
+      id: canReuseIdAcrossScenes ? sourceId : ++stagePartIdCounter,
       x: (Number(source.x) || 0) + offset,
       y: (Number(source.y) || 0) + offset,
       stageNX: null,
       stageNY: null,
     };
+    if(canReuseIdAcrossScenes) stagePartIdCounter = Math.max(stagePartIdCounter, pasted.id);
     syncStagePartNormFromWorld(pasted, stagePx);
     stageParts.push(pasted);
     renderStagePart(pasted);
@@ -4735,8 +5157,9 @@ function captureSnapshot() {
   };
 }
 
-function applySnapshot(snapshot, keepCleanState) {
+function applySnapshot(snapshot, keepCleanState, preserveDirtyState = false) {
   isRestoringHistory = true;
+  const wasDirty = !!hasUnsavedChanges;
   instruments.forEach(i => { const el = getEl(i.id); if(el) el.remove(); });
   stageParts.forEach(p => { const el = getStagePartEl(p.id); if(el) el.remove(); });
 
@@ -4789,7 +5212,10 @@ function applySnapshot(snapshot, keepCleanState) {
     updateSelectionPanels();
   }
 
-  if(keepCleanState) markClean();
+  if(preserveDirtyState) {
+    if(wasDirty) markDirty();
+    else markClean();
+  } else if(keepCleanState) markClean();
   else markDirty();
   isRestoringHistory = false;
 }
@@ -4810,8 +5236,16 @@ function undoAction() {
 }
 
 function serializeLayout() {
+  ensureSceneSystemInitialized();
+  saveCurrentSceneState();
   ensureAllConnectionsRouteNorm(stagePx);
   ensureAllStagePartsNorm(stagePx);
+  const serializedScenes = scenes.map((scene, index) => ({
+    id: scene.id,
+    order: index + 1,
+    name: String(scene.name || `Scene ${indexToLetters(index + 1)}`),
+    state: cloneSceneState(scene.state),
+  }));
   return {
     version:4,
     created:new Date().toISOString(),
@@ -4832,6 +5266,9 @@ function serializeLayout() {
     })),
     connections:connections.map(({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX,routeNX})=>({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX,routeNX})),
     stageParts:stageParts.map(({id,shape,isPrimary,label,x,y,stageNX,stageNY,widthM,depthM,color,hasSteps})=>({id,shape,isPrimary:!!isPrimary,label,x,y,stageNX,stageNY,widthM,depthM,color,hasSteps:!!hasSteps})),
+    scenes: serializedScenes,
+    activeSceneId,
+    sceneIdCounter,
   };
 }
 
@@ -8992,7 +9429,7 @@ async function saveRiderToLocalTarget(fileName, mode = 'save', options = {}) {
       await writeRiderToHandle(directFileHandle, data);
       riderLastSavedFileName = normalizeRiderFileName(directFileHandle.name || targetName);
       markClean();
-      addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName });
+      addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName, localFileHandle: directFileHandle });
       return;
     }
 
@@ -9001,7 +9438,7 @@ async function saveRiderToLocalTarget(fileName, mode = 'save', options = {}) {
       const saved = await writeRiderToDirectory(directDirectoryHandle, data, targetName, { overwrite: true });
       riderLastSavedFileName = normalizeRiderFileName(saved.fileName || targetName);
       markClean();
-      addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName });
+      addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName, localFileHandle: saved.fileHandle || riderFileHandle });
       return;
     }
 
@@ -9009,7 +9446,7 @@ async function saveRiderToLocalTarget(fileName, mode = 'save', options = {}) {
       const overwrite = !!riderLastSavedFileName && normalizeRiderFileName(riderLastSavedFileName) === targetName;
       await writeRiderToDirectory(riderSaveDirHandle, data, targetName, { overwrite });
       markClean();
-      addRecentRiderFile({ source: 'local', fileName: targetName });
+      addRecentRiderFile({ source: 'local', fileName: targetName, localFileHandle: riderFileHandle });
       return;
     }
 
@@ -9017,7 +9454,7 @@ async function saveRiderToLocalTarget(fileName, mode = 'save', options = {}) {
       await writeRiderToHandle(riderFileHandle, data);
       riderLastSavedFileName = targetName;
       markClean();
-      addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName });
+      addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName, localFileHandle: riderFileHandle });
       return;
     }
 
@@ -9027,7 +9464,7 @@ async function saveRiderToLocalTarget(fileName, mode = 'save', options = {}) {
       riderSaveDirHandle = directoryHandle;
       await writeRiderToDirectory(directoryHandle, data, targetName, { overwrite: true });
       markClean();
-      addRecentRiderFile({ source: 'local', fileName: targetName });
+      addRecentRiderFile({ source: 'local', fileName: targetName, localFileHandle: riderFileHandle });
       return;
     }
 
@@ -9046,7 +9483,7 @@ async function saveRiderToLocalTarget(fileName, mode = 'save', options = {}) {
       await writeRiderToHandle(handle, data);
       riderLastSavedFileName = normalizeRiderFileName(handle.name || targetName);
       markClean();
-      addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName });
+      addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName, localFileHandle: handle });
       return;
     }
   } catch(err) {
@@ -9055,7 +9492,7 @@ async function saveRiderToLocalTarget(fileName, mode = 'save', options = {}) {
 
   saveRiderByDownload(data, targetName);
   markClean();
-  addRecentRiderFile({ source: 'local', fileName: targetName });
+  addRecentRiderFile({ source: 'local', fileName: targetName, localFileHandle: riderFileHandle });
 }
 
 async function saveRiderFromFileMenu(forcePrompt) {
@@ -9149,7 +9586,7 @@ function triggerLoadRider(options = {}) {
         riderSaveLocation = 'local';
         hasRiderSavePreference = true;
         markClean();
-        addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName });
+        addRecentRiderFile({ source: 'local', fileName: riderLastSavedFileName, localFileHandle: handle });
       } catch(err) {
         if(err && err.name === 'AbortError') return;
         alert('Could not load rider file. Please select a valid JSON rider.');
@@ -9199,13 +9636,43 @@ function handleLoadRiderFile(e) {
 
 function loadRiderFromData(data) {
   if(!data || typeof data !== 'object') throw new Error('Invalid rider data');
-  const newInstruments = Array.isArray(data.instruments) ? data.instruments : [];
-  const newConnections = Array.isArray(data.connections) ? data.connections : [];
-  const stage = data.stage || {};
   if(typeof data.projectName === 'string' && data.projectName.trim()) {
     projectName = data.projectName.trim();
     updateProjectNameUI();
   }
+
+  if(Array.isArray(data.scenes) && data.scenes.length) {
+    const loadedScenes = data.scenes.map((raw, index) => {
+      const stateRaw = raw && raw.state && typeof raw.state === 'object' ? raw.state : null;
+      if(!stateRaw) return null;
+      const id = parseInt(raw.id, 10) || (index + 1);
+      return {
+        id,
+        name: String(raw.name || `Scene ${indexToLetters(index + 1)}`),
+        state: cloneSceneState(stateRaw),
+      };
+    }).filter(Boolean);
+
+    if(loadedScenes.length) {
+      scenes = loadedScenes;
+      sceneIdCounter = Math.max(parseInt(data.sceneIdCounter, 10) || 0, ...loadedScenes.map(scene => scene.id || 0));
+      const requestedSceneId = parseInt(data.activeSceneId, 10) || loadedScenes[0].id;
+      activeSceneId = loadedScenes.some(scene => scene.id === requestedSceneId) ? requestedSceneId : loadedScenes[0].id;
+      const activeScene = getActiveScene() || loadedScenes[0];
+      const sceneSnapshot = {
+        ...cloneSceneState(activeScene.state),
+        projectName,
+      };
+      applySnapshot(sceneSnapshot, true);
+      renderSceneTabs();
+      resetHistoryForCurrentScene();
+      return;
+    }
+  }
+
+  const newInstruments = Array.isArray(data.instruments) ? data.instruments : [];
+  const newConnections = Array.isArray(data.connections) ? data.connections : [];
+  const stage = data.stage || {};
 
   instruments.forEach(i => { const el = getEl(i.id); if(el) el.remove(); });
   stageParts.forEach(p => { const el = getStagePartEl(p.id); if(el) el.remove(); });
@@ -9380,6 +9847,15 @@ function loadRiderFromData(data) {
   updateSelectionPanels();
   applyModeUI();
   updateStage(true);
+  scenes = [{
+    id: 1,
+    name: `Scene ${indexToLetters(1)}`,
+    state: captureSceneState(),
+  }];
+  activeSceneId = 1;
+  sceneIdCounter = 1;
+  renderSceneTabs();
+  resetHistoryForCurrentScene();
   render();
 }
 
@@ -9438,9 +9914,13 @@ function ensureReportOptionsDialog() {
     <div class="report-dialog" role="dialog" aria-modal="true" aria-labelledby="report-dialog-title">
       <div class="report-dialog-header">
         <h2 id="report-dialog-title">Report Setup</h2>
-        <p>Select the snakes, outlets, stageboxes, and mixers to include. The report is printed in a white roadie-style format, with the stage image cropped to the layout bounds.</p>
+        <p>Select scenes and report targets. PDF export can include scene-to-scene diffs, while PNG remains the current scene only.</p>
       </div>
       <div class="report-dialog-body">
+        <div id="report-scene-panel" class="report-option-panel" style="display:none;">
+          <h3>Scenes</h3>
+          <div class="report-option-list" id="report-scene-list"></div>
+        </div>
         <div class="report-option-grid" id="report-option-grid"></div>
         <div class="report-option-panel">
           <h3>Stage Image</h3>
@@ -9500,13 +9980,33 @@ function buildReportOptionsMarkup() {
 
 function openReportOptionsDialog(autoPrint) {
   reportDialogDefaultAutoPrint = !!autoPrint;
+  saveCurrentSceneState();
   const overlay = ensureReportOptionsDialog();
   const grid = overlay.querySelector('#report-option-grid');
+  const scenePanel = overlay.querySelector('#report-scene-panel');
+  const sceneList = overlay.querySelector('#report-scene-list');
   grid.innerHTML = buildReportOptionsMarkup();
   const orientation = overlay.querySelector('#report-stage-orientation');
   const pdfBtn = overlay.querySelector('#report-pdf-btn');
   const viewBtn = overlay.querySelector('#report-view-btn');
   if(orientation) orientation.value = 'horizontal';
+  if(scenePanel && sceneList) {
+    if(Array.isArray(scenes) && scenes.length > 1) {
+      scenePanel.style.display = 'block';
+      sceneList.innerHTML = scenes.map((scene, index) => {
+        const checked = reportDialogDefaultAutoPrint ? 'checked' : (scene.id === activeSceneId ? 'checked' : '');
+        return `
+          <label class="report-option-item">
+            <input type="checkbox" data-report-scene-id="${scene.id}" ${checked}>
+            <span>${index + 1}. ${escapeHtml(scene.name || `Scene ${indexToLetters(index + 1)}`)}</span>
+          </label>
+        `;
+      }).join('');
+    } else {
+      scenePanel.style.display = 'none';
+      sceneList.innerHTML = '';
+    }
+  }
   if(viewBtn && pdfBtn) {
     viewBtn.classList.toggle('primary', !reportDialogDefaultAutoPrint);
     pdfBtn.classList.toggle('primary', !!reportDialogDefaultAutoPrint);
@@ -9517,11 +10017,28 @@ function openReportOptionsDialog(autoPrint) {
 function submitReportOptions(autoPrint) {
   const overlay = document.getElementById('report-modal');
   if(!overlay) return;
+  saveCurrentSceneState();
   const selectedIds = [...overlay.querySelectorAll('[data-report-item-id]:checked')].map(el => parseInt(el.getAttribute('data-report-item-id'), 10)).filter(Number.isFinite);
+  const sceneCheckboxes = [...overlay.querySelectorAll('[data-report-scene-id]')];
+  let selectedSceneIds = sceneCheckboxes
+    .filter(el => el.checked)
+    .map(el => parseInt(el.getAttribute('data-report-scene-id'), 10))
+    .filter(Number.isFinite);
+  if(autoPrint) {
+    // PDF exports should default to all scenes when nothing is explicitly selected.
+    if(!selectedSceneIds.length) {
+      selectedSceneIds = (sceneCheckboxes.length
+        ? sceneCheckboxes.map(el => parseInt(el.getAttribute('data-report-scene-id'), 10))
+        : (Array.isArray(scenes) ? scenes.map(scene => scene && scene.id) : []))
+        .filter(Number.isFinite);
+    }
+  } else if(!selectedSceneIds.length) {
+    selectedSceneIds = [activeSceneId].filter(Number.isFinite);
+  }
   const includeStageImage = !!overlay.querySelector('#report-include-stage-image')?.checked;
   const stageOrientation = overlay.querySelector('#report-stage-orientation')?.value === 'vertical' ? 'vertical' : 'horizontal';
   closeReportOptionsDialog();
-  openReportWindow({ selectedIds, includeStageImage, stageOrientation }, autoPrint);
+  openReportWindow({ selectedIds, selectedSceneIds, includeStageImage, stageOrientation }, autoPrint);
 }
 
 function getReportItemById(id) {
@@ -10073,8 +10590,12 @@ function getReportSnapshotInstrument(instr) {
   const liveEl = getEl(instr.id);
   const liveBody = liveEl ? liveEl.querySelector('.ib') : null;
   const fallback = getInstrumentBodyDimensionsPx(instr);
-  const width = liveBody && liveBody.offsetWidth > 0 ? (liveBody.offsetWidth / Math.max(zoomLevel, 0.001)) : fallback.width;
-  const height = liveBody && liveBody.offsetHeight > 0 ? (liveBody.offsetHeight / Math.max(zoomLevel, 0.001)) : fallback.height;
+  const width = (liveBody && liveBody.offsetWidth > 0)
+    ? (liveBody.offsetWidth / Math.max(zoomLevel, 0.001))
+    : fallback.width;
+  const height = (liveBody && liveBody.offsetHeight > 0)
+    ? (liveBody.offsetHeight / Math.max(zoomLevel, 0.001))
+    : fallback.height;
   return {
     id: instr.id,
     worldX: instr.x,
@@ -10118,7 +10639,7 @@ function getReportSnapshotInstrument(instr) {
         ? '#eaf8f0'
         : (getConnectionBoxKind(instr) === 'mixer'
           ? '#e8f2ff'
-          : (instr.cat === 'monitoring' ? '#ffe9e9' : '#ffffff')))),
+          : (instr.cat === 'monitoring' ? '#fff5e8' : '#ffffff')))),
     stroke: isOutletBox(instr)
       ? '#9ca3af'
       : (isSnakeBox(instr)
@@ -10127,7 +10648,7 @@ function getReportSnapshotInstrument(instr) {
         ? '#4da97f'
         : (getConnectionBoxKind(instr) === 'mixer'
           ? '#7aaed9'
-          : (instr.cat === 'monitoring' ? '#cf6f6f' : '#c7d0db')))),
+          : (instr.cat === 'monitoring' ? '#c98b3f' : '#c7d0db')))),
     labelColor: '#102033',
   };
 }
@@ -10196,7 +10717,7 @@ function buildReportStageSvg(orientation) {
         ? '#eaf8f0'
         : (getConnectionBoxKind(instr) === 'mixer'
           ? '#e8f2ff'
-          : (instr.cat === 'monitoring' ? '#ffe9e9' : '#ffffff'))));
+          : (instr.cat === 'monitoring' ? '#fff5e8' : '#ffffff'))));
     const stroke = isOutletBox(instr)
       ? '#9ca3af'
       : (isSnakeBox(instr)
@@ -10205,7 +10726,7 @@ function buildReportStageSvg(orientation) {
         ? '#4da97f'
         : (getConnectionBoxKind(instr) === 'mixer'
           ? '#7aaed9'
-          : (instr.cat === 'monitoring' ? '#cf6f6f' : '#c7d0db'))));
+          : (instr.cat === 'monitoring' ? '#c98b3f' : '#c7d0db'))));
     const image = getEffectiveInstrumentImage(instr);
     const standOnly = isStandType(instr);
 
@@ -10389,7 +10910,10 @@ function getReportStageSnapshotData(stageOrientation) {
     label: 'STAGE',
     dims: `${stageW}m × ${stageD}m`,
   };
-  const reportItems = instruments.map(getReportSnapshotInstrument);
+  const reportItems = instruments.map((instr, index) => ({
+    ...getReportSnapshotInstrument(instr),
+    renderOrder: index,
+  }));
   const itemById = new Map(reportItems.map(item => [item.id, item]));
   const items = reportItems.map(item => ({
     ...item,
@@ -10552,6 +11076,896 @@ function bucketReportConnectionByCableLength(connectionsForReport) {
     else entry.counts[family.overflowLabel] += 1;
   });
   return [...summary.values()];
+}
+
+function getSceneReportState(sceneId) {
+  if(!Array.isArray(scenes)) return null;
+  const scene = scenes.find(s => s && s.id === sceneId);
+  if(!scene || !scene.state) return null;
+  return {
+    id: scene.id,
+    name: scene.name || `Scene ${indexToLetters((scenes.indexOf(scene) || 0) + 1)}`,
+    state: cloneSceneState(scene.state),
+  };
+}
+
+function getSelectedScenesForReport(selectedSceneIds) {
+  saveCurrentSceneState();
+  const selected = new Set((Array.isArray(selectedSceneIds) ? selectedSceneIds : []).map(id => parseInt(id, 10)).filter(Number.isFinite));
+  const ordered = (Array.isArray(scenes) ? scenes : []).filter(scene => scene && (!selected.size || selected.has(scene.id)));
+  if(!ordered.length && Number.isFinite(activeSceneId)) {
+    const fallback = getSceneReportState(activeSceneId);
+    return fallback ? [fallback] : [];
+  }
+  return ordered.map(scene => ({
+    id: scene.id,
+    name: scene.name || `Scene ${indexToLetters((scenes.indexOf(scene) || 0) + 1)}`,
+    state: cloneSceneState(scene.state || captureSceneState()),
+  }));
+}
+
+function withTemporarySceneState(sceneState, workFn) {
+  const restoreSnapshot = captureSnapshot();
+  const tempSnapshot = {
+    ...restoreSnapshot,
+    ...cloneSceneState(sceneState || {}),
+    projectName,
+  };
+  applySnapshot(tempSnapshot, false, true);
+  try {
+    return workFn();
+  } finally {
+    applySnapshot(restoreSnapshot, false, true);
+  }
+}
+
+async function withTemporarySceneStateAsync(sceneState, workFn) {
+  const restoreSnapshot = captureSnapshot();
+  const tempSnapshot = {
+    ...restoreSnapshot,
+    ...cloneSceneState(sceneState || {}),
+    projectName,
+  };
+  applySnapshot(tempSnapshot, false, true);
+  try {
+    return await workFn();
+  } finally {
+    applySnapshot(restoreSnapshot, false, true);
+  }
+}
+
+function getSceneStageRect(state) {
+  const centerX = stagePx.left + (stagePx.width / 2);
+  const centerY = stagePx.top + (stagePx.height / 2);
+  const width = Math.max(1, (Math.max(1, Number(state?.stageW) || 12) * pxPerM));
+  const height = Math.max(1, (Math.max(1, Number(state?.stageD) || 8) * pxPerM));
+  return {
+    x: centerX - (width / 2),
+    y: centerY - (height / 2),
+    width,
+    height,
+    color: state?.stageColor || '#2f6fa0',
+  };
+}
+
+function getSceneReportItems(state) {
+  return (state?.instruments || []).map(instr => {
+    const body = getInstrumentBodyDimensionsPx(instr || {});
+    return {
+      id: instr.id,
+      x: Number(instr.x) || 0,
+      y: Number(instr.y) || 0,
+      width: Math.max(20, Number(body.width) || 56),
+      height: Math.max(20, Number(body.height) || 44),
+      angle: parseInt(instr.angle || 0, 10) || 0,
+      label: instr.label || instr.name || instr.type || 'Item',
+      type: instr.type || '',
+      cat: instr.cat || '',
+    };
+  });
+}
+
+function getSceneReportParts(state) {
+  return (state?.stageParts || []).map(part => ({
+    id: part.id,
+    x: Number(part.x) || 0,
+    y: Number(part.y) || 0,
+    width: Math.max(24, Math.max(0.5, Number(part.widthM) || 1) * pxPerM),
+    height: Math.max(24, Math.max(0.5, Number(part.depthM) || 1) * pxPerM),
+    shape: part.shape || 'rect',
+    label: part.label || 'Stage',
+    color: /^#[0-9a-fA-F]{6}$/.test(String(part.color || '')) ? part.color : '#7da7c8',
+  }));
+}
+
+function getSceneReportBounds(state) {
+  const stage = getSceneStageRect(state);
+  const items = getSceneReportItems(state);
+  const parts = getSceneReportParts(state);
+  const points = [
+    { left: stage.x, top: stage.y, right: stage.x + stage.width, bottom: stage.y + stage.height },
+  ];
+  items.forEach(item => points.push({ left: item.x, top: item.y, right: item.x + item.width, bottom: item.y + item.height }));
+  parts.forEach(part => points.push({ left: part.x, top: part.y, right: part.x + part.width, bottom: part.y + part.height }));
+  return {
+    left: Math.max(0, Math.min(...points.map(p => p.left)) - 24),
+    top: Math.max(0, Math.min(...points.map(p => p.top)) - 24),
+    right: Math.max(...points.map(p => p.right)) + 24,
+    bottom: Math.max(...points.map(p => p.bottom)) + 24,
+  };
+}
+
+function isSceneConnectionRelevant(conn, selectedIds) {
+  if(!conn) return false;
+  if(!selectedIds || !selectedIds.size) return true;
+  return selectedIds.has(conn.fromId) || selectedIds.has(conn.toId);
+}
+
+function getSceneSnakePortKey(instr, pin) {
+  if(!instr || !isSnakeBox(instr)) return null;
+  const match = String(pinKey(pin) || '').match(/^(?:SNAKE|STAGE|CABLE)-(IN|OUT)-(\d+)$/);
+  if(!match) return null;
+  return `${instr.id}:${match[1]}:${parseInt(match[2], 10) || 0}`;
+}
+
+function getSceneConnectionIdentity(conn, byId) {
+  const fromInstr = byId.get(conn.fromId) || null;
+  const toInstr = byId.get(conn.toId) || null;
+  const fromSnake = getSceneSnakePortKey(fromInstr, conn.fromPin);
+  const toSnake = getSceneSnakePortKey(toInstr, conn.toPin);
+  if(fromSnake || toSnake) return fromSnake || toSnake;
+  const a = `${conn.fromId}:${pinKey(conn.fromPin)}`;
+  const b = `${conn.toId}:${pinKey(conn.toPin)}`;
+  return [a, b].sort().join('|');
+}
+
+function getSceneConnectionSignature(conn, byId) {
+  const fromInstr = byId.get(conn.fromId) || null;
+  const toInstr = byId.get(conn.toId) || null;
+  const fromSnake = getSceneSnakePortKey(fromInstr, conn.fromPin);
+  const toSnake = getSceneSnakePortKey(toInstr, conn.toPin);
+  if(fromSnake) return `${conn.toId}:${pinKey(conn.toPin)}`;
+  if(toSnake) return `${conn.fromId}:${pinKey(conn.fromPin)}`;
+  const a = `${conn.fromId}:${pinKey(conn.fromPin)}`;
+  const b = `${conn.toId}:${pinKey(conn.toPin)}`;
+  return [a, b].sort().join('|');
+}
+
+function getScenePinLabel(instr, pin) {
+  if(!instr) return pinKey(pin) || 'Pin';
+  if(isOutletBox(instr)) {
+    const idx = getOutletPortIndexFromPin(pin);
+    if(idx > 0) return getOutletPortName(instr, idx);
+  }
+  // Reuse the report pin label resolver (already handles snakes/mixers/outlets).
+  if(typeof getReportPinLabel === 'function') {
+    return getReportPinLabel(instr, pin);
+  }
+  return pinForReport(pinKey(pin));
+}
+
+function describeSceneEndpoint(state, id, pin) {
+  const instr = (state?.instruments || []).find(item => item && item.id === id) || null;
+  if(!instr) return `Unknown (${escapeHtml(pinKey(pin) || 'Pin')})`;
+  const label = instr.label || instr.name || instr.type || 'Item';
+  const pinLabel = getScenePinLabel(instr, pin);
+  return `${escapeHtml(label)} (${escapeHtml(pinLabel)})`;
+}
+
+function buildSceneConnectionDiff(prevState, nextState, selectedIds) {
+  const prevById = new Map((prevState?.instruments || []).map(item => [item.id, item]));
+  const nextById = new Map((nextState?.instruments || []).map(item => [item.id, item]));
+  const prevMap = new Map();
+  const nextMap = new Map();
+
+  (prevState?.connections || []).forEach(conn => {
+    if(!isSceneConnectionRelevant(conn, selectedIds)) return;
+    const key = getSceneConnectionIdentity(conn, prevById);
+    prevMap.set(key, { conn, signature: getSceneConnectionSignature(conn, prevById) });
+  });
+  (nextState?.connections || []).forEach(conn => {
+    if(!isSceneConnectionRelevant(conn, selectedIds)) return;
+    const key = getSceneConnectionIdentity(conn, nextById);
+    nextMap.set(key, { conn, signature: getSceneConnectionSignature(conn, nextById) });
+  });
+
+  const added = [];
+  const removed = [];
+  const changed = [];
+
+  nextMap.forEach((nextEntry, key) => {
+    const prevEntry = prevMap.get(key);
+    if(!prevEntry) {
+      added.push(nextEntry.conn);
+      return;
+    }
+    if(prevEntry.signature !== nextEntry.signature) changed.push({ before: prevEntry.conn, after: nextEntry.conn });
+  });
+  prevMap.forEach((prevEntry, key) => {
+    if(!nextMap.has(key)) removed.push(prevEntry.conn);
+  });
+
+  // Reclassify compatible removed+added pairs as changed so the same logical reroute
+  // does not appear in both lists.
+  const endpointKey = conn => {
+    if(!conn) return '';
+    const a = `${conn.fromId}:${pinKey(conn.fromPin)}`;
+    const b = `${conn.toId}:${pinKey(conn.toPin)}`;
+    return [a, b].sort().join('|');
+  };
+  const sharesEndpoint = (a, b) => {
+    if(!a || !b) return false;
+    const setA = new Set([`${a.fromId}:${pinKey(a.fromPin)}`, `${a.toId}:${pinKey(a.toPin)}`]);
+    return setA.has(`${b.fromId}:${pinKey(b.fromPin)}`) || setA.has(`${b.toId}:${pinKey(b.toPin)}`);
+  };
+
+  const nextAdded = [...added];
+  const nextRemoved = [...removed];
+  const pairedAdded = new Set();
+  const pairedRemoved = new Set();
+  nextRemoved.forEach((removedConn, rIdx) => {
+    let candidateIndex = -1;
+    for(let aIdx = 0; aIdx < nextAdded.length; aIdx++) {
+      if(pairedAdded.has(aIdx)) continue;
+      const addedConn = nextAdded[aIdx];
+      if(sharesEndpoint(removedConn, addedConn)) {
+        candidateIndex = aIdx;
+        break;
+      }
+    }
+    if(candidateIndex >= 0) {
+      pairedRemoved.add(rIdx);
+      pairedAdded.add(candidateIndex);
+      changed.push({ before: removedConn, after: nextAdded[candidateIndex] });
+    }
+  });
+
+  const dedupedAdded = nextAdded.filter((_conn, idx) => !pairedAdded.has(idx));
+  const dedupedRemoved = nextRemoved.filter((_conn, idx) => !pairedRemoved.has(idx));
+  const seenChange = new Set();
+  const dedupedChanged = changed.filter(entry => {
+    const key = `${endpointKey(entry.before)}=>${endpointKey(entry.after)}`;
+    if(seenChange.has(key)) return false;
+    seenChange.add(key);
+    return true;
+  });
+
+  return { added: dedupedAdded, removed: dedupedRemoved, changed: dedupedChanged };
+}
+
+function buildSceneEquipmentSummaryRows(sceneStates) {
+  const byType = new Map();
+  const seenIds = new Set();
+  const stagePartIds = new Set();
+
+  (sceneStates || []).forEach(scene => {
+    (scene?.state?.instruments || []).forEach(instr => {
+      if(!instr || seenIds.has(instr.id)) return;
+      seenIds.add(instr.id);
+      const def = getInstrumentDefinitionByType(instr.type);
+      const label = (def && (def.name || def.label)) || instr.name || instr.type || 'Item';
+      const key = `${instr.cat || 'other'}|${instr.type || 'unknown'}`;
+      const entry = byType.get(key) || { category: instr.cat || 'other', label, count: 0 };
+      entry.count += 1;
+      byType.set(key, entry);
+    });
+    (scene?.state?.stageParts || []).forEach(part => {
+      if(!part || stagePartIds.has(part.id)) return;
+      stagePartIds.add(part.id);
+    });
+  });
+
+  const rows = [...byType.values()].sort((a, b) => {
+    const catCmp = String(a.category).localeCompare(String(b.category), undefined, { sensitivity: 'base' });
+    if(catCmp !== 0) return catCmp;
+    return String(a.label).localeCompare(String(b.label), undefined, { sensitivity: 'base' });
+  });
+
+  if(stagePartIds.size > 0) rows.push({ category: 'stage', label: 'Stage Parts', count: stagePartIds.size });
+  return rows;
+}
+
+function buildGlobalUtilityCountRows(sceneStates) {
+  const standDefinitions = INSTRUMENTS
+    .filter(def => def && def.cat === 'stands')
+    .map(def => ({
+      type: def.type,
+      label: def.name || def.label || def.type || 'Stand',
+    }));
+  const seenInstrumentIds = new Set();
+  const standUsage = new Map();
+  let diCount = 0;
+
+  (sceneStates || []).forEach(scene => {
+    (scene?.state?.instruments || []).forEach(instr => {
+      if(!instr || seenInstrumentIds.has(instr.id)) return;
+      seenInstrumentIds.add(instr.id);
+      if(instr.type === 'di') diCount += 1;
+      if(instr.cat === 'stands') {
+        const key = instr.type || 'stand';
+        standUsage.set(key, (standUsage.get(key) || 0) + 1);
+      }
+    });
+  });
+
+  standUsage.forEach((_count, type) => {
+    if(standDefinitions.some(def => def.type === type)) return;
+    const fallbackDef = getInstrumentDefinitionByType(type);
+    standDefinitions.push({
+      type,
+      label: (fallbackDef && (fallbackDef.name || fallbackDef.label)) || String(type || 'Stand'),
+    });
+  });
+  standDefinitions.sort((a, b) => String(a.label).localeCompare(String(b.label), undefined, { sensitivity: 'base' }));
+
+  const rows = [
+    { label: 'DI', count: diCount },
+    ...standDefinitions.map(def => ({
+      label: def.label,
+      count: standUsage.get(def.type) || 0,
+    })),
+  ].filter(row => Number(row.count) > 0);
+
+  return rows.map(row => `
+    <tr>
+      <td>${escapeHtml(row.label)}</td>
+      <td>${row.count}</td>
+    </tr>
+  `).join('');
+}
+
+function buildSceneItemDiff(prevState, nextState) {
+  const prevById = new Map((prevState?.instruments || []).map(item => [item.id, item]));
+  const nextById = new Map((nextState?.instruments || []).map(item => [item.id, item]));
+  const added = [];
+  const removed = [];
+  const moved = [];
+  const changed = [];
+  const unchanged = [];
+
+  nextById.forEach((nextItem, id) => {
+    const prevItem = prevById.get(id);
+    if(!prevItem) {
+      added.push(nextItem);
+      return;
+    }
+    const prevNX = Number(prevItem.stageNX);
+    const prevNY = Number(prevItem.stageNY);
+    const nextNX = Number(nextItem.stageNX);
+    const nextNY = Number(nextItem.stageNY);
+    const hasNormalized = Number.isFinite(prevNX) && Number.isFinite(prevNY) && Number.isFinite(nextNX) && Number.isFinite(nextNY);
+    const normalizedThreshold = 0.006;
+    const pixelThreshold = 8;
+    const movedFlag = hasNormalized
+      ? (Math.abs(nextNX - prevNX) > normalizedThreshold || Math.abs(nextNY - prevNY) > normalizedThreshold)
+      : (Math.abs((Number(nextItem.x) || 0) - (Number(prevItem.x) || 0)) > pixelThreshold
+        || Math.abs((Number(nextItem.y) || 0) - (Number(prevItem.y) || 0)) > pixelThreshold);
+    const changedFlag = String(nextItem.type || '') !== String(prevItem.type || '')
+      || String(nextItem.cat || '') !== String(prevItem.cat || '')
+      || String(nextItem.label || '') !== String(prevItem.label || '');
+    if(movedFlag) moved.push({ before: prevItem, after: nextItem });
+    if(changedFlag) changed.push({ before: prevItem, after: nextItem });
+    if(!movedFlag && !changedFlag) unchanged.push(nextItem);
+  });
+
+  prevById.forEach((prevItem, id) => {
+    if(!nextById.has(id)) removed.push(prevItem);
+  });
+
+  return { added, removed, moved, changed, unchanged };
+}
+
+function getSceneItemDisplayLabel(item) {
+  if(!item) return 'Unknown';
+  return String(item.label || item.name || item.type || 'Item');
+}
+
+function buildSceneDiffWordListHtml(items, tone, formatter) {
+  const toneClass = tone === 'add'
+    ? 'scene-diff-word-add'
+    : (tone === 'remove'
+      ? 'scene-diff-word-remove'
+      : (tone === 'change' ? 'scene-diff-word-change' : 'scene-diff-word-move'));
+  const names = Array.from(new Set((items || []).map(entry => {
+    if(typeof formatter === 'function') return formatter(entry);
+    return getSceneItemDisplayLabel(entry);
+  }).filter(Boolean)));
+  if(!names.length) return '<span class="scene-diff-none">none</span>';
+  return names.map(name => `<span class="scene-diff-word ${toneClass}">${escapeHtml(name)}</span>`).join(', ');
+}
+
+function buildSceneConnectionListHtml(title, list, state) {
+  if(!list.length) return '';
+  return `
+    <section class="scene-diff-block">
+      <h4>${escapeHtml(title)} (${list.length})</h4>
+      <ul>
+        ${list.map(conn => `<li>${describeSceneEndpoint(state, conn.fromId, conn.fromPin)} → ${describeSceneEndpoint(state, conn.toId, conn.toPin)}</li>`).join('')}
+      </ul>
+    </section>
+  `;
+}
+
+function buildSceneDiffChangedConnectionHtml(list, prevState, nextState) {
+  if(!list.length) return '';
+  return `
+    <section class="scene-diff-block">
+      <h4>Changed Connections (${list.length})</h4>
+      <ul>
+        ${list.map(entry => `<li>${describeSceneEndpoint(prevState, entry.before.fromId, entry.before.fromPin)} → ${describeSceneEndpoint(prevState, entry.before.toId, entry.before.toPin)}<br>Now: ${describeSceneEndpoint(nextState, entry.after.fromId, entry.after.fromPin)} → ${describeSceneEndpoint(nextState, entry.after.toId, entry.after.toPin)}</li>`).join('')}
+      </ul>
+    </section>
+  `;
+}
+
+function buildSceneDiffReportPayload(reportOptions = {}) {
+  const selectedIds = new Set(Array.isArray(reportOptions.selectedIds) ? reportOptions.selectedIds.map(id => parseInt(id, 10)).filter(Number.isFinite) : []);
+  let selectedScenes = getSelectedScenesForReport(reportOptions.selectedSceneIds);
+  // If PDF scene selection unexpectedly resolves to a single scene while multiple scenes exist,
+  // fall back to all scenes in tab order to avoid losing scene diffs.
+  if(selectedScenes.length <= 1 && Array.isArray(scenes) && scenes.length > 1) {
+    selectedScenes = getSelectedScenesForReport(scenes.map(scene => scene && scene.id).filter(Number.isFinite));
+  }
+  if(!selectedScenes.length) return { html: buildReportHTML(reportOptions, true), renderData: [], appendHtml: '', firstScene: null, firstSceneOptions: reportOptions };
+
+  const first = selectedScenes[0];
+  const firstReportHtml = withTemporarySceneState(first.state, () => buildReportHTML({
+    selectedIds: [...selectedIds],
+    includeStageImage: reportOptions.includeStageImage !== false,
+    stageOrientation: reportOptions.stageOrientation === 'vertical' ? 'vertical' : 'horizontal',
+  }, true));
+
+  const renderData = [];
+  const sections = [];
+
+  for(let i = 1; i < selectedScenes.length; i++) {
+    const prev = selectedScenes[i - 1];
+    const curr = selectedScenes[i];
+    const itemDiff = buildSceneItemDiff(prev.state, curr.state);
+    const connectionDiff = buildSceneConnectionDiff(prev.state, curr.state, selectedIds);
+    const canvasId = `scene-report-canvas-${curr.id}`;
+    renderData.push({ canvasId, mode: 'diff', prevScene: prev.state, nextScene: curr.state, diff: itemDiff });
+    sections.push(`
+      <section class="scene-report-section scene-report-break">
+        <h2>${escapeHtml(prev.name)} → ${escapeHtml(curr.name)}</h2>
+        <p class="scene-meta">Added: ${itemDiff.added.length} · Removed: ${itemDiff.removed.length} · Moved: ${itemDiff.moved.length} · Changed: ${itemDiff.changed.length}</p>
+        <figure class="scene-figure"><canvas id="${canvasId}"></canvas></figure>
+        <div class="scene-diff-grid">
+          <section class="scene-diff-block">
+            <h4>Item Summary</h4>
+            <ul>
+              <li><strong>Added:</strong> ${buildSceneDiffWordListHtml(itemDiff.added, 'add')}</li>
+              <li><strong>Removed:</strong> ${buildSceneDiffWordListHtml(itemDiff.removed, 'remove')}</li>
+              <li><strong>Moved:</strong> ${buildSceneDiffWordListHtml(itemDiff.moved, 'move', entry => getSceneItemDisplayLabel(entry && entry.after))}</li>
+              <li><strong>Changed:</strong> ${buildSceneDiffWordListHtml(itemDiff.changed, 'change', entry => {
+                const before = getSceneItemDisplayLabel(entry && entry.before);
+                const after = getSceneItemDisplayLabel(entry && entry.after);
+                return before === after ? after : `${before} → ${after}`;
+              })} <span class="scene-diff-inline-note">(same item identity, but label/type/category changed)</span></li>
+            </ul>
+          </section>
+          ${buildSceneConnectionListHtml('Added Connections', connectionDiff.added, curr.state)}
+          ${buildSceneConnectionListHtml('Removed Connections', connectionDiff.removed, prev.state)}
+          ${buildSceneDiffChangedConnectionHtml(connectionDiff.changed, prev.state, curr.state)}
+        </div>
+      </section>
+    `);
+  }
+
+  const utilityRows = buildGlobalUtilityCountRows(selectedScenes);
+  const appendHtml = `
+    <style>
+      .scene-report-append{margin-top:18px;}
+      .scene-report-section{margin-top:18px;break-inside:avoid;page-break-inside:avoid;}
+      .scene-report-break{break-before:page;page-break-before:always;}
+      .scene-report-section h2{font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:1px;color:#1f4c78;text-transform:uppercase;margin-bottom:6px;}
+      .scene-meta{margin:5px 0 10px 0;font-size:12px;color:#5a6d83;}
+      .scene-figure{border:1px solid #d5deea;border-radius:10px;padding:8px;background:#f8fbff;}
+      .scene-figure canvas{width:100%;height:auto;display:block;}
+      .scene-diff-grid{display:grid;gap:10px;margin-top:10px;}
+      .scene-diff-block{border:1px solid #dce5ef;border-radius:10px;padding:10px;background:#ffffff;}
+      .scene-diff-block h4{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#5b7089;margin-bottom:8px;}
+      .scene-diff-block ul{margin:0;padding-left:18px;font-size:12px;color:#243447;line-height:1.45;}
+      .scene-diff-word{display:inline-block;padding:1px 6px;border-radius:999px;border:1px solid transparent;font-size:11px;line-height:1.3;}
+      .scene-diff-word-add{background:#e6f7ee;border-color:#b7e6cb;color:#1a7d48;}
+      .scene-diff-word-remove{background:#fdebec;border-color:#f2bec2;color:#b73745;}
+      .scene-diff-word-change{background:#fff5db;border-color:#efd08a;color:#9f6a00;}
+      .scene-diff-word-move{background:#fff5db;border-color:#efd08a;color:#9f6a00;}
+      .scene-diff-inline-note{font-size:10px;color:#7b8898;}
+      .scene-diff-none{color:#7a8798;font-style:italic;}
+      .scene-diff-block table{width:100%;border-collapse:collapse;font-size:12px;}
+      .scene-diff-block th,.scene-diff-block td{border:1px solid #dce5ef;padding:6px 8px;text-align:left;}
+      .scene-diff-block th{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:#1f4c78;background:#f4f9ff;}
+    </style>
+    <section class="scene-report-append">
+      ${sections.join('')}
+      <section class="scene-report-section scene-report-break">
+        <h2>Global Utility Count (Selected Scenes)</h2>
+        <p class="scene-meta">Uses the same utility categories as the standard report table (DI + stand types).</p>
+        <section class="scene-diff-block">
+          <table>
+            <thead><tr><th>Utility</th><th>Count</th></tr></thead>
+            <tbody>${utilityRows || '<tr><td colspan="2">No utility items in selected scenes.</td></tr>'}</tbody>
+          </table>
+        </section>
+      </section>
+    </section>
+  `;
+
+  return {
+    html: firstReportHtml,
+    renderData,
+    appendHtml,
+    firstScene: first.state,
+    firstSceneOptions: {
+      stageOrientation: reportOptions.stageOrientation === 'vertical' ? 'vertical' : 'horizontal',
+    },
+  };
+}
+
+function computeFittedSceneTransform(data, canvasWidth, canvasHeight) {
+  const srcW = Math.max(1, Math.round(data.bounds.right - data.bounds.left));
+  const srcH = Math.max(1, Math.round(data.bounds.bottom - data.bounds.top));
+  const scale = Math.max(0.1, Math.min(canvasWidth / srcW, canvasHeight / srcH) * 0.96);
+  const ox = (canvasWidth - (srcW * scale)) / 2;
+  const oy = (canvasHeight - (srcH * scale)) / 2;
+  return {
+    srcW,
+    srcH,
+    scale,
+    ox,
+    oy,
+    toX: x => ox + (x * scale),
+    toY: y => oy + (y * scale),
+    toL: v => v * scale,
+  };
+}
+
+function loadReportImagesForData(win, data) {
+  return Promise.all((data.items || []).filter(item => item.image).map(item => new Promise(resolve => {
+    const img = new win.Image();
+    img.onload = () => resolve({ item, img });
+    img.onerror = () => resolve({ item, img: null });
+    img.src = item.image;
+  })));
+}
+
+function drawSceneDiffOverlay(ctx, nextData, prevData, diff, fit, prevImageMap, nextImageMap, baseSnapshotCanvas) {
+  const nextById = new Map((nextData.items || []).map(item => [item.id, item]));
+  const prevById = new Map((prevData.items || []).map(item => [item.id, item]));
+  const nextOrder = new Map((nextData.items || []).map((item, index) => [item.id, Number.isFinite(item.renderOrder) ? item.renderOrder : index]));
+  const prevOrder = new Map((prevData.items || []).map((item, index) => [item.id, Number.isFinite(item.renderOrder) ? item.renderOrder : index]));
+
+  // Fade the entire baseline snapshot first.
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.fillRect(fit.ox, fit.oy, fit.srcW * fit.scale, fit.srcH * fit.scale);
+  ctx.restore();
+
+  const drawOnItem = (item, color, alpha, strokeOnly = false) => {
+    if(!item) return;
+    if(item.isStand) strokeOnly = true;
+    ctx.save();
+    const x = fit.toX(item.x);
+    const y = fit.toY(item.y);
+    const w = fit.toL(item.width);
+    const h = fit.toL(item.height);
+    roundRect(ctx, x, y, w, h, Math.max(3, fit.toL(6)));
+    if(!strokeOnly) {
+      ctx.fillStyle = color;
+      ctx.globalAlpha = alpha;
+      ctx.fill();
+    }
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = Math.max(0.5, Math.min(1, alpha + 0.45));
+    ctx.lineWidth = Math.max(1.2, fit.toL(2));
+    ctx.stroke();
+    ctx.restore();
+  };
+
+  const drawRemovedGhost = item => {
+    if(!item) return;
+    const x = fit.toX(item.x);
+    const y = fit.toY(item.y);
+    const w = fit.toL(item.width);
+    const h = fit.toL(item.height);
+    const img = prevImageMap ? prevImageMap.get(item.id) : null;
+
+    ctx.save();
+    ctx.globalAlpha = 0.92;
+    if(!item.isStand) {
+      ctx.fillStyle = item.color;
+      ctx.strokeStyle = '#d64545';
+      ctx.lineWidth = Math.max(1.2, fit.toL(2));
+      roundRect(ctx, x, y, w, h, Math.max(3, fit.toL(6)));
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    if(img) {
+      const isDi = item.type === 'di';
+      const targetW = Math.max(16, w - (isDi ? 8 : 12));
+      const targetH = Math.max(16, h - (isDi ? 8 : 16));
+      const ratio = Math.min(targetW / img.width, targetH / img.height);
+      const dw = img.width * ratio;
+      const dh = img.height * ratio;
+      const dx = x + ((w - dw) / 2);
+      const dy = isDi ? (y + ((h - dh) / 2)) : (y + 6 + ((targetH - dh) / 2));
+      ctx.drawImage(img, dx, dy, dw, dh);
+    } else {
+      ctx.fillStyle = '#17324f';
+      ctx.font = `${Math.max(10, fit.toL(18))}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(item.icon || '•'), x + (w / 2), y + (h / 2));
+    }
+
+    // Red tint so removed items are clearly identified while preserving icon/shape.
+    ctx.fillStyle = '#d64545';
+    ctx.globalAlpha = 0.2;
+    roundRect(ctx, x, y, w, h, Math.max(3, fit.toL(6)));
+    ctx.fill();
+    ctx.restore();
+  };
+
+  const drawDiffCard = (item, img, borderColor, opts = {}) => {
+    if(!item) return;
+    const x = fit.toX(item.x);
+    const y = fit.toY(item.y);
+    const w = fit.toL(item.width);
+    const h = fit.toL(item.height);
+    const bgAlpha = Number.isFinite(opts.bgAlpha) ? opts.bgAlpha : 0.94;
+    const iconAlpha = Number.isFinite(opts.iconAlpha) ? opts.iconAlpha : 1;
+    const labelAlpha = Number.isFinite(opts.labelAlpha) ? opts.labelAlpha : 0.96;
+    const tintColor = opts.tintColor || '';
+    const tintAlpha = Number.isFinite(opts.tintAlpha) ? opts.tintAlpha : 0;
+
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = bgAlpha;
+    roundRect(ctx, x, y, w, h, Math.max(3, fit.toL(6)));
+    ctx.fill();
+
+    ctx.strokeStyle = borderColor;
+    ctx.globalAlpha = 0.9;
+    ctx.lineWidth = Math.max(1.2, fit.toL(2));
+    roundRect(ctx, x, y, w, h, Math.max(3, fit.toL(6)));
+    ctx.stroke();
+
+    ctx.globalAlpha = Math.max(0.2, Math.min(1, iconAlpha));
+    if(img) {
+      const pad = Math.max(6, fit.toL(8));
+      const targetW = Math.max(14, w - (pad * 2));
+      const targetH = Math.max(14, h - (pad * 2));
+      const ratio = Math.min(targetW / img.width, targetH / img.height);
+      const dw = img.width * ratio;
+      const dh = img.height * ratio;
+      const dx = x + ((w - dw) / 2);
+      const dy = y + ((h - dh) / 2);
+      ctx.drawImage(img, dx, dy, dw, dh);
+    } else {
+      ctx.fillStyle = '#17324f';
+      ctx.font = `${Math.max(9, fit.toL(16))}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(item.icon || '•'), x + (w / 2), y + (h / 2));
+    }
+
+    if(tintColor && tintAlpha > 0) {
+      ctx.fillStyle = tintColor;
+      ctx.globalAlpha = tintAlpha;
+      roundRect(ctx, x, y, w, h, Math.max(3, fit.toL(6)));
+      ctx.fill();
+    }
+
+    const label = item.isStand ? '' : String(item.label || item.name || item.type || '').trim();
+    if(label) {
+      const labelFont = `${Math.max(7, Math.min(10, fit.toL(10)))}px Barlow, sans-serif`;
+      ctx.font = `700 ${labelFont}`;
+      const maxTextWidth = Math.max(16, w - Math.max(8, fit.toL(10)));
+      const measured = Math.min(maxTextWidth, ctx.measureText(label).width);
+      const chipH = Math.max(10, fit.toL(12));
+      const chipW = Math.max(Math.min(w - 4, measured + Math.max(8, fit.toL(10))), Math.min(w - 4, fit.toL(20)));
+      const chipX = x + ((w - chipW) / 2);
+      const chipY = y + h - chipH - Math.max(2, fit.toL(2));
+
+      ctx.globalAlpha = Math.max(0.35, Math.min(1, labelAlpha));
+      ctx.fillStyle = 'rgba(255,255,255,0.98)';
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = Math.max(0.8, fit.toL(1));
+      roundRect(ctx, chipX, chipY, chipW, chipH, Math.max(2, fit.toL(3)));
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.globalAlpha = Math.max(0.45, Math.min(1, labelAlpha));
+      ctx.fillStyle = '#10243a';
+      ctx.font = `700 ${labelFont}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, chipX + (chipW / 2), chipY + (chipH / 2));
+    }
+    ctx.restore();
+  };
+
+  // Diff overlay stack order (back -> front): removed, moved/changed, added.
+  // This entire overlay sits above the unchanged baseline snapshot.
+  (diff.removed || []).slice().sort((a, b) => {
+    const ao = prevOrder.get(a.id) || 0;
+    const bo = prevOrder.get(b.id) || 0;
+    return ao - bo;
+  }).forEach(item => {
+    const prevItem = prevById.get(item.id);
+    if(!prevItem) return;
+    drawDiffCard(prevItem, prevImageMap ? prevImageMap.get(prevItem.id) : null, '#d64545', {
+      iconAlpha: prevItem.isStand ? 0.45 : 0.6,
+      labelAlpha: 0.86,
+      bgAlpha: 0.94,
+      tintColor: '#d64545',
+      tintAlpha: 0.18,
+    });
+  });
+
+  (diff.moved || []).slice().sort((a, b) => {
+    const ao = nextOrder.get(a.after && a.after.id) || 0;
+    const bo = nextOrder.get(b.after && b.after.id) || 0;
+    return ao - bo;
+  }).forEach(entry => {
+    const before = prevById.get(entry.before.id);
+    const after = nextById.get(entry.after.id);
+    if(before) {
+      drawDiffCard(before, prevImageMap ? prevImageMap.get(before.id) : null, '#e0a31e', {
+        iconAlpha: before.isStand ? 0.45 : 0.58,
+        labelAlpha: 0.82,
+        bgAlpha: 0.94,
+        tintColor: '#e0a31e',
+        tintAlpha: 0.1,
+      });
+    }
+    if(after) {
+      drawDiffCard(after, nextImageMap ? nextImageMap.get(after.id) : null, '#e0a31e', {
+        iconAlpha: 1,
+        labelAlpha: 0.96,
+        bgAlpha: 0.94,
+        tintColor: '#e0a31e',
+        tintAlpha: 0.14,
+      });
+    }
+    if(!before || !after) return;
+    const from = { x: before.x + (before.width / 2), y: before.y + (before.height / 2) };
+    const to = { x: after.x + (after.width / 2), y: after.y + (after.height / 2) };
+    ctx.save();
+    ctx.strokeStyle = '#e0a31e';
+    ctx.fillStyle = '#e0a31e';
+    ctx.lineWidth = Math.max(1, fit.toL(1.6));
+    ctx.beginPath();
+    ctx.moveTo(fit.toX(from.x), fit.toY(from.y));
+    ctx.lineTo(fit.toX(to.x), fit.toY(to.y));
+    ctx.stroke();
+    const angle = Math.atan2(to.y - from.y, to.x - from.x);
+    const head = Math.max(5, fit.toL(7));
+    ctx.beginPath();
+    ctx.moveTo(fit.toX(to.x), fit.toY(to.y));
+    ctx.lineTo(fit.toX(to.x) - (Math.cos(angle - Math.PI / 6) * head), fit.toY(to.y) - (Math.sin(angle - Math.PI / 6) * head));
+    ctx.lineTo(fit.toX(to.x) - (Math.cos(angle + Math.PI / 6) * head), fit.toY(to.y) - (Math.sin(angle + Math.PI / 6) * head));
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  });
+
+  (diff.changed || []).slice().sort((a, b) => {
+    const ao = nextOrder.get(a.after && a.after.id) || 0;
+    const bo = nextOrder.get(b.after && b.after.id) || 0;
+    return ao - bo;
+  }).forEach(entry => {
+    const after = nextById.get(entry.after.id);
+    if(!after) return;
+    drawDiffCard(after, nextImageMap ? nextImageMap.get(after.id) : null, '#e0a31e', {
+      iconAlpha: 1,
+      labelAlpha: 0.96,
+      bgAlpha: 0.94,
+      tintColor: '#e0a31e',
+      tintAlpha: 0.12,
+    });
+  });
+
+  (diff.added || []).slice().sort((a, b) => {
+    const ao = nextOrder.get(a.id) || 0;
+    const bo = nextOrder.get(b.id) || 0;
+    return ao - bo;
+  }).forEach(item => {
+    const target = nextById.get(item.id);
+    if(!target) return;
+    drawDiffCard(target, nextImageMap ? nextImageMap.get(target.id) : null, '#37b26c', {
+      iconAlpha: 1,
+      labelAlpha: 0.98,
+      bgAlpha: 0.94,
+      tintColor: '#37b26c',
+      tintAlpha: 0.12,
+    });
+  });
+}
+
+async function renderSceneDiffCanvasToContext(win, ctx, prevState, nextState, diff, canvasWidth, canvasHeight) {
+  const nextData = withTemporarySceneState(nextState, () => getReportStageSnapshotData('horizontal'));
+  const prevData = withTemporarySceneState(prevState, () => getReportStageSnapshotData('horizontal'));
+  const images = await loadReportImagesForData(win, nextData);
+  const prevImages = await loadReportImagesForData(win, prevData);
+  const byKey = new Map(images.map(entry => [entry.item.id, entry.img]));
+  const prevByKey = new Map(prevImages.map(entry => [entry.item.id, entry.img]));
+
+  const fit = computeFittedSceneTransform(nextData, canvasWidth, canvasHeight);
+  const tx = (ctx && typeof ctx.getTransform === 'function') ? ctx.getTransform() : null;
+  const renderScale = Math.max(1, (tx && Number.isFinite(tx.a) ? Math.abs(tx.a) : (win.devicePixelRatio || 1)));
+  const baseSnapshotCanvas = win.document.createElement('canvas');
+  baseSnapshotCanvas.width = Math.max(1, Math.round(canvasWidth * renderScale));
+  baseSnapshotCanvas.height = Math.max(1, Math.round(canvasHeight * renderScale));
+  const baseCtx = baseSnapshotCanvas.getContext('2d');
+  baseCtx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
+  baseCtx.imageSmoothingEnabled = true;
+  baseCtx.imageSmoothingQuality = 'high';
+  baseCtx.fillStyle = '#ffffff';
+  baseCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+  baseCtx.save();
+  baseCtx.translate(fit.ox, fit.oy);
+  baseCtx.scale(fit.scale, fit.scale);
+  drawReportStageSnapshot(baseCtx, nextData, byKey);
+  baseCtx.restore();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(baseSnapshotCanvas, 0, 0, canvasWidth, canvasHeight);
+
+  drawSceneDiffOverlay(ctx, nextData, prevData, diff, fit, prevByKey, byKey, baseSnapshotCanvas);
+}
+
+async function renderSceneDiffCanvases(win, payload = {}, autoPrint = false) {
+  if(!win || !win.document) return;
+  const renderData = Array.isArray(payload.renderData) ? payload.renderData : [];
+
+  if(payload.appendHtml) {
+    const main = win.document.querySelector('main.connections-page') || win.document.body;
+    const host = win.document.createElement('div');
+    host.innerHTML = payload.appendHtml;
+    main.appendChild(host);
+  }
+
+  if(payload.firstScene) {
+    await withTemporarySceneStateAsync(payload.firstScene, async () => {
+      await renderReportStageCanvas(win, payload.firstSceneOptions || {}, false);
+    });
+  }
+
+  const dpr = win.devicePixelRatio || 1;
+  for(const entry of (renderData || [])) {
+    const canvas = win.document.getElementById(entry.canvasId);
+    if(!canvas) continue;
+    const width = 1200;
+    const height = 700;
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    canvas.style.width = '100%';
+    canvas.style.height = 'auto';
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    if(entry.mode === 'diff') {
+      await renderSceneDiffCanvasToContext(win, ctx, entry.prevScene, entry.nextScene, entry.diff, width, height);
+    }
+  }
+
+  if(autoPrint) {
+    setTimeout(() => {
+      try {
+        win.focus();
+        win.print();
+      } catch(_err) {
+        // Ignore print failures.
+      }
+    }, 180);
+  }
 }
 
 function buildReportHTML(reportOptions = {}, autoPrint = false) {
@@ -10789,7 +12203,29 @@ function buildReportHTML(reportOptions = {}, autoPrint = false) {
 }
 
 function openReportWindow(reportOptions = {}, autoPrint = false) {
-  const html = buildReportHTML(reportOptions, autoPrint);
+  const selectedSceneIds = Array.isArray(reportOptions.selectedSceneIds)
+    ? reportOptions.selectedSceneIds.map(id => parseInt(id, 10)).filter(Number.isFinite)
+    : [];
+  const useSceneDiffReport = !!autoPrint;
+  let sceneDiffPayload = null;
+  if(useSceneDiffReport) {
+    try {
+      sceneDiffPayload = buildSceneDiffReportPayload(reportOptions);
+    } catch(err) {
+      console.error('Scene diff PDF generation failed.', err);
+      const sceneSummary = (Array.isArray(scenes) ? scenes : []).map((scene, index) => {
+        const name = String((scene && scene.name) || `Scene ${indexToLetters(index + 1)}`);
+        const id = Number(scene && scene.id) || 0;
+        return `${index + 1}. ${name} (id:${id})`;
+      }).join('<br>');
+      const selectedSummary = (selectedSceneIds || []).join(', ');
+      sceneDiffPayload = {
+        html: `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PDF Export Error</title><style>body{font-family:Arial,sans-serif;padding:20px;color:#1b2733;}h1{font-size:18px;margin:0 0 10px 0;}pre{white-space:pre-wrap;background:#f6f8fb;border:1px solid #d6dce5;padding:10px;border-radius:8px;}code{background:#f3f6fa;padding:2px 4px;border-radius:4px;}</style></head><body><h1>PDF export failed before rendering scene diffs</h1><p>The exporter hit a runtime error. Details are below so we can fix it directly.</p><p><strong>Selected scene IDs from dialog:</strong> ${escapeHtml(selectedSummary || '(none)')}</p><p><strong>Scenes in memory:</strong><br>${sceneSummary || '(none)'}</p><pre>${escapeHtml(String((err && err.stack) || err || 'Unknown error'))}</pre></body></html>`,
+        renderData: [],
+      };
+    }
+  }
+  const html = sceneDiffPayload ? sceneDiffPayload.html : buildReportHTML(reportOptions, autoPrint);
   let win = null;
   if(reportPreviewWindow && !reportPreviewWindow.closed) {
     win = reportPreviewWindow;
@@ -10805,7 +12241,11 @@ function openReportWindow(reportOptions = {}, autoPrint = false) {
   win.document.open();
   win.document.write(html);
   win.document.close();
-  renderReportStageCanvas(win, reportOptions, autoPrint);
+  if(sceneDiffPayload) {
+    renderSceneDiffCanvases(win, sceneDiffPayload, autoPrint);
+  } else {
+    renderReportStageCanvas(win, reportOptions, autoPrint);
+  }
   if(!autoPrint) {
     setTimeout(() => {
       try {
@@ -10853,32 +12293,13 @@ async function renderReportStageCanvas(win, reportOptions = {}, autoPrint = fals
   })));
   const byKey = new Map(images.map(entry => [entry.item.id, entry.img]));
 
-  if(isVertical) {
-    // Keep clipping safety, but reduce top margin so the rotated image sits higher on the page.
-    const padTop = 10;
-    const padRight = 30;
-    const padBottom = 30;
-    const padLeft = 30;
-    const availW = Math.max(1, cssWidth - padLeft - padRight);
-    const availH = Math.max(1, cssHeight - padTop - padBottom);
-    const fitScale = Math.max(0.1, Math.min(
-      availW / sourceHeight,
-      availH / sourceWidth
-    ) * 0.92);
-    const drawnW = sourceHeight * fitScale;
-    const drawnH = sourceWidth * fitScale;
-    const centerX = padLeft + ((availW - drawnW) / 2) + (drawnW / 2);
-    const centerY = padTop + ((availH - drawnH) / 2) + (drawnH / 2);
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    ctx.rotate(-Math.PI / 2);
-    ctx.scale(fitScale, fitScale);
-    ctx.translate(-sourceWidth / 2, -sourceHeight / 2);
-    drawReportStageSnapshot(ctx, data, byKey);
-    ctx.restore();
-  } else {
-    drawReportStageSnapshot(ctx, data, byKey);
-  }
+  // Use the same fitted snapshot rendering path used in scene diff canvases.
+  const fit = computeFittedSceneTransform(data, cssWidth, cssHeight);
+  ctx.save();
+  ctx.translate(fit.ox, fit.oy);
+  ctx.scale(fit.scale, fit.scale);
+  drawReportStageSnapshot(ctx, data, byKey);
+  ctx.restore();
   if(autoPrint) {
     setTimeout(() => {
       try {
@@ -10958,11 +12379,18 @@ function drawReportStageSnapshot(ctx, data, byKey) {
     ctx.restore();
   });
 
-  data.items.forEach(item => {
+  const orderedItems = (data.items || []).slice().sort((a, b) => {
+    const ao = Number.isFinite(a.renderOrder) ? a.renderOrder : 0;
+    const bo = Number.isFinite(b.renderOrder) ? b.renderOrder : 0;
+    return ao - bo;
+  });
+
+  orderedItems.forEach(item => {
     const cx = item.x + (item.width / 2);
     const cy = item.y + (item.height / 2);
     const angleRad = ((parseInt(item.angle || 0, 10) || 0) * Math.PI) / 180;
     const isExpandedSnake = !!item.isSnake && !item.collapsed;
+    const isCollapsedSnake = !!item.isSnake && !!item.collapsed;
     const isExpandedMixer = (!!item.isMixer || item.cat === 'stageboxes') && !item.collapsed;
     const isExpandedOutlet = isOutletBox(item) && !item.collapsed;
 
@@ -10973,6 +12401,8 @@ function drawReportStageSnapshot(ctx, data, byKey) {
 
     if(isExpandedSnake) {
       drawReportExpandedSnakePanel(ctx, item, byKey.get(item.id), data.connections || []);
+    } else if(isCollapsedSnake) {
+      drawReportCollapsedSnakePanel(ctx, item, byKey.get(item.id));
     } else if(isExpandedMixer) {
       drawReportExpandedMixerPanel(ctx, item, byKey.get(item.id), data.connections || []);
     } else if(isExpandedOutlet) {
@@ -11018,6 +12448,59 @@ function drawReportStageSnapshot(ctx, data, byKey) {
   ctx.font = '11px "Share Tech Mono", monospace';
   ctx.textAlign = 'center';
   ctx.fillText('◀ AUDIENCE ▶', stage.x + stage.width / 2, stage.y + stage.height + 24);
+}
+
+function drawReportCollapsedSnakePanel(ctx, item, img) {
+  const x = item.x;
+  const y = item.y;
+  const w = item.width;
+  const h = item.height;
+  const radius = Math.max(4, Math.min(8, w * 0.1));
+
+  ctx.fillStyle = '#f3ecff';
+  ctx.strokeStyle = '#ab79d8';
+  ctx.lineWidth = 1.8;
+  roundRect(ctx, x, y, w, h, radius);
+  ctx.fill();
+  ctx.stroke();
+
+  if(img) {
+    const topPad = Math.max(4, h * 0.12);
+    const bottomPad = Math.max(12, h * 0.35);
+    const sidePad = Math.max(6, w * 0.12);
+    const targetW = Math.max(12, w - (sidePad * 2));
+    const targetH = Math.max(12, h - topPad - bottomPad);
+    const ratio = Math.min(targetW / img.width, targetH / img.height);
+    const drawW = img.width * ratio;
+    const drawH = img.height * ratio;
+    const drawX = x + ((w - drawW) / 2);
+    const drawY = y + topPad + ((targetH - drawH) / 2);
+    ctx.drawImage(img, drawX, drawY, drawW, drawH);
+  } else {
+    ctx.fillStyle = '#6b4b95';
+    ctx.font = `${Math.max(10, Math.min(15, w * 0.23))}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(item.icon || '•'), x + (w / 2), y + (h * 0.45));
+  }
+
+  const label = String(item.label || 'Snake');
+  ctx.font = '600 8px Barlow, sans-serif';
+  const metrics = ctx.measureText(label);
+  const pillW = Math.max(26, Math.min(w - 6, metrics.width + 10));
+  const pillH = 11;
+  const pillX = x + ((w - pillW) / 2);
+  const pillY = y + h - pillH - 2;
+  ctx.fillStyle = 'rgba(248,251,255,.96)';
+  ctx.strokeStyle = 'rgba(171,121,216,.45)';
+  ctx.lineWidth = 0.8;
+  roundRect(ctx, pillX, pillY, pillW, pillH, 3);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#17324f';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, pillX + (pillW / 2), pillY + (pillH / 2) + 0.2);
 }
 
 function drawReportOutlinedLabelText(ctx, text, x, y, font = '600 8px Barlow, sans-serif') {
