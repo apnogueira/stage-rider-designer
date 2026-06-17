@@ -443,6 +443,63 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
 #dz.visible{opacity:1;pointer-events:all;}
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
+@media (pointer: coarse) {
+  .iconn,
+  .connbox-pin {
+    position: relative;
+  }
+
+  .iconn::before,
+  .connbox-pin::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 34px;
+    height: 34px;
+    transform: translate(-50%, -50%);
+    border-radius: 999px;
+    background: transparent;
+  }
+
+  .rot-handle {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+  }
+
+  .conn-side-handle {
+    width: 28px;
+    height: 28px;
+  }
+
+  .conn-side-handle::before {
+    width: 9px;
+    height: 9px;
+  }
+
+  .elem-collapse-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .zoom-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+  }
+
+  .btn,
+  .cat-tab,
+  .snake-view-btn,
+  .collapse-toggle-btn,
+  .scene-tab,
+  .prop-side-btn {
+    min-height: 32px;
+  }
+}
+
 @media (max-width: 860px) {
   body {
     height: auto;
@@ -1208,6 +1265,10 @@ let zoomLevel = 1;
 let gestureStartZoom = 1;
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 2.2;
+const TOUCH_DRAG_START_THRESHOLD_PX = 10;
+const TOUCH_PIN_TAP_MAX_TRAVEL_PX = 10;
+const TOUCH_PALETTE_DRAG_START_THRESHOLD_PX = 10;
+const TOUCH_PALETTE_DRAG_AXIS_RATIO = 1.15;
 const PHONE_BREAKPOINT_PX = 860;
 const LEGACY_SIZE_PX_PER_M = 61;
 let panX = 0;
@@ -3308,11 +3369,20 @@ function startStagePartDrag(ev, id, el) {
   const pointerWorldStartY = (p0.clientY - wr.top - panY) / zoomLevel;
   const offsetWorldX = pointerWorldStartX - part.x;
   const offsetWorldY = pointerWorldStartY - part.y;
+  const isTouchStart = String((ev && ev.type) || '').startsWith('touch');
+  const startClientX = p0.clientX;
+  const startClientY = p0.clientY;
+  let dragStarted = !isTouchStart;
   let moved = false;
 
   function onMove(e) {
     const p = getClientPointFromEvent(e);
     if(!p) return;
+    if(isTouchStart && !dragStarted) {
+      const travel = Math.hypot(p.clientX - startClientX, p.clientY - startClientY);
+      if(travel < TOUCH_DRAG_START_THRESHOLD_PX) return;
+      dragStarted = true;
+    }
     if(e.cancelable) e.preventDefault();
     part.x = ((p.clientX - wr.left - panX) / zoomLevel) - offsetWorldX;
     part.y = ((p.clientY - wr.top - panY) / zoomLevel) - offsetWorldY;
@@ -3759,6 +3829,14 @@ function getClientPointFromEvent(ev) {
   return null;
 }
 
+function isCoarsePointerInput() {
+  try {
+    return !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  } catch(_err) {
+    return false;
+  }
+}
+
 function removeTouchPaletteGhost() {
   if(touchPaletteGhost && touchPaletteGhost.parentNode) touchPaletteGhost.parentNode.removeChild(touchPaletteGhost);
   touchPaletteGhost = null;
@@ -3770,9 +3848,7 @@ function updateTouchPaletteGhost(clientX, clientY) {
   touchPaletteGhost.style.top = `${clientY + 10}px`;
 }
 
-function startTouchPaletteDrag(ev, data) {
-  const p = getClientPointFromEvent(ev);
-  if(!p) return;
+function beginTouchPaletteDrag(data, clientX, clientY) {
   touchPaletteDragData = { ...data };
   removeTouchPaletteGhost();
   const ghost = document.createElement('div');
@@ -3789,9 +3865,63 @@ function startTouchPaletteDrag(ev, data) {
   ghost.textContent = String(data.name || data.type || 'item');
   document.body.appendChild(ghost);
   touchPaletteGhost = ghost;
-  updateTouchPaletteGhost(p.clientX, p.clientY);
+  updateTouchPaletteGhost(clientX, clientY);
   const hint = document.getElementById('stage-hint');
   if(hint) hint.textContent = 'Drag on stage and release to place item';
+}
+
+function startTouchPaletteDrag(ev, data) {
+  const p = getClientPointFromEvent(ev);
+  if(!p) return;
+
+  if(!isCoarsePointerInput()) {
+    if(ev.cancelable) ev.preventDefault();
+    beginTouchPaletteDrag(data, p.clientX, p.clientY);
+    return;
+  }
+
+  const startX = p.clientX;
+  const startY = p.clientY;
+  let dragStarted = false;
+
+  function cleanupIntentListeners() {
+    document.removeEventListener('touchmove', onIntentMove);
+    document.removeEventListener('touchend', onIntentEnd);
+    document.removeEventListener('touchcancel', onIntentEnd);
+  }
+
+  function onIntentMove(moveEv) {
+    const point = getClientPointFromEvent(moveEv);
+    if(!point) return;
+    const dx = point.clientX - startX;
+    const dy = point.clientY - startY;
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+    const travel = Math.hypot(dx, dy);
+
+    if(!dragStarted) {
+      if(travel < TOUCH_PALETTE_DRAG_START_THRESHOLD_PX) return;
+      // Favor native sidebar scrolling for mostly-vertical gestures.
+      if(absY > (absX * TOUCH_PALETTE_DRAG_AXIS_RATIO)) {
+        cleanupIntentListeners();
+        return;
+      }
+      dragStarted = true;
+      cleanupIntentListeners();
+      if(moveEv.cancelable) moveEv.preventDefault();
+      beginTouchPaletteDrag(data, point.clientX, point.clientY);
+      moveTouchPaletteDrag(moveEv);
+      return;
+    }
+  }
+
+  function onIntentEnd() {
+    cleanupIntentListeners();
+  }
+
+  document.addEventListener('touchmove', onIntentMove, { passive: false });
+  document.addEventListener('touchend', onIntentEnd, { passive: false });
+  document.addEventListener('touchcancel', onIntentEnd, { passive: false });
 }
 
 function moveTouchPaletteDrag(ev) {
@@ -5295,7 +5425,7 @@ function buildPalette(cat) {
     const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size);
     t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
-    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr}); }, { passive: false });
+    t.addEventListener('touchstart', e => { startTouchPaletteDrag(e, {...instr}); }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -5323,7 +5453,6 @@ function buildSnakePalette() {
     });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
     t.addEventListener('touchstart', e => {
-      if(e.cancelable) e.preventDefault();
       startTouchPaletteDrag(e, {
         type:s.type,
         cat:'snake',
@@ -5349,7 +5478,7 @@ function buildMixerPalette() {
     const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'mixer-tile');
     t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr, connectionBoxKind:'mixer'}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
-    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr, connectionBoxKind:'mixer'}); }, { passive: false });
+    t.addEventListener('touchstart', e => { startTouchPaletteDrag(e, {...instr, connectionBoxKind:'mixer'}); }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -5363,7 +5492,7 @@ function buildStageboxPalette() {
     const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'stagebox-tile');
     t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr, connectionBoxKind:'stagebox'}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
-    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr, connectionBoxKind:'stagebox'}); }, { passive: false });
+    t.addEventListener('touchstart', e => { startTouchPaletteDrag(e, {...instr, connectionBoxKind:'stagebox'}); }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -5436,7 +5565,7 @@ function buildMonitoringPalette() {
     const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'monitor-pa-tile');
     t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
-    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr}); }, { passive: false });
+    t.addEventListener('touchstart', e => { startTouchPaletteDrag(e, {...instr}); }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -5450,7 +5579,7 @@ function buildAccessoryPalette() {
     const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'accessory-tile');
     t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
-    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr}); }, { passive: false });
+    t.addEventListener('touchstart', e => { startTouchPaletteDrag(e, {...instr}); }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -5464,7 +5593,7 @@ function buildStandPalette() {
     const t = makeTile(buildTileIconHTML(instr), instr.name, false, instr.size, 'stand-tile');
     t.addEventListener('dragstart', e => { isDraggingNew=true; newDragData={...instr}; e.dataTransfer.effectAllowed='copy'; });
     t.addEventListener('dragend', () => { isDraggingNew=false; newDragData=null; });
-    t.addEventListener('touchstart', e => { if(e.cancelable) e.preventDefault(); startTouchPaletteDrag(e, {...instr}); }, { passive: false });
+    t.addEventListener('touchstart', e => { startTouchPaletteDrag(e, {...instr}); }, { passive: false });
     grid.appendChild(t);
   });
 }
@@ -6645,6 +6774,14 @@ function findCableHandleAt(x, y) {
   return null;
 }
 
+function findCableHandleAtWithRadius(x, y, radius) {
+  for(let i=connectionHandleCache.length-1;i>=0;i--) {
+    const h = connectionHandleCache[i];
+    if(Math.abs(h.x - x) <= radius && Math.abs(h.y - y) <= radius) return h;
+  }
+  return null;
+}
+
 function pointToSegmentDistance(px, py, ax, ay, bx, by) {
   const dx = bx - ax;
   const dy = by - ay;
@@ -6704,7 +6841,7 @@ function handleCableHandleTouchStart(e) {
 
 function startCableHandleDrag(e, x, y, isTouch) {
   const wr = canvasWrap.getBoundingClientRect();
-  const hit = findCableHandleAt(x, y);
+  const hit = isTouch ? findCableHandleAtWithRadius(x, y, 14) : findCableHandleAt(x, y);
   if(!hit) return;
 
   e.preventDefault();
@@ -7095,9 +7232,47 @@ function renderInstrument(instr) {
         startConnectionFromPin(instr.id, pin.dataset.pin, e);
       });
       pin.addEventListener('touchstart', e => {
-        if(e.cancelable) e.preventDefault();
         e.stopPropagation();
-        startConnectionFromPin(instr.id, pin.dataset.pin, e);
+        if(!isCoarsePointerInput()) {
+          if(e.cancelable) e.preventDefault();
+          startConnectionFromPin(instr.id, pin.dataset.pin, e);
+          return;
+        }
+        const startPoint = getClientPointFromEvent(e);
+        if(!startPoint) {
+          if(e.cancelable) e.preventDefault();
+          startConnectionFromPin(instr.id, pin.dataset.pin, e);
+          return;
+        }
+        let dragStarted = false;
+
+        function cleanupPinIntent() {
+          document.removeEventListener('touchmove', onPinMove);
+          document.removeEventListener('touchend', onPinEnd);
+          document.removeEventListener('touchcancel', onPinEnd);
+        }
+
+        function onPinMove(moveEv) {
+          const point = getClientPointFromEvent(moveEv);
+          if(!point) return;
+          const travel = Math.hypot(point.clientX - startPoint.clientX, point.clientY - startPoint.clientY);
+          if(travel < TOUCH_PIN_TAP_MAX_TRAVEL_PX) return;
+          dragStarted = true;
+          cleanupPinIntent();
+          if(moveEv.cancelable) moveEv.preventDefault();
+          startDragTouch(moveEv, instr.id, el);
+        }
+
+        function onPinEnd(endEv) {
+          cleanupPinIntent();
+          if(dragStarted) return;
+          if(endEv.cancelable) endEv.preventDefault();
+          startConnectionFromPin(instr.id, pin.dataset.pin, endEv);
+        }
+
+        document.addEventListener('touchmove', onPinMove, { passive: false });
+        document.addEventListener('touchend', onPinEnd, { passive: false });
+        document.addEventListener('touchcancel', onPinEnd, { passive: false });
       }, { passive: false });
     });
   }
@@ -7423,6 +7598,9 @@ function startDragTouch(e, id, el) {
   const pointerWorldStartY = (p0.clientY - wr.top - panY) / zoomLevel;
   const offsetWorldX = pointerWorldStartX - instr.x;
   const offsetWorldY = pointerWorldStartY - instr.y;
+  const startClientX = p0.clientX;
+  const startClientY = p0.clientY;
+  let dragStarted = false;
   let moved = false;
   el.classList.add('dragging');
   const dz = document.getElementById('dz');
@@ -7448,6 +7626,11 @@ function startDragTouch(e, id, el) {
   function onMove(ev){
     const p = getClientPointFromEvent(ev);
     if(!p) return;
+    if(!dragStarted) {
+      const travel = Math.hypot(p.clientX - startClientX, p.clientY - startClientY);
+      if(travel < TOUCH_DRAG_START_THRESHOLD_PX) return;
+      dragStarted = true;
+    }
     if(ev.cancelable) ev.preventDefault();
     const x = ((p.clientX - wr.left - panX) / zoomLevel) - offsetWorldX;
     const y = ((p.clientY - wr.top - panY) / zoomLevel) - offsetWorldY;
