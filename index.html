@@ -346,6 +346,9 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
 .report-dialog-header h2{font-family:'Share Tech Mono',monospace;font-size:18px;letter-spacing:2px;color:#143a6b;text-transform:uppercase;}
 .report-dialog-header p{margin-top:6px;font-size:12px;color:#4f5f73;line-height:1.45;}
 .report-dialog-body{padding:18px 20px 20px;display:grid;gap:16px;}
+.help-doc-title{font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:1px;color:#143a6b;text-transform:uppercase;}
+.help-doc-list{margin:0;padding-left:18px;display:grid;gap:6px;font-size:12px;color:#1d2c3d;line-height:1.5;}
+.help-doc-note{font-size:11px;color:#4f5f73;line-height:1.45;border-top:1px solid #e3eaf2;padding-top:10px;}
 .report-option-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
 .report-option-panel{border:1px solid #d8e1ea;border-radius:12px;padding:12px;background:#fbfcfe;}
 .report-option-panel h3{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:1.5px;color:#54697f;text-transform:uppercase;margin-bottom:10px;}
@@ -762,6 +765,17 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
         <div class="header-submenu" role="menu" aria-label="Scene actions">
           <button class="btn btn-ghost" type="button" onclick="runSceneMenuAction('create')">Create Scene</button>
           <button class="btn btn-ghost" type="button" onclick="runSceneMenuAction('delete')">Delete Scene</button>
+        </div>
+      </details>
+      <details id="help-menu" class="header-menu-group" ontoggle="syncHeaderMenuState('help-menu')">
+        <summary class="btn btn-ghost header-menu-trigger">Help</summary>
+        <div class="header-submenu" role="menu" aria-label="Help topics">
+          <button class="btn btn-ghost" type="button" onclick="runHelpMenuAction('files')">Files</button>
+          <button class="btn btn-ghost" type="button" onclick="runHelpMenuAction('arrange')">Arrange</button>
+          <button class="btn btn-ghost" type="button" onclick="runHelpMenuAction('scenes')">Scenes</button>
+          <button class="btn btn-ghost" type="button" onclick="runHelpMenuAction('report')">Report</button>
+          <button class="btn btn-ghost" type="button" onclick="runHelpMenuAction('snakes-stageboxes-mixers')">Snakes, Stageboxes and Mixers</button>
+          <button class="btn btn-ghost" type="button" onclick="runHelpMenuAction('outlets')">Outlets</button>
         </div>
       </details>
       <button id="mode-toggle-mobile" class="btn btn-ghost mobile-only" type="button" onclick="toggleStageBuilderMode()">Stage Builder: OFF</button>
@@ -2600,6 +2614,11 @@ function closeScenesMenu() {
   if(menu) menu.open = false;
 }
 
+function closeHelpMenu() {
+  const menu = document.getElementById('help-menu');
+  if(menu) menu.open = false;
+}
+
 function updateHeaderMenuPlacement() {
   const viewportPad = 8;
   const submenus = Array.from(document.querySelectorAll('.header-menu-group[open] > .header-submenu'));
@@ -2629,14 +2648,22 @@ function syncHeaderMenuState(openMenuId) {
   const layersMenu = document.getElementById('layers-menu');
   const riderMenu = document.getElementById('file-menu');
   const scenesMenu = document.getElementById('scenes-menu');
+  const helpMenu = document.getElementById('help-menu');
   if(openMenuId === 'layers-menu' && layersMenu && layersMenu.open) closeRiderSaveMenu();
   if(openMenuId === 'file-menu' && riderMenu && riderMenu.open) {
     closeLayersMenu();
     closeScenesMenu();
+    closeHelpMenu();
   }
   if(openMenuId === 'scenes-menu' && scenesMenu && scenesMenu.open) {
     closeLayersMenu();
     closeRiderSaveMenu();
+    closeHelpMenu();
+  }
+  if(openMenuId === 'help-menu' && helpMenu && helpMenu.open) {
+    closeLayersMenu();
+    closeRiderSaveMenu();
+    closeScenesMenu();
   }
   if(openMenuId === 'file-open-from-menu') closeFileOpenRecentMenu();
   if(openMenuId === 'file-open-recent-menu') {
@@ -2661,6 +2688,11 @@ function runSceneMenuAction(action) {
   if(action === 'delete') {
     deleteCurrentScene();
   }
+}
+
+function runHelpMenuAction(topic) {
+  closeHelpMenu();
+  openHelpTopicDialog(topic);
 }
 
 async function runFileMenuAction(action) {
@@ -2757,6 +2789,8 @@ function handleDocumentClickForMobileMenu(e) {
   if(riderMenu && riderMenu.open && !riderMenu.contains(t)) closeRiderSaveMenu();
   const scenesMenu = document.getElementById('scenes-menu');
   if(scenesMenu && scenesMenu.open && !scenesMenu.contains(t)) closeScenesMenu();
+  const helpMenu = document.getElementById('help-menu');
+  if(helpMenu && helpMenu.open && !helpMenu.contains(t)) closeHelpMenu();
 }
 
 window.addEventListener('resize', () => {
@@ -3429,6 +3463,182 @@ function runExportAction(action) {
   }
 }
 
+const HELP_TOPIC_ORDER = ['files', 'arrange', 'scenes', 'report', 'snakes-stageboxes-mixers', 'outlets'];
+
+const HELP_TOPICS = {
+  'files': {
+    title: 'Files',
+    intro: 'How to load and save projects, and where files can be stored.',
+    bullets: [
+      'Open local file: File > Open from > Local opens a project from your computer.',
+      'Open from Google Drive: File > Open from > Google Drive loads a project from Drive.',
+      'Open Recent: File > Open Recent shows your latest local/Drive projects.',
+      'Save writes changes back to the current target when available.',
+      'Save As lets you choose a new file target and name.',
+      'Export PNG creates a stage image snapshot.',
+      'Export PDF opens the report setup flow and generates the full PDF report.',
+      'Clear Recent removes recent-file shortcuts only, not the actual files.',
+    ],
+    note: 'Tip: Project name in the header is used to build default save/export names.'
+  },
+  'arrange': {
+    title: 'Arrange',
+    intro: 'How layer ordering buttons affect selected items.',
+    bullets: [
+      'Bring Forward moves the selected item up by one layer.',
+      'Bring to Front moves the selected item to the topmost layer.',
+      'Send Backward moves the selected item down by one layer.',
+      'Send to Back moves the selected item to the bottom layer.',
+      'Use Arrange after selecting an item on stage.',
+      'Layer order affects visibility when items overlap.',
+    ],
+    note: 'These controls work on selected stage items and help keep crowded layouts readable.'
+  },
+  'scenes': {
+    title: 'Scenes',
+    intro: 'Scenes store alternate snapshots of the same project layout.',
+    bullets: [
+      'Create Scene captures the current stage state as a new scene tab.',
+      'Delete Scene removes the active scene from the project.',
+      'Each scene can represent a song, service segment, or stage variation.',
+      'Drag scene tabs to change scene order in the project.',
+      'Scene order matters: report output follows the scene order you set.',
+      'Switching scenes lets you compare setups without building separate files.',
+      'Scene tabs are included in report generation and can be selected in Report Setup.',
+    ],
+    note: 'Scene selection is managed in the scene tabs bar and in the report setup dialog.'
+  },
+  'report': {
+    title: 'Report',
+    intro: 'What the report includes when you export.',
+    bullets: [
+      'A stage image section that visually shows item placement.',
+      'Connection sections that summarize links and endpoint details.',
+      'Device and cable context grouped for practical setup reference.',
+      'Selected scenes can be included as report pages and comparison sections.',
+      'Use Report Setup to choose exactly what gets included before export.',
+    ],
+    note: 'For details on scene behavior in reports, open Help > Scenes.'
+  },
+  'snakes-stageboxes-mixers': {
+    title: 'Snakes, Stageboxes and Mixers',
+    intro: 'How these connection-box devices are used in routing workflows.',
+    bullets: [
+      'Snakes support stage/cable view modes and channel-based pin mapping.',
+      'Stageboxes and mixers expose multiple input/output pin groups for routing.',
+      'Use pin-to-pin clicks to create explicit cable paths between devices.',
+      'Collapse/expand controls can reduce visual clutter in dense rigs.',
+      'Connection rows and pin labels help identify connector families quickly.',
+    ],
+    note: 'When routing gets dense, zoom in and use scene snapshots to validate variations safely.'
+  },
+  'outlets': {
+    title: 'Outlets',
+    intro: 'How outlet blocks work for patch and cable endpoint planning.',
+    bullets: [
+      'Outlets can be configured with port count and placement mode.',
+      'Each outlet port can be named for clear field labeling.',
+      'Outlet view and cable view help map logical and physical usage.',
+      'Ports can be linked into broader connection paths like other endpoints.',
+      'Outlet details appear in report output to support patching workflows.',
+    ],
+    note: 'Use consistent port names so report tables are easier for technicians to follow.'
+  }
+};
+
+function ensureHelpDialog() {
+  let overlay = document.getElementById('help-modal');
+  if(overlay) return overlay;
+
+  overlay = document.createElement('div');
+  overlay.id = 'help-modal';
+  overlay.className = 'report-modal';
+  overlay.innerHTML = `
+    <div class="report-dialog" role="dialog" aria-modal="true" aria-labelledby="help-dialog-title" style="max-width:840px;">
+      <div class="report-dialog-header">
+        <h2 id="help-dialog-title">Help</h2>
+        <p id="help-dialog-subtitle">In-app documentation by topic.</p>
+      </div>
+      <div class="report-dialog-body" style="gap:12px;">
+        <div id="help-topic-buttons" class="report-inline-row" style="gap:8px;"></div>
+        <div id="help-topic-content" style="display:grid;gap:10px;"></div>
+      </div>
+      <div class="report-dialog-actions">
+        <button id="help-close-btn" class="report-btn primary" type="button">Close</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', e => {
+    if(e.target === overlay) closeHelpTopicDialog();
+  });
+  const closeBtn = overlay.querySelector('#help-close-btn');
+  if(closeBtn) closeBtn.addEventListener('click', closeHelpTopicDialog);
+
+  return overlay;
+}
+
+function closeHelpTopicDialog() {
+  const overlay = document.getElementById('help-modal');
+  if(!overlay) return;
+  overlay.classList.remove('open');
+}
+
+function renderHelpTopic(topicKey) {
+  const overlay = ensureHelpDialog();
+  const topicsRow = overlay.querySelector('#help-topic-buttons');
+  const content = overlay.querySelector('#help-topic-content');
+  const subtitle = overlay.querySelector('#help-dialog-subtitle');
+  if(!topicsRow || !content || !subtitle) return;
+
+  const resolvedKey = HELP_TOPICS[topicKey] ? topicKey : HELP_TOPIC_ORDER[0];
+  const topic = HELP_TOPICS[resolvedKey];
+
+  topicsRow.innerHTML = '';
+  HELP_TOPIC_ORDER.forEach(key => {
+    const item = HELP_TOPICS[key];
+    if(!item) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'report-btn';
+    if(key === resolvedKey) btn.classList.add('primary');
+    btn.textContent = item.title;
+    btn.addEventListener('click', () => renderHelpTopic(key));
+    topicsRow.appendChild(btn);
+  });
+
+  subtitle.textContent = topic.intro;
+  content.innerHTML = '';
+
+  const title = document.createElement('div');
+  title.className = 'help-doc-title';
+  title.textContent = topic.title;
+  content.appendChild(title);
+
+  const list = document.createElement('ul');
+  list.className = 'help-doc-list';
+  (topic.bullets || []).forEach(line => {
+    const li = document.createElement('li');
+    li.textContent = line;
+    list.appendChild(li);
+  });
+  content.appendChild(list);
+
+  if(topic.note) {
+    const note = document.createElement('div');
+    note.className = 'help-doc-note';
+    note.textContent = topic.note;
+    content.appendChild(note);
+  }
+}
+
+function openHelpTopicDialog(topicKey) {
+  const overlay = ensureHelpDialog();
+  renderHelpTopic(topicKey);
+  overlay.classList.add('open');
+}
+
 function normalizeSnakeViewMode(mode) {
   return mode === 'output' ? 'output' : 'input';
 }
@@ -3641,6 +3851,16 @@ function pasteCopiedItemFromClipboard() {
 
 function handleKeyboardShortcuts(e) {
   const key = (e.key || '').toLowerCase();
+
+  if(key === 'escape') {
+    const helpModal = document.getElementById('help-modal');
+    if(helpModal && helpModal.classList.contains('open')) {
+      e.preventDefault();
+      closeHelpTopicDialog();
+      return;
+    }
+  }
+
   const ae = document.activeElement;
   const isEditable = !!(ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable));
 
