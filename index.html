@@ -1331,6 +1331,10 @@ const HISTORY_LIMIT = 120;
 let historyStack = [];
 let redoStack = [];
 let isRestoringHistory = false;
+const PROJECT_NAME_HISTORY_IDLE_MS = 900;
+let projectNameHistorySessionActive = false;
+let projectNameHistorySessionTimer = null;
+let pendingHardLoadUndoSnapshot = null;
 let connectionHandleCache = [];
 let hoveredConnectionId = null;
 let touchPaletteDragData = null;
@@ -1753,7 +1757,7 @@ async function openRecentRiderById(entryId) {
       const token = await ensureGoogleDriveAccess(true);
       if(!token) return;
       const loaded = await readRiderFromGoogleDrive(entry.fileId);
-      pushHistoryState();
+      pendingHardLoadUndoSnapshot = captureSnapshot();
       loadRiderFromData(loaded.data);
       setProjectNameFromFileName(loaded.fileName);
       riderSaveLocation = 'google-drive';
@@ -1803,7 +1807,7 @@ async function openRecentRiderById(entryId) {
         const file = await handle.getFile();
         const text = await file.text();
         const data = JSON.parse(text);
-        pushHistoryState();
+        pendingHardLoadUndoSnapshot = captureSnapshot();
         loadRiderFromData(data);
         setProjectNameFromFileName(file.name || entry.fileName || 'untitled');
         riderSaveDirHandle = null;
@@ -2799,7 +2803,7 @@ async function runFileMenuAction(action) {
       const choice = await openGoogleDriveFileDialog({ mode: 'open' });
       if(!choice || choice.action !== 'open' || !choice.fileId) return;
       const loaded = await readRiderFromGoogleDrive(choice.fileId);
-      pushHistoryState();
+      pendingHardLoadUndoSnapshot = captureSnapshot();
       loadRiderFromData(loaded.data);
       setProjectNameFromFileName(loaded.fileName);
       riderSaveLocation = 'google-drive';
@@ -2952,15 +2956,16 @@ function resetHistoryForCurrentScene() {
   redoStack = [];
 }
 
-function applySceneById(sceneId) {
+function applySceneById(sceneId, options) {
   const target = scenes.find(scene => scene.id === sceneId);
   if(!target) return;
+  const shouldResetHistory = !(options && options.resetHistory === false);
   const snapshot = {
     ...cloneSceneState(target.state),
     projectName,
   };
   applySnapshot(snapshot, false, true);
-  resetHistoryForCurrentScene();
+  if(shouldResetHistory) resetHistoryForCurrentScene();
   renderSceneTabs();
 }
 
@@ -2980,6 +2985,7 @@ function moveSceneTab(sceneId, targetSceneId, placeAfter) {
   const targetIndex = scenes.findIndex(scene => scene.id === targetId);
   if(fromIndex < 0 || targetIndex < 0) return;
 
+  const snapshot = captureSnapshot();
   saveCurrentSceneState();
   const [moving] = scenes.splice(fromIndex, 1);
   let insertIndex = scenes.findIndex(scene => scene.id === targetId);
@@ -2988,6 +2994,7 @@ function moveSceneTab(sceneId, targetSceneId, placeAfter) {
   if(insertIndex < 0) insertIndex = 0;
   if(insertIndex > scenes.length) insertIndex = scenes.length;
   scenes.splice(insertIndex, 0, moving);
+  commitSnapshotBeforeChange(snapshot);
   renderSceneTabs();
   markDirty();
 }
@@ -3016,7 +3023,10 @@ function renderSceneTabs() {
       if(next == null) return;
       const cleaned = String(next).trim();
       if(!cleaned) return;
+      const snapshot = captureSnapshot();
+      if(cleaned === String(scene.name || '')) return;
       scene.name = cleaned;
+      commitSnapshotBeforeChange(snapshot);
       renderSceneTabs();
       markDirty();
     });
@@ -3050,6 +3060,7 @@ function renderSceneTabs() {
 
 function createSceneFromCurrent() {
   ensureSceneSystemInitialized();
+  const snapshot = captureSnapshot();
   saveCurrentSceneState();
   const source = getActiveScene();
   const sourceState = source ? cloneSceneState(source.state) : captureSceneState();
@@ -3062,7 +3073,8 @@ function createSceneFromCurrent() {
   const currentIndex = Math.max(0, getActiveSceneIndex());
   scenes.splice(currentIndex + 1, 0, newScene);
   activeSceneId = newScene.id;
-  applySceneById(newScene.id);
+  applySceneById(newScene.id, { resetHistory: false });
+  commitSnapshotBeforeChange(snapshot);
   markDirty();
 }
 
@@ -3080,11 +3092,13 @@ function deleteCurrentScene() {
   const ok = confirm(`Are you sure you want to delete scene ${sceneNumber}: ${sceneName}?`);
   if(!ok) return;
 
+  const snapshot = captureSnapshot();
   saveCurrentSceneState();
   scenes.splice(currentIndex, 1);
   const nextIndex = Math.max(0, Math.min(currentIndex, scenes.length - 1));
   activeSceneId = scenes[nextIndex].id;
-  applySceneById(activeSceneId);
+  applySceneById(activeSceneId, { resetHistory: false });
+  commitSnapshotBeforeChange(snapshot);
   markDirty();
 }
 
@@ -3524,9 +3538,7 @@ function startStagePartDrag(ev, id, el) {
     document.removeEventListener('touchend', onUp);
     document.removeEventListener('touchcancel', onUp);
     if(moved) {
-      historyStack.push(dragSnapshot);
-      if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
-      redoStack = [];
+      commitSnapshotBeforeChange(dragSnapshot);
       markDirty();
     }
     selectStagePart(id);
@@ -3995,6 +4007,13 @@ function handleKeyboardShortcuts(e) {
     if(isEditable) return;
     e.preventDefault();
     undoAction();
+    return;
+  }
+
+  if(key === 'z' && e.shiftKey) {
+    if(isEditable) return;
+    e.preventDefault();
+    redoAction();
     return;
   }
 
@@ -4481,7 +4500,18 @@ function sanitizeProjectName(name) {
 
 function updateProjectName(name) {
   const normalized = (name || '').trim();
-  projectName = normalized || 'untitled-project';
+  const next = normalized || 'untitled-project';
+  if(projectName === next) return;
+  if(!projectNameHistorySessionActive) {
+    pushHistoryState();
+    projectNameHistorySessionActive = true;
+  }
+  if(projectNameHistorySessionTimer) clearTimeout(projectNameHistorySessionTimer);
+  projectNameHistorySessionTimer = setTimeout(() => {
+    projectNameHistorySessionActive = false;
+    projectNameHistorySessionTimer = null;
+  }, PROJECT_NAME_HISTORY_IDLE_MS);
+  projectName = next;
   markDirty();
 }
 
@@ -5110,13 +5140,7 @@ function supportsMicStandOption(instrOrType) {
   const instr = (typeof instrOrType === 'string') ? getInstrumentDefinitionByType(instrOrType) : instrOrType;
   if(!instr) return false;
   if(isConnectionBoxInstrument(instr) || isStandType(instr) || isNonConnectableInstrument(instr)) return false;
-  const supported = new Set([
-    'drumkit',
-    'acguitar', 'elguitar', 'bass', 'violin', 'cello', 'viola', 'harp',
-    'piano', 'keys', 'vox', 'bgvox', 'talkback', 'pulpit',
-    'trumpet', 'trombone', 'sax',
-  ]);
-  return supported.has(instr.type);
+  return true;
 }
 
 function normalizeDrumMicStandAssignments(raw) {
@@ -5672,12 +5696,38 @@ function pushHistoryState() {
   redoStack = [];
 }
 
+function commitSnapshotBeforeChange(snapshotBefore) {
+  if(isRestoringHistory || !snapshotBefore) return false;
+  const snapshotAfter = captureSnapshot();
+  let changed = false;
+  try {
+    changed = JSON.stringify(snapshotBefore) !== JSON.stringify(snapshotAfter);
+  } catch(_err) {
+    changed = true;
+  }
+  if(!changed) return false;
+  historyStack.push(snapshotBefore);
+  if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
+  redoStack = [];
+  return true;
+}
+
 function undoAction() {
   if(historyStack.length <= 1) return;
-  const current = historyStack.pop();
-  redoStack.push(current);
-  const previous = historyStack[historyStack.length - 1];
+  const previous = historyStack.pop();
+  if(!previous) return;
+  redoStack.push(captureSnapshot());
+  if(redoStack.length > HISTORY_LIMIT) redoStack.shift();
   applySnapshot(previous, false);
+}
+
+function redoAction() {
+  if(redoStack.length < 1) return;
+  const next = redoStack.pop();
+  if(!next) return;
+  historyStack.push(captureSnapshot());
+  if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
+  applySnapshot(next, false);
 }
 
 function serializeLayout() {
@@ -7166,6 +7216,7 @@ function startCableHandleDrag(e, x, y, isTouch) {
   const conn = isBusHandle ? null : connections.find(c => c.id === hit.id);
   if(!isBusHandle && !conn) return;
   const snapshot = captureSnapshot();
+  let changed = false;
 
   function onMove(ev) {
     const point = isTouch ? getClientPointFromEvent(ev) : ev;
@@ -7177,11 +7228,13 @@ function startCableHandleDrag(e, x, y, isTouch) {
       hit.connIds.forEach(id => {
         const c = connections.find(item => item.id === id);
         if(c) {
+          if(c.routeX !== routeX) changed = true;
           c.routeX = routeX;
           syncConnectionRouteNormFromWorld(c, stagePx);
         }
       });
     } else {
+      if(conn.routeX !== routeX) changed = true;
       conn.routeX = routeX;
       syncConnectionRouteNormFromWorld(conn, stagePx);
     }
@@ -7195,9 +7248,7 @@ function startCableHandleDrag(e, x, y, isTouch) {
     document.removeEventListener('touchmove', onMove);
     document.removeEventListener('touchend', onUp);
     document.removeEventListener('touchcancel', onUp);
-    historyStack.push(snapshot);
-    if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
-    redoStack = [];
+    if(changed) commitSnapshotBeforeChange(snapshot);
   }
 
   document.addEventListener('mousemove', onMove);
@@ -7889,9 +7940,7 @@ function startDrag(e, id, el) {
     if(hint) hint.textContent = getModeHintText();
     if(isOverDeleteZone(e)) deleteInstrument(id);
     else if(moved) {
-      historyStack.push(dragSnapshot);
-      if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
-      redoStack = [];
+      commitSnapshotBeforeChange(dragSnapshot);
       markDirty();
       selectInstrument(id);
     } else {
@@ -7976,9 +8025,7 @@ function startDragTouch(e, id, el) {
 
     if(p && isOverDeleteZone(p.clientX, p.clientY)) deleteInstrument(id);
     else if(moved) {
-      historyStack.push(dragSnapshot);
-      if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
-      redoStack = [];
+      commitSnapshotBeforeChange(dragSnapshot);
       markDirty();
       selectInstrument(id);
     } else {
@@ -8049,9 +8096,7 @@ function startInstrumentRotation(ev, id) {
     const liveEl = getEl(id);
     if(liveEl) liveEl.classList.remove('rotating');
     if(changed) {
-      historyStack.push(rotateSnapshot);
-      if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
-      redoStack = [];
+      commitSnapshotBeforeChange(rotateSnapshot);
       markDirty();
     }
     selectInstrument(id);
@@ -8337,9 +8382,7 @@ function startAngleKnobDrag(e) {
     document.removeEventListener('touchend', onUp);
     document.removeEventListener('touchcancel', onUp);
     if((instr.angle || 0) !== (snapshot.instruments.find(i => i.id === instr.id)?.angle || 0)) {
-      historyStack.push(snapshot);
-      if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
-      redoStack = [];
+      commitSnapshotBeforeChange(snapshot);
     }
   }
 
@@ -8826,15 +8869,21 @@ function toggleDrumMic(checkbox) {
   if(!instr || instr.type !== 'drumkit') return;
 
   if(!instr.drumMics) instr.drumMics = [];
+  const snapshot = captureSnapshot();
+  let changed = false;
 
   if(checkbox.checked && checkbox.value === 'Overheads Stereo') {
-    instr.drumMics = instr.drumMics.filter(m => m !== 'Overhead Mono');
+    const next = instr.drumMics.filter(m => m !== 'Overhead Mono');
+    if(next.length !== instr.drumMics.length) changed = true;
+    instr.drumMics = next;
     const monoToggle = document.querySelector('#drum-extra .drum-mic-select input[type=checkbox][value="Overhead Mono"]');
     if(monoToggle) monoToggle.checked = false;
   }
 
   if(checkbox.checked && checkbox.value === 'Overhead Mono') {
-    instr.drumMics = instr.drumMics.filter(m => m !== 'Overheads Stereo');
+    const next = instr.drumMics.filter(m => m !== 'Overheads Stereo');
+    if(next.length !== instr.drumMics.length) changed = true;
+    instr.drumMics = next;
     const stereoToggle = document.querySelector('#drum-extra .drum-mic-select input[type=checkbox][value="Overheads Stereo"]');
     if(stereoToggle) stereoToggle.checked = false;
   }
@@ -8842,18 +8891,22 @@ function toggleDrumMic(checkbox) {
   const hadMic = instr.drumMics.includes(checkbox.value);
   if(checkbox.checked) {
     if(!instr.drumMics.includes(checkbox.value)) {
-      pushHistoryState();
       instr.drumMics.push(checkbox.value);
+      changed = true;
     }
   } else {
-    if(hadMic) pushHistoryState();
+    if(hadMic) changed = true;
     instr.drumMics = instr.drumMics.filter(m => m !== checkbox.value);
     if(instr.drumMicStandAssignments && typeof instr.drumMicStandAssignments === 'object') {
+      if(Object.prototype.hasOwnProperty.call(instr.drumMicStandAssignments, checkbox.value)) changed = true;
       delete instr.drumMicStandAssignments[checkbox.value];
     }
   }
 
-  markDirty();
+  if(changed) {
+    commitSnapshotBeforeChange(snapshot);
+    markDirty();
+  }
   updateDrumMicSummary(instr);
   pruneInvalidDrumConnections(instr);
   renderMicAssignmentsUI(instr);
@@ -10277,8 +10330,8 @@ function triggerLoadRider(options = {}) {
         const handle = picked[0];
         const file = await handle.getFile();
         const text = await file.text();
-        pushHistoryState();
         const data = JSON.parse(text);
+        pendingHardLoadUndoSnapshot = captureSnapshot();
         loadRiderFromData(data);
         setProjectNameFromFileName(file.name);
         riderSaveDirHandle = null;
@@ -10319,11 +10372,11 @@ function handleLoadRiderFile(e) {
   riderLastSavedFileName = '';
   riderSaveLocation = 'local';
   hasRiderSavePreference = true;
-  pushHistoryState();
   const reader = new FileReader();
   reader.onload = () => {
     try {
       const data = JSON.parse(reader.result);
+      pendingHardLoadUndoSnapshot = captureSnapshot();
       loadRiderFromData(data);
       setProjectNameFromFileName(file.name);
       markClean();
@@ -10336,6 +10389,8 @@ function handleLoadRiderFile(e) {
 }
 
 function loadRiderFromData(data) {
+  const hardLoadUndoSnapshot = pendingHardLoadUndoSnapshot;
+  pendingHardLoadUndoSnapshot = null;
   if(!data || typeof data !== 'object') throw new Error('Invalid rider data');
   if(typeof data.projectName === 'string' && data.projectName.trim()) {
     projectName = data.projectName.trim();
@@ -10367,6 +10422,7 @@ function loadRiderFromData(data) {
       applySnapshot(sceneSnapshot, true);
       renderSceneTabs();
       resetHistoryForCurrentScene();
+      if(hardLoadUndoSnapshot) commitSnapshotBeforeChange(hardLoadUndoSnapshot);
       return;
     }
   }
@@ -10557,6 +10613,7 @@ function loadRiderFromData(data) {
   sceneIdCounter = 1;
   renderSceneTabs();
   resetHistoryForCurrentScene();
+  if(hardLoadUndoSnapshot) commitSnapshotBeforeChange(hardLoadUndoSnapshot);
   render();
 }
 
