@@ -765,6 +765,22 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
         <div class="header-submenu" role="menu" aria-label="Scene actions">
           <button class="btn btn-ghost" type="button" onclick="runSceneMenuAction('create')">Create Scene</button>
           <button class="btn btn-ghost" type="button" onclick="runSceneMenuAction('delete')">Delete Scene</button>
+          <div class="header-submenu-divider" aria-hidden="true"></div>
+          <details id="scenes-load-from-menu" class="header-submenu-details" ontoggle="syncHeaderMenuState('scenes-load-from-menu')">
+            <summary class="btn btn-ghost header-menu-trigger">Load file as scenes</summary>
+            <div class="header-submenu header-submenu-nested" role="menu" aria-label="Load file as scenes">
+              <button class="btn btn-ghost" type="button" onclick="runSceneMenuAction('load-as-scenes-local')">Local</button>
+              <button class="btn btn-ghost" type="button" onclick="runSceneMenuAction('load-as-scenes-google-drive')">Google Drive</button>
+            </div>
+          </details>
+          <details id="scenes-load-recent-menu" class="header-submenu-details" ontoggle="syncHeaderMenuState('scenes-load-recent-menu')">
+            <summary class="btn btn-ghost header-menu-trigger">Load Recent as scenes</summary>
+            <div class="header-submenu header-submenu-nested" role="menu" aria-label="Load recent as scenes">
+              <div id="scenes-load-recent-list" style="display:grid;gap:4px;min-width:260px;"></div>
+              <div class="header-submenu-divider" aria-hidden="true"></div>
+              <button class="btn btn-ghost" type="button" onclick="runSceneMenuAction('clear-load-recent')">Clear Recent</button>
+            </div>
+          </details>
         </div>
       </details>
       <details id="help-menu" class="header-menu-group" ontoggle="syncHeaderMenuState('help-menu')">
@@ -796,6 +812,7 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
 <div id="scene-tabs-bar" class="scene-tabs-bar" aria-label="Scene tabs"></div>
 
 <input id="rider-file" type="file" accept="application/json,.json" style="display:none;">
+<input id="scenes-file" type="file" accept="application/json,.json" style="display:none;">
 
 <div class="workspace" id="workspace-root">
   <!-- LEFT -->
@@ -1343,6 +1360,7 @@ let activeSceneId = null;
 let sceneIdCounter = 0;
 let sceneTabDragId = null;
 let isLoadRiderPickerOpen = false;
+let isLoadScenesPickerOpen = false;
 let isStageBuilderMode = false;
 
 // ═══════════════════════════════════════════════════════════════
@@ -1390,6 +1408,7 @@ function init() {
     }, { passive: true });
   }
   document.getElementById('rider-file').addEventListener('change', handleLoadRiderFile);
+  document.getElementById('scenes-file').addEventListener('change', handleLoadScenesFile);
   document.getElementById('conn-canvas').addEventListener('mousedown', handleCableHandleMouseDown);
   document.getElementById('conn-canvas').addEventListener('touchstart', handleCableHandleTouchStart, { passive: false });
   document.getElementById('conn-canvas').addEventListener('mousemove', handleCanvasConnectionHover);
@@ -1400,6 +1419,8 @@ function init() {
   document.addEventListener('click', handleDocumentClickForMobileMenu);
   const recentList = document.getElementById('file-open-recent-list');
   if(recentList) recentList.addEventListener('click', onRecentMenuClick);
+  const scenesRecentList = document.getElementById('scenes-load-recent-list');
+  if(scenesRecentList) scenesRecentList.addEventListener('click', onScenesRecentMenuClick);
   window.addEventListener('beforeunload', e => {
     if(!hasUnsavedChanges) return;
     e.preventDefault();
@@ -1420,6 +1441,7 @@ function init() {
   updateSnakeViewToggleUI();
   refreshCategoryCollapseButtons();
   renderRecentMenuItems();
+  renderSceneImportRecentMenuItems();
   render();
 }
 
@@ -1640,6 +1662,7 @@ function addRecentRiderFile(entry) {
   if(recentRiderFiles.length > RECENT_RIDER_LIMIT) recentRiderFiles = recentRiderFiles.slice(0, RECENT_RIDER_LIMIT);
   saveRecentRiderFiles();
   renderRecentMenuItems();
+  renderSceneImportRecentMenuItems();
   if(normalized.source === 'local' && entry && entry.localFileHandle) {
     persistRecentLocalHandleAsync(normalized.localHandleId || normalized.id, entry.localFileHandle);
   }
@@ -1652,6 +1675,7 @@ function clearRecentRiderFiles() {
   recentRiderFiles = [];
   saveRecentRiderFiles();
   renderRecentMenuItems();
+  renderSceneImportRecentMenuItems();
 }
 
 function removeRecentRiderById(entryId) {
@@ -1666,6 +1690,7 @@ function removeRecentRiderById(entryId) {
   recentRiderFiles = next;
   saveRecentRiderFiles();
   renderRecentMenuItems();
+  renderSceneImportRecentMenuItems();
 }
 
 function renderRecentMenuItems() {
@@ -1683,6 +1708,28 @@ function renderRecentMenuItems() {
     const title = escapeHtml(String(item.fileName || 'Untitled'));
     return `
       <button class="btn btn-ghost" type="button" data-recent-id="${escapeHtml(item.id)}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;padding:6px 8px;">
+        <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${title}</span>
+        <span style="font-size:10px;border:1px solid #d0d5dd;border-radius:999px;padding:1px 6px;${sourceBadgeStyle}">${sourceLabel}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+function renderSceneImportRecentMenuItems() {
+  const list = document.getElementById('scenes-load-recent-list');
+  if(!list) return;
+  if(!recentRiderFiles.length) {
+    list.innerHTML = '<div style="padding:6px 8px;font-size:11px;color:#7b8693;">No recent files</div>';
+    return;
+  }
+  list.innerHTML = recentRiderFiles.map(item => {
+    const sourceLabel = item.source === 'google-drive' ? 'Google Drive' : 'Local';
+    const sourceBadgeStyle = item.source === 'google-drive'
+      ? 'background:#e6f4ff;color:#0b5c93;border-color:#b6dfff;'
+      : 'background:#f3f4f6;color:#475467;border-color:#d9dde3;';
+    const title = escapeHtml(String(item.fileName || 'Untitled'));
+    return `
+      <button class="btn btn-ghost" type="button" data-scenes-recent-id="${escapeHtml(item.id)}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;padding:6px 8px;">
         <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${title}</span>
         <span style="font-size:10px;border:1px solid #d0d5dd;border-radius:999px;padding:1px 6px;${sourceBadgeStyle}">${sourceLabel}</span>
       </button>
@@ -2618,6 +2665,18 @@ function closeLayersMenu() {
 function closeScenesMenu() {
   const menu = document.getElementById('scenes-menu');
   if(menu) menu.open = false;
+  closeScenesLoadFromMenu();
+  closeScenesLoadRecentMenu();
+}
+
+function closeScenesLoadFromMenu() {
+  const menu = document.getElementById('scenes-load-from-menu');
+  if(menu) menu.open = false;
+}
+
+function closeScenesLoadRecentMenu() {
+  const menu = document.getElementById('scenes-load-recent-menu');
+  if(menu) menu.open = false;
 }
 
 function closeHelpMenu() {
@@ -2676,6 +2735,11 @@ function syncHeaderMenuState(openMenuId) {
     closeFileOpenFromMenu();
     renderRecentMenuItems();
   }
+  if(openMenuId === 'scenes-load-from-menu') closeScenesLoadRecentMenu();
+  if(openMenuId === 'scenes-load-recent-menu') {
+    closeScenesLoadFromMenu();
+    renderSceneImportRecentMenuItems();
+  }
   requestAnimationFrame(updateHeaderMenuPlacement);
 }
 
@@ -2685,7 +2749,7 @@ function runRiderMenuAction(action) {
   return runFileMenuAction('save');
 }
 
-function runSceneMenuAction(action) {
+async function runSceneMenuAction(action) {
   closeScenesMenu();
   if(action === 'create') {
     createSceneFromCurrent();
@@ -2693,6 +2757,20 @@ function runSceneMenuAction(action) {
   }
   if(action === 'delete') {
     deleteCurrentScene();
+    return;
+  }
+  if(action === 'clear-load-recent') {
+    if(!recentRiderFiles.length) return;
+    if(!confirm('Clear all recent files?')) return;
+    clearRecentRiderFiles();
+    return;
+  }
+  if(action === 'load-as-scenes-local') {
+    triggerLoadScenesFromFile();
+    return;
+  }
+  if(action === 'load-as-scenes-google-drive') {
+    await loadScenesFromGoogleDrive();
   }
 }
 
@@ -2779,6 +2857,14 @@ function onRecentMenuClick(event) {
   const entryId = String(btn.getAttribute('data-recent-id') || '').trim();
   if(!entryId) return;
   openRecentRiderById(entryId);
+}
+
+function onScenesRecentMenuClick(event) {
+  const btn = event && event.target && event.target.closest ? event.target.closest('[data-scenes-recent-id]') : null;
+  if(!btn) return;
+  const entryId = String(btn.getAttribute('data-scenes-recent-id') || '').trim();
+  if(!entryId) return;
+  openRecentRiderScenesById(entryId);
 }
 
 function handleDocumentClickForMobileMenu(e) {
@@ -3506,6 +3592,9 @@ const HELP_TOPICS = {
     bullets: [
       'Create Scene captures the current stage state as a new scene tab.',
       'Delete Scene removes the active scene from the project.',
+      'Load scenes imports scenes from another rider file and adds them to your project.',
+      'Imported scenes are added to the current workspace; your existing scenes stay in place.',
+      'Imported scene names are preserved.',
       'Each scene can represent a song, service segment, or stage variation.',
       'Drag scene tabs to change scene order in the project.',
       'Scene order matters: report output follows the scene order you set.',
@@ -9964,6 +10053,209 @@ async function saveRider() {
 
 async function saveRiderAs() {
   await saveRiderFromFileMenu(true);
+}
+
+function extractScenesFromRiderData(data) {
+  if(!data || typeof data !== 'object') return [];
+  if(!Array.isArray(data.scenes) || !data.scenes.length) return [];
+  return data.scenes.map((raw, index) => {
+    const stateRaw = raw && raw.state && typeof raw.state === 'object' ? raw.state : null;
+    if(!stateRaw) return null;
+    return {
+      name: String(raw.name || `Scene ${indexToLetters(index + 1)}`),
+      state: cloneSceneState(stateRaw),
+    };
+  }).filter(Boolean);
+}
+
+function importScenesFromRiderData(data, sourceLabel = 'file') {
+  const importedScenes = extractScenesFromRiderData(data);
+  if(!importedScenes.length) {
+    alert('No scenes were found in this file.');
+    return 0;
+  }
+
+  ensureSceneSystemInitialized();
+  saveCurrentSceneState();
+  pushHistoryState();
+
+  let nextSceneId = Math.max(sceneIdCounter || 0, ...scenes.map(scene => scene && scene.id ? scene.id : 0));
+  importedScenes.forEach(scene => {
+    scenes.push({
+      id: ++nextSceneId,
+      name: String(scene.name || getNextDefaultSceneName()),
+      state: cloneSceneState(scene.state),
+    });
+  });
+
+  sceneIdCounter = nextSceneId;
+  renderSceneTabs();
+  markDirty();
+
+  const count = importedScenes.length;
+  const suffix = count === 1 ? '' : 's';
+  alert(`Imported ${count} scene${suffix} from ${sourceLabel}.`);
+  return count;
+}
+
+async function loadScenesFromGoogleDrive() {
+  try {
+    const token = await ensureGoogleDriveAccess(true);
+    if(!token) return;
+    const choice = await openGoogleDriveFileDialog({ mode: 'open' });
+    if(!choice || choice.action !== 'open' || !choice.fileId) return;
+    const loaded = await readRiderFromGoogleDrive(choice.fileId);
+    const importedCount = importScenesFromRiderData(loaded.data, 'Google Drive');
+    if(!importedCount) return;
+    addRecentRiderFile({
+      source: 'google-drive',
+      fileId: String(loaded.fileId || ''),
+      fileName: normalizeRiderFileName(loaded.fileName || 'untitled'),
+    });
+  } catch(err) {
+    alert((err && err.message) ? err.message : 'Could not load scenes from Google Drive.');
+  }
+}
+
+function triggerLoadScenesFromFile() {
+  if(isLoadScenesPickerOpen) return;
+
+  if(supportsFileSystemLoad()) {
+    (async () => {
+      try {
+        const picked = await window.showOpenFilePicker({
+          multiple: false,
+          types: [{
+            description: 'Stage Rider JSON',
+            accept: { 'application/json': ['.json'] },
+          }],
+        });
+        if(!picked || !picked.length) return;
+        const handle = picked[0];
+        const file = await handle.getFile();
+        const text = await file.text();
+        const data = JSON.parse(text);
+        const importedCount = importScenesFromRiderData(data, file.name || 'local file');
+        if(!importedCount) return;
+        addRecentRiderFile({ source: 'local', fileName: normalizeRiderFileName(file.name), localFileHandle: handle });
+      } catch(err) {
+        if(err && err.name === 'AbortError') return;
+        alert('Could not load scenes from this file. Please select a valid JSON rider containing scenes.');
+      }
+    })();
+    return;
+  }
+
+  const input = document.getElementById('scenes-file');
+  if(!input) return;
+  isLoadScenesPickerOpen = true;
+  input.value = '';
+  const releaseGuard = () => {
+    setTimeout(() => {
+      isLoadScenesPickerOpen = false;
+    }, 50);
+  };
+  window.addEventListener('focus', releaseGuard, { once: true });
+  input.click();
+}
+
+function handleLoadScenesFile(e) {
+  isLoadScenesPickerOpen = false;
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      const importedCount = importScenesFromRiderData(data, file.name || 'local file');
+      if(!importedCount) return;
+      addRecentRiderFile({ source: 'local', fileName: normalizeRiderFileName(file.name) });
+    } catch(_err) {
+      alert('Could not load scenes from this file. Please select a valid JSON rider containing scenes.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+async function openRecentRiderScenesById(entryId) {
+  const targetId = String(entryId || '').trim();
+  if(!targetId) return;
+  const entry = recentRiderFiles.find(item => String(item.id || '') === targetId);
+  if(!entry) {
+    alert('That recent file is no longer available in this list.');
+    return;
+  }
+
+  if(entry.source === 'google-drive') {
+    try {
+      const token = await ensureGoogleDriveAccess(true);
+      if(!token) return;
+      const loaded = await readRiderFromGoogleDrive(entry.fileId);
+      const importedCount = importScenesFromRiderData(loaded.data, normalizeRiderFileName(loaded.fileName || 'Google Drive file'));
+      if(!importedCount) return;
+      addRecentRiderFile({
+        source: 'google-drive',
+        fileId: String(loaded.fileId || ''),
+        fileName: normalizeRiderFileName(loaded.fileName || 'untitled'),
+      });
+      return;
+    } catch(err) {
+      const message = String((err && err.message) || 'Could not open Google Drive file.');
+      if(/not\s*found|insufficient|permission|forbidden/i.test(message)) {
+        removeRecentRiderById(targetId);
+        alert('This Drive file could not be opened (moved, deleted, or no access). It was removed from Recent.');
+      } else {
+        alert(message);
+      }
+      return;
+    }
+  }
+
+  const localHandleId = String(entry.localHandleId || entry.id || '').trim();
+  if(localHandleId) {
+    try {
+      const handle = await getRecentLocalHandle(localHandleId);
+      if(handle) {
+        if(typeof handle.queryPermission === 'function') {
+          const state = await handle.queryPermission({ mode: 'read' });
+          if(state !== 'granted') {
+            if(typeof handle.requestPermission === 'function') {
+              const requestState = await handle.requestPermission({ mode: 'read' });
+              if(requestState !== 'granted') throw new Error('Permission to read this local file was denied.');
+            } else {
+              throw new Error('Permission to read this local file was denied.');
+            }
+          }
+        }
+
+        const file = await handle.getFile();
+        const text = await file.text();
+        const data = JSON.parse(text);
+        const importedCount = importScenesFromRiderData(data, file.name || entry.fileName || 'local file');
+        if(!importedCount) return;
+        addRecentRiderFile({
+          id: entry.id,
+          source: 'local',
+          fileName: normalizeRiderFileName(file.name || entry.fileName || 'untitled'),
+          localHandleId,
+          localFileHandle: handle,
+        });
+        return;
+      }
+    } catch(err) {
+      const msg = String((err && err.message) || '');
+      if(/not\s*found|deleted|permission|denied|gone|unavailable/i.test(msg)) {
+        removeRecentRiderById(targetId);
+        alert('That local file is no longer available (moved/deleted/no permission). It was removed from Recent.');
+        return;
+      }
+      alert(msg || 'Could not load scenes from recent local file.');
+      return;
+    }
+  }
+
+  alert('This local recent entry has no reusable file handle yet. Select it once and it will open directly next time.');
+  triggerLoadScenesFromFile();
 }
 
 function triggerLoadRider(options = {}) {
