@@ -1147,6 +1147,8 @@ const ICON_ASSET_BY_TYPE = {
   piano:'images/grand_piano.png',
   keys:'images/keys.png',
   vox:'images/mic_vocal.png',
+  wirelessmic:'images/wireless_mic.png',
+  wirelessreceiver:'images/wireless_receiver.png',
   bgvox:'images/mic_backvocal.png',
   talkback:'images/mic_talkback.png',
   trumpet:'images/trumpet.png',
@@ -1202,6 +1204,7 @@ const INSTRUMENTS = [
   {type:'piano',     cat:'keys',    icon:'🎹', name:'Grand Piano',   wide:true,  size:110, footprintAspect:0.62, stereo:true, connSide:'bottom' },
   {type:'keys',      cat:'keys',    icon:'🎹', name:'Keys',          wide:false, size:68, footprintAspect:1.9, stereo:true, connSide:'bottom' },
   {type:'vox',       cat:'vocals',  icon:'🎤', name:'Vocal',         wide:false, size:46, connSide:'bottom'},
+  {type:'wirelessmic',cat:'vocals', icon:'🎤', name:'Wireless Mic',   wide:false, size:46, connSide:'bottom'},
   {type:'bgvox',     cat:'vocals',  icon:'🎙', name:'BG Vox',        wide:false, size:46, connSide:'bottom'},
   {type:'talkback',  cat:'vocals',  icon:'📢', name:'Talkback Mic',  wide:false, size:46, connSide:'bottom'},
   {type:'m32',       cat:'mixers',  icon:'🎚', name:'M32',           wide:true,  size:114, connSide:'bottom', isMixer:true, mixerInputs:38, mixerInputXlrOnly:32, mixerInputCombo:0, mixerInputJackOnly:6, mixerAux:16, mixerMain:0, mixerJackOut:6, mixerP16:1, mixerAes50:2},
@@ -1279,6 +1282,7 @@ const MIC_OPTIONS_BASE = [
   'the t.bone Lucan',
   'Rode M5',
   'AKG C1000S',
+  'AKG HT45 (wireless)',
   'AKG P4 (Drums)',
   'AKG P2 (Kick)',
   'AKG P17 (OH)',
@@ -5016,6 +5020,7 @@ function getInstrumentOutputPins(instr) {
 
 function getValidPinsForInstrument(instr) {
   if(!instr) return new Set();
+  if(isWirelessMicNode(instr)) return new Set();
   if(isConnectionBoxInstrument(instr)) return null;
   if(isNonConnectableInstrument(instr)) return new Set();
   if(instr.type === 'drumkit') return new Set(getDrumMicPins(instr).map(p => p.key));
@@ -5147,6 +5152,11 @@ function supportsMicPickup(instrOrType) {
   return !disallowed.has(type);
 }
 
+function allowsMicPickupWithAccessory(instr) {
+  if(!instr) return false;
+  return instr.cat === 'vocals';
+}
+
 const MIC_STAND_IMAGE_PATH = 'images/mic_stand.png';
 
 function normalizeAttachedAccessoryType(value) {
@@ -5265,6 +5275,7 @@ function getAttachedAccessoryLabel(type) {
 function getAttachedAccessoryIcon(instr) {
   const type = normalizeAttachedAccessoryType(instr && instr.attachedAccessoryType);
   if(type === 'none') return null;
+  if(isWirelessMicNode(instr)) return null;
   const image = getInstrumentImage(type);
   if(image) return { image, emoji: '' };
   if(type === 'di') return { image: '', emoji: '📦' };
@@ -5280,6 +5291,88 @@ function isStandType(instrOrType) {
   if(instr && instr.cat === 'stands') return true;
   const type = typeof instrOrType === 'string' ? instrOrType : (instrOrType && instrOrType.type);
   return type === 'micstand' || type === 'sheetstand' || type === 'micstandmulti';
+}
+
+function isWirelessMicType(instrOrType) {
+  const type = typeof instrOrType === 'string' ? instrOrType : (instrOrType && instrOrType.type);
+  return type === 'wirelessmic';
+}
+
+function isWirelessReceiverType(instrOrType) {
+  const type = typeof instrOrType === 'string' ? instrOrType : (instrOrType && instrOrType.type);
+  return type === 'wirelessreceiver';
+}
+
+function isWirelessLinkedInstrument(instr) {
+  return !!(instr && Number.isFinite(Number(instr.wirelessPairId)));
+}
+
+function isWirelessMicNode(instr) {
+  if(!instr) return false;
+  if(instr.wirelessRole) return instr.wirelessRole === 'mic';
+  return isWirelessMicType(instr);
+}
+
+function isWirelessReceiverNode(instr) {
+  if(!instr) return false;
+  if(instr.wirelessRole) return instr.wirelessRole === 'receiver';
+  return isWirelessReceiverType(instr);
+}
+
+function getWirelessPeer(instr) {
+  if(!isWirelessLinkedInstrument(instr)) return null;
+  return instruments.find(i => i && i.id !== instr.id && Number(i.wirelessPairId) === Number(instr.wirelessPairId)) || null;
+}
+
+function getWirelessMicNode(instr) {
+  if(!isWirelessLinkedInstrument(instr)) return null;
+  if(isWirelessMicNode(instr)) return instr;
+  const peer = getWirelessPeer(instr);
+  return isWirelessMicNode(peer) ? peer : null;
+}
+
+function getWirelessSelectionIds(idOrInstr) {
+  const instr = (idOrInstr && typeof idOrInstr === 'object') ? idOrInstr : instruments.find(i => i.id === idOrInstr);
+  if(!instr) return [];
+  if(!isWirelessLinkedInstrument(instr)) return [instr.id];
+  const peer = getWirelessPeer(instr);
+  return peer ? [instr.id, peer.id] : [instr.id];
+}
+
+function getVisibleInstrumentLabel(instr) {
+  if(!instr) return '';
+  const base = String(instr.label || instr.name || instr.type || 'Item');
+  if(isWirelessReceiverNode(instr)) return `${base} Rx`;
+  return base;
+}
+
+function syncWirelessPairSharedProps(source) {
+  if(!source || !isWirelessLinkedInstrument(source)) return;
+  const peer = getWirelessPeer(source);
+  if(!peer) return;
+  const excluded = new Set([
+    'id', 'type', 'cat', 'icon', 'image', 'x', 'y', 'stageNX', 'stageNY', 'size', 'wide', 'angle', 'connSide',
+    'wirelessPairId', 'wirelessRole', 'noConnect', 'micStandCount', 'drumMicStandAssignments', 'drumMics',
+  ]);
+  Object.keys(source).forEach(key => {
+    if(excluded.has(key)) return;
+    const value = source[key];
+    if(Array.isArray(value)) peer[key] = [...value];
+    else if(value && typeof value === 'object') peer[key] = { ...value };
+    else peer[key] = value;
+  });
+}
+
+function applyWirelessPairEdit(source) {
+  if(!source || !isWirelessLinkedInstrument(source)) return null;
+  const peer = getWirelessPeer(source);
+  if(!peer) return null;
+  syncWirelessPairSharedProps(source);
+  if(isWirelessReceiverNode(source)) source.micStandCount = 0;
+  if(isWirelessReceiverNode(peer)) peer.micStandCount = 0;
+  normalizeAttachedAccessoryForInstrument(peer);
+  pruneInvalidInstrumentPins(peer);
+  return peer;
 }
 
 function isNonConnectableInstrument(instrOrType) {
@@ -5320,6 +5413,10 @@ function getMicStandMaxForInstrument(instr) {
 
 function getMicStandCount(instr) {
   if(!instr || !supportsMicStandOption(instr)) return 0;
+  if(isWirelessReceiverNode(instr)) {
+    const micNode = getWirelessMicNode(instr);
+    if(micNode) return Math.max(0, parseInt(micNode.micStandCount, 10) || 0);
+  }
   if(instr.type === 'drumkit') {
     const selected = new Set(Array.isArray(instr.drumMics) ? instr.drumMics : []);
     const map = normalizeDrumMicStandAssignments(instr.drumMicStandAssignments);
@@ -5719,7 +5816,7 @@ function buildTileIconHTML(instr) {
 
 function buildStageIconHTML(instr, iconFontSize) {
   const imagePath = getEffectiveInstrumentImage(instr);
-  if(imagePath) return `<img class="icon-img" src="${imagePath}" alt="${instr.label}" draggable="false">`;
+  if(imagePath) return `<img class="icon-img" src="${imagePath}" alt="${getVisibleInstrumentLabel(instr)}" draggable="false">`;
   return `<span class="icon-emoji" style="font-size:${iconFontSize}px;">${instr.icon}</span>`;
 }
 
@@ -5746,6 +5843,10 @@ function oppositeSide(side) {
 
 function getDefaultSizeForType(type, fallback = 52) {
   const def = INSTRUMENTS.find(i => i.type === type);
+  if(!def && type === 'wirelessreceiver') {
+    const micDef = INSTRUMENTS.find(i => i.type === 'wirelessmic');
+    return micDef ? (Number(micDef.size) || fallback) : fallback;
+  }
   return def ? (Number(def.size) || fallback) : fallback;
 }
 
@@ -5934,7 +6035,7 @@ function serializeLayout() {
     showStageGrid: !!showStageGrid,
     isStageBuilderMode: !!isStageBuilderMode,
     stage:{widthM:stageW, depthM:stageD, showStairs:showStageStairs, suppressBuiltInStairsPart:!!suppressBuiltInStairsPart, themeMode, color:stageColor},
-    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,connSide,connectionBoxKind,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,outletConnectorType,outletPorts,outletViewMode,outletPortModes,outletPortNames,outletPlacement,isSnake,snakeViewMode,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,drumMicStandAssignments,micStandCount,attachedAccessoryType,attachedAccessoryCableType,attachedAccessoryInputCableType,attachedAccessoryOutputCableType,attachedAccessoryStereo,collapsed,noConnect})=>({
+    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,connSide,connectionBoxKind,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,outletConnectorType,outletPorts,outletViewMode,outletPortModes,outletPortNames,outletPlacement,isSnake,snakeViewMode,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,drumMicStandAssignments,micStandCount,attachedAccessoryType,attachedAccessoryCableType,attachedAccessoryInputCableType,attachedAccessoryOutputCableType,attachedAccessoryStereo,collapsed,noConnect,wirelessPairId,wirelessRole})=>({
       id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,
       haUseMainInputs:!!haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,
       micModels:Object.values(pinMicAssignments||{}),micModel:Object.values(pinMicAssignments||{})[0]||'',
@@ -5948,7 +6049,7 @@ function serializeLayout() {
       attachedAccessoryInputCableType: normalizeAttachedAccessoryCableType(attachedAccessoryInputCableType || attachedAccessoryCableType),
       attachedAccessoryOutputCableType: normalizeAttachedAccessoryCableType(attachedAccessoryOutputCableType || attachedAccessoryCableType),
       attachedAccessoryStereo: !!attachedAccessoryStereo,
-      noConnect:!!noConnect,collapsed:!!collapsed
+      noConnect:!!noConnect,collapsed:!!collapsed,wirelessPairId:Number.isFinite(Number(wirelessPairId)) ? Number(wirelessPairId) : null,wirelessRole:wirelessRole || ''
     })),
     connections:connections.map(({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX,routeNX})=>({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX,routeNX})),
     stageParts:stageParts.map(({id,shape,isPrimary,label,x,y,stageNX,stageNY,widthM,depthM,color,hasSteps})=>({id,shape,isPrimary:!!isPrimary,label,x,y,stageNX,stageNY,widthM,depthM,color,hasSteps:!!hasSteps})),
@@ -6223,8 +6324,10 @@ function updateStage(skipDirty) {
   instruments.forEach(renderInstrument);
   stageParts.forEach(renderStagePart);
   if(selectedId !== null) {
-    const selEl = getEl(selectedId);
-    if(selEl) selEl.classList.add('selected');
+    getWirelessSelectionIds(selectedId).forEach(id => {
+      const selEl = getEl(id);
+      if(selEl) selEl.classList.add('selected');
+    });
   }
   if(selectedStagePartId !== null) {
     const selPart = getStagePartEl(selectedStagePartId);
@@ -7035,6 +7138,128 @@ function maybeAutoRouteDrumkitSnake(baseConn) {
   }
 }
 
+function getAutoRouteSourcePinsForMixer(instr) {
+  if(!instr || isSnakeBox(instr) || isOutletBox(instr)) return [];
+  if(instr.type === 'drumkit') return getDrumMicPins(instr).map(p => p.key);
+  if(isConnectionBoxInstrument(instr) || isNonConnectableInstrument(instr)) return [];
+
+  if(isCustomIOInstrument(instr)) {
+    const outputPins = getInstrumentOutputPins(instr).map(p => p.key);
+    return outputPins.length > 1 ? outputPins : [];
+  }
+
+  const hasStereoOut = hasAttachedAccessory(instr) ? !!instr.attachedAccessoryStereo : !!instr.stereo;
+  if(hasStereoOut) return ['L', 'R'];
+
+  return [];
+}
+
+function maybeAutoRouteMultiPortToMixer(baseConn) {
+  const fromInstr = instruments.find(i => i.id === baseConn.fromId);
+  const toInstr = instruments.find(i => i.id === baseConn.toId);
+  if(!fromInstr || !toInstr) return;
+
+  const fromMixerIn = isMixerBox(fromInstr) ? parseMixerInputPin(baseConn.fromPin) : null;
+  const toMixerIn = isMixerBox(toInstr) ? parseMixerInputPin(baseConn.toPin) : null;
+
+  let sourceInstr = null;
+  let sourceStartPin = '';
+  let mixerInstr = null;
+  let mixerStartIdx = 0;
+  let mixerPinFamily = 'MX-IN';
+  let direction = 'source-to-mixer';
+
+  if(toMixerIn) {
+    sourceInstr = fromInstr;
+    sourceStartPin = pinKey(baseConn.fromPin);
+    mixerInstr = toInstr;
+    mixerStartIdx = toMixerIn.index;
+    mixerPinFamily = toMixerIn.family || 'MX-IN';
+    direction = 'source-to-mixer';
+  } else if(fromMixerIn) {
+    sourceInstr = toInstr;
+    sourceStartPin = pinKey(baseConn.toPin);
+    mixerInstr = fromInstr;
+    mixerStartIdx = fromMixerIn.index;
+    mixerPinFamily = fromMixerIn.family || 'MX-IN';
+    direction = 'mixer-to-source';
+  } else {
+    return;
+  }
+
+  const sourcePins = getAutoRouteSourcePinsForMixer(sourceInstr);
+  const startPos = sourcePins.findIndex(pin => pin === sourceStartPin);
+  if(startPos < 0) return;
+
+  const breakdown = getMixerInputBreakdown(mixerInstr);
+  const mixerMax = mixerPinFamily === 'MX-AUX-IN'
+    ? Math.max(0, breakdown.auxInputs)
+    : Math.max(0, breakdown.totalStandard || Number(mixerInstr.mixerInputs) || 0);
+
+  let maxAdditional = 0;
+  while(
+    (startPos + maxAdditional + 1) < sourcePins.length &&
+    (mixerStartIdx + maxAdditional + 1) <= mixerMax
+  ) {
+    maxAdditional += 1;
+  }
+  if(maxAdditional <= 0) return;
+
+  const maxTotal = 1 + maxAdditional;
+  const mixerStartLabel = mixerPinFamily === 'MX-AUX-IN' ? `A${mixerStartIdx}` : `${mixerStartIdx}`;
+  const ask = prompt(`Multi-port to mixer auto-route\n\nHow many consecutive connections do you want to make?\nStart mapping: ${sourceInstr.label} ${sourceStartPin} -> ${mixerInstr.label} IN ${mixerStartLabel}\nEnter a number from 1 to ${maxTotal}.`, String(Math.min(8, maxTotal)));
+  if(ask == null) return;
+  const requestedTotal = parseInt(String(ask).trim(), 10);
+  if(!Number.isFinite(requestedTotal) || requestedTotal < 1) {
+    alert('Auto-route cancelled: please enter a valid number.');
+    return;
+  }
+
+  const total = Math.min(maxTotal, requestedTotal);
+  const additionalNeeded = total - 1;
+  if(additionalNeeded <= 0) return;
+
+  let added = 0;
+  for(let step = 1; step <= additionalNeeded; step += 1) {
+    const sourcePin = sourcePins[startPos + step];
+    const mixerIdx = mixerStartIdx + step;
+    const mixerPin = mixerPinFamily === 'MX-AUX-IN' ? `MX-AUX-IN-${mixerIdx}` : `MX-IN-${mixerIdx}`;
+
+    const fromObj = direction === 'source-to-mixer'
+      ? { id: sourceInstr.id, pin: sourcePin }
+      : { id: mixerInstr.id, pin: mixerPin };
+    const toObj = direction === 'source-to-mixer'
+      ? { id: mixerInstr.id, pin: mixerPin }
+      : { id: sourceInstr.id, pin: sourcePin };
+
+    const validation = validateConnection(fromObj, toObj);
+    if(!validation.valid) break;
+
+    connections.push({
+      id: ++idCounter,
+      fromId: fromObj.id,
+      fromPin: fromObj.pin,
+      toId: toObj.id,
+      toPin: toObj.pin,
+      cableType: validation.cableType,
+      color: validation.color,
+      label: validation.label,
+      routeX: null,
+    });
+    added += 1;
+  }
+
+  if(added > 0) {
+    markDirty();
+    refreshConnectorStates(baseConn.fromId);
+    refreshConnectorStates(baseConn.toId);
+  }
+
+  if(added < additionalNeeded) {
+    alert(`Auto-route added ${added + 1} of ${total} requested connections. Remaining channels were not available.`);
+  }
+}
+
 function render(refreshConnectionList = true) {
   const cv = document.getElementById('conn-canvas');
   const ctx = cv.getContext('2d');
@@ -7045,8 +7270,9 @@ function render(refreshConnectionList = true) {
     return;
   }
   const busState = buildCableBusState();
-  const selectedConnIds = selectedId
-    ? connections.filter(c => c.fromId === selectedId || c.toId === selectedId).map(c => c.id)
+  const selectedNodeIds = selectedId ? new Set(getWirelessSelectionIds(selectedId)) : null;
+  const selectedConnIds = selectedNodeIds
+    ? connections.filter(c => selectedNodeIds.has(c.fromId) || selectedNodeIds.has(c.toId)).map(c => c.id)
     : [];
   const focusedConnIds = selectedConnIds.length ? new Set(selectedConnIds) : null;
 
@@ -7526,6 +7752,8 @@ function addInstrument(data, x, y) {
     attachedAccessoryInputCableType: normalizeAttachedAccessoryCableType(data.attachedAccessoryInputCableType || data.attachedAccessoryCableType),
     attachedAccessoryOutputCableType: normalizeAttachedAccessoryCableType(data.attachedAccessoryOutputCableType || data.attachedAccessoryCableType),
     attachedAccessoryStereo: !!data.attachedAccessoryStereo,
+    wirelessPairId: Number.isFinite(Number(data.wirelessPairId)) ? Number(data.wirelessPairId) : null,
+    wirelessRole: String(data.wirelessRole || '').trim().toLowerCase(),
     noConnect: !!data.noConnect || isStandType(data.type),
     connSide: data.connSide || 'bottom',
     connectionBoxKind: boxKind || '',
@@ -7563,6 +7791,30 @@ function addInstrument(data, x, y) {
   if(!supportsMicStandOption(created)) {
     created.micStandCount = 0;
     created.drumMicStandAssignments = {};
+  }
+  if(isWirelessMicType(created)) {
+    const pairId = created.id;
+    created.wirelessPairId = pairId;
+    created.wirelessRole = 'mic';
+    created.type = 'wirelessmic';
+    created.image = getInstrumentImage('wirelessmic') || created.image;
+
+    const receiverId = ++idCounter;
+    const receiver = cloneInstruments([created])[0];
+    receiver.id = receiverId;
+    receiver.type = 'wirelessreceiver';
+    receiver.image = getInstrumentImage('wirelessreceiver') || receiver.image;
+    receiver.icon = '📶';
+    receiver.noConnect = false;
+    receiver.wirelessPairId = pairId;
+    receiver.wirelessRole = 'receiver';
+    receiver.micStandCount = 0;
+    receiver.drumMicStandAssignments = {};
+    receiver.x = created.x + 72;
+    receiver.y = created.y;
+    syncInstrumentStageNormFromWorld(receiver, stagePx);
+    instruments.push(receiver);
+    renderInstrument(receiver);
   }
   renderInstrument(created);
   updateSnakeViewToggleUI();
@@ -7605,6 +7857,7 @@ function renderInstrument(instr) {
 
   const el = document.createElement('div');
   const boxKind = getConnectionBoxKind(instr);
+  const visibleLabel = getVisibleInstrumentLabel(instr);
   el.className = 'si';
   if(instr.cat === 'monitoring') el.classList.add('is-monitoring');
   if(boxKind) {
@@ -7640,8 +7893,8 @@ function renderInstrument(instr) {
         <div class="iface" style="transform:rotate(${angle}deg);transform-origin:center center;">
           ${buildRotationHandleHTML()}
           <div class="ib" style="width:${bw}px;min-height:${Math.round(Math.max(collapsedMin, bh * collapsedHeightFactor))}px;padding:${Math.round(5 * uiScale)}px;--ui-scale:${uiScale};">
-            ${boxImage ? `<img class="icon-img" src="${boxImage}" alt="${instr.label}" draggable="false">` : buildStageIconHTML(instr, Math.round(14 * uiScale))}
-            <div class="ib-label${boxKind === 'snake' ? '' : ' inside-top'}">${instr.label}</div>
+            ${boxImage ? `<img class="icon-img" src="${boxImage}" alt="${visibleLabel}" draggable="false">` : buildStageIconHTML(instr, Math.round(14 * uiScale))}
+            <div class="ib-label${boxKind === 'snake' ? '' : ' inside-top'}">${visibleLabel}</div>
           </div>
           ${accessoryBadgeHTML}
         </div>
@@ -7666,12 +7919,14 @@ function renderInstrument(instr) {
     const isStandItem = isStandType(instr);
     if(isStandItem) el.classList.add('is-stand');
     const isNonConnectable = isNonConnectableInstrument(instr);
+    const hidePinsForWirelessMic = isWirelessMicNode(instr);
+    const suppressPins = isNonConnectable || hidePinsForWirelessMic;
     const isDrumKit = instr.type === 'drumkit';
     const hasCustomIO = isCustomIOInstrument(instr);
     const useAccessoryOutputs = hasAttachedAccessory(instr);
     const isStereo = useAccessoryOutputs ? !!instr.attachedAccessoryStereo : !!instr.stereo;
     const side = instr.connSide || 'bottom';
-    const renderP16SidePins = !isNonConnectable && instr.type === 'p16';
+    const renderP16SidePins = !suppressPins && instr.type === 'p16';
     const drumPins = isDrumKit ? getDrumMicPins(instr) : [];
     const inputPins = hasCustomIO ? getInstrumentInputPins(instr) : [];
     const outputPins = hasCustomIO ? getInstrumentOutputPins(instr) : [];
@@ -7712,9 +7967,9 @@ function renderInstrument(instr) {
     `).join('');
     const customTopClass = 'inputs';
     const customBottomClass = 'outputs';
-    const connSideControlsHTML = isNonConnectable ? '' : buildConnSideControlsHTML(side);
+    const connSideControlsHTML = suppressPins ? '' : buildConnSideControlsHTML(side);
     const micStandCount = getMicStandCount(instr);
-    const showStandBadge = micStandCount > 0;
+    const showStandBadge = micStandCount > 0 && !isWirelessReceiverNode(instr);
     const standBadgeHTML = showStandBadge
       ? `<div class="mic-stand-badge"><img src="${MIC_STAND_IMAGE_PATH}" alt="mic stand" draggable="false">${micStandCount > 1 ? `<span class="count">x${micStandCount}</span>` : ''}</div>`
       : '';
@@ -7732,14 +7987,14 @@ function renderInstrument(instr) {
           ${standBadgeHTML}
           ${accessoryBadgeHTML}
           ${showFacingMarker ? `<div class="front-edge" aria-hidden="true"></div>` : ''}
-          <div class="ib-label">${instr.label}</div>
+          <div class="ib-label">${visibleLabel}</div>
           ${instr.channel?`<div class="ich">${instr.channel}</div>`:''}
         </div>
-        ${!isNonConnectable && isDrumKit ? `
+        ${!suppressPins && isDrumKit ? `
           <div class="drum-pin-row side-${side}">${drumPinsHTML}</div>
-        ` : (!renderP16SidePins && !isNonConnectable && renderCustomIOSidePins) ? `
+        ` : (!renderP16SidePins && !suppressPins && renderCustomIOSidePins) ? `
           ${customSidePinsHTML}
-        ` : (!renderP16SidePins && !isNonConnectable && hasCustomIO) ? `
+        ` : (!renderP16SidePins && !suppressPins && hasCustomIO) ? `
           ${customBottomCount ? `<div class="io-pin-row ${customBottomClass}" style="grid-template-columns:repeat(${Math.min(customBottomCount, 4)},minmax(0,1fr));">${customBottomPinsHTML}</div>` : ''}
         ` : renderP16SidePins ? `
           <div class="iconn${p16InUsed?' used':''}" style="${getMainPinStyle(side, 0, 3)}" data-pin="P16-IN" title="${buildPinTitle(instr, 'P16-IN', 'IN')}"></div>
@@ -7748,12 +8003,12 @@ function renderInstrument(instr) {
           <div class="pin-tag" style="${getPinTagStyle(side, 0, 3)}">I</div>
           <div class="pin-tag" style="${getPinTagStyle(side, 1, 3)}">T</div>
           <div class="pin-tag" style="${getPinTagStyle(side, 2, 3)}">H</div>
-        ` : (!isNonConnectable && isStereo) ? `
+        ` : (!suppressPins && isStereo) ? `
           <div class="iconn${leftUsed?' used':''}" style="${getMainPinStyle(side, 0, 2)}" data-pin="L" title="${buildPinTitle(instr, 'L', 'Left Output')}"></div>
           <div class="iconn${rightUsed?' used':''}" style="${getMainPinStyle(side, 1, 2)}" data-pin="R" title="${buildPinTitle(instr, 'R', 'Right Output')}"></div>
           <div class="pin-tag" style="${getPinTagStyle(side, 0, 2)}">L</div>
           <div class="pin-tag" style="${getPinTagStyle(side, 1, 2)}">R</div>
-        ` : (!isNonConnectable ? `<div class="iconn${monoUsed?' used':''}" style="${getMainPinStyle(side, 0, 1)}" data-pin="MONO" title="${buildPinTitle(instr, 'MONO', 'Output')}"></div>` : '')}
+        ` : (!suppressPins ? `<div class="iconn${monoUsed?' used':''}" style="${getMainPinStyle(side, 0, 1)}" data-pin="MONO" title="${buildPinTitle(instr, 'MONO', 'Output')}"></div>` : '')}
       </div>
     `;
   }
@@ -7881,6 +8136,7 @@ function buildConnectionBoxPin(instr, key, label, baseLabel, extraClass = '', in
 function buildConnectionBoxHTML(instr, widthPx) {
   const kind = getConnectionBoxKind(instr);
   if(!kind) return '';
+  const visibleLabel = getVisibleInstrumentLabel(instr);
   const refWidth = kind === 'snake' ? 108 : (kind === 'outlet' ? 84 : 194);
   const body = getInstrumentBodyDimensionsPx(instr);
   const resolvedWidth = Number(widthPx) || body.width;
@@ -7967,7 +8223,7 @@ function buildConnectionBoxHTML(instr, widthPx) {
   const genericInputCount = (xlrInputCount + comboInputCount + auxInputCount) > 0 ? 0 : inputs;
 
   const mixerImage = instr.image
-    ? `<img class="icon-img" src="${instr.image}" alt="${instr.label}" draggable="false" style="width:${Math.round(34 * uiScale)}px;height:${Math.round(34 * uiScale)}px;object-fit:contain;">`
+    ? `<img class="icon-img" src="${instr.image}" alt="${visibleLabel}" draggable="false" style="width:${Math.round(34 * uiScale)}px;height:${Math.round(34 * uiScale)}px;object-fit:contain;">`
     : `<span class="icon-emoji" style="font-size:${Math.round(18 * uiScale)}px;line-height:1;">${instr.icon || '🎚'}</span>`;
 
   let inputSections = '';
@@ -8070,7 +8326,7 @@ function buildConnectionBoxHTML(instr, widthPx) {
 
   return `
     <div class="ib" style="width:${resolvedWidth}px;min-height:${Math.round(minHeight)}px;padding:${innerPad}px;flex-direction:column;font-size:0;--ui-scale:${uiScale};--rack-ui-scale:${rackScale};--rack-pin-scale:${rackPinScale};--port-label-scale:${rackPinScale};--rack-section-scale:${rackSectionScale};--connbox-ui-scale:${uiScale};">
-      <div class="ib-label inside-top">${instr.label}</div>
+      <div class="ib-label inside-top">${visibleLabel}</div>
       <div style="display:flex;justify-content:center;align-items:center;margin-top:${Math.round(2 * uiScale)}px;">${mixerImage}</div>
       ${inputSections}
       ${outputSections}
@@ -8103,10 +8359,10 @@ function refreshConnectorStates(id) {
   if(!instr) return;
   if(isConnectionBoxInstrument(instr)) {
     renderInstrument(instr);
-    if(selectedId === instr.id) {
-      const el = getEl(instr.id);
+    getWirelessSelectionIds(selectedId).forEach(selId => {
+      const el = getEl(selId);
       if(el) el.classList.add('selected');
-    }
+    });
     return;
   }
   renderInstrument(instr);
@@ -8406,7 +8662,8 @@ function selectInstrument(id) {
     const isNonConnectable = isNonConnectableInstrument(instr);
     const hideConnTypeSelector = isCustomIOInstrument(instr) || instr.type === 'p16' || isNonConnectable;
     connTypeWrap.style.display = hideConnTypeSelector ? 'none' : '';
-    micWrap.style.display = (!isNonConnectable && supportsMicPickup(instr) && !hasAttachedAccessory(instr)) ? '' : 'none';
+    const canShowMicPickup = !isNonConnectable && supportsMicPickup(instr) && (!hasAttachedAccessory(instr) || allowsMicPickupWithAccessory(instr));
+    micWrap.style.display = canShowMicPickup ? '' : 'none';
     micStandWrap.style.display = (supportsMicStandOption(instr) && instr.type !== 'drumkit') ? '' : 'none';
     accessoryWrap.style.display = '';
     document.getElementById('p-conn-type').value = instr.connectorMode || getDefaultConnectorMode(instr.type);
@@ -8498,7 +8755,9 @@ function updProp(field, value) {
   if(instr[field] === value) return;
   pushHistoryState();
   instr[field]=value;
+  const peer = applyWirelessPairEdit(instr);
   markDirty();
+  if(peer) renderInstrument(peer);
   refreshInstrEl(instr); render();
 }
 
@@ -8681,7 +8940,9 @@ function updStereoMode(value) {
   syncDiAccessoryStereoFromInstrument(instr);
   instr.micStandCount = clampMicStandCountForInstrument(instr, instr.micStandCount);
   pruneInvalidInstrumentPins(instr);
+  const peer = applyWirelessPairEdit(instr);
   markDirty();
+  if(peer) renderInstrument(peer);
   renderInstrument(instr);
   selectInstrument(instr.id);
   renderMicStandUI(instr);
@@ -8699,7 +8960,9 @@ function updInputMode(value) {
   if(isPedalsType(instr)) instr.stereo = !!instr.outputStereo;
   syncDiAccessoryStereoFromInstrument(instr);
   pruneInvalidInstrumentPins(instr);
+  const peer = applyWirelessPairEdit(instr);
   markDirty();
+  if(peer) renderInstrument(peer);
   renderInstrument(instr);
   selectInstrument(instr.id);
   updateClasses();
@@ -8716,7 +8979,9 @@ function updOutputMode(value) {
   if(isPedalsType(instr)) instr.stereo = !!instr.outputStereo;
   syncDiAccessoryStereoFromInstrument(instr);
   pruneInvalidInstrumentPins(instr);
+  const peer = applyWirelessPairEdit(instr);
   markDirty();
+  if(peer) renderInstrument(peer);
   renderInstrument(instr);
   selectInstrument(instr.id);
   updateClasses();
@@ -8954,7 +9219,9 @@ function updConnectorMode(value) {
   if((instr.connectorMode || getDefaultConnectorMode(instr.type)) === next) return;
   pushHistoryState();
   instr.connectorMode = next;
+  const peer = applyWirelessPairEdit(instr);
   markDirty();
+  if(peer) renderInstrument(peer);
   renderInstrument(instr);
   updateClasses();
   render();
@@ -9020,13 +9287,16 @@ function setMicStandCount(value) {
   if(!selectedId) return;
   const instr = instruments.find(i=>i.id===selectedId);
   if(!instr || !supportsMicStandOption(instr) || instr.type === 'drumkit') return;
-  const next = clampMicStandCountForInstrument(instr, value);
-  const prev = clampMicStandCountForInstrument(instr, instr.micStandCount);
+  const standTarget = getWirelessMicNode(instr) || instr;
+  const next = clampMicStandCountForInstrument(standTarget, value);
+  const prev = clampMicStandCountForInstrument(standTarget, standTarget.micStandCount);
   if(prev === next) return;
   pushHistoryState();
-  instr.micStandCount = next;
+  standTarget.micStandCount = next;
+  if(isWirelessLinkedInstrument(instr) && isWirelessReceiverNode(instr)) instr.micStandCount = 0;
   markDirty();
-  renderInstrument(instr);
+  renderInstrument(standTarget);
+  if(instr.id !== standTarget.id) renderInstrument(instr);
   renderMicStandUI(instr);
   updateClasses();
   render();
@@ -9170,10 +9440,12 @@ function updAttachedAccessoryType(value) {
   normalizeAttachedAccessoryForInstrument(instr);
   const micWrap = document.getElementById('mic-wrap');
   if(micWrap) {
-    const showMicPickup = !isConnectionBoxInstrument(instr) && !isNonConnectableInstrument(instr) && supportsMicPickup(instr) && !hasAttachedAccessory(instr);
+    const showMicPickup = !isConnectionBoxInstrument(instr) && !isNonConnectableInstrument(instr) && supportsMicPickup(instr) && (!hasAttachedAccessory(instr) || allowsMicPickupWithAccessory(instr));
     micWrap.style.display = showMicPickup ? '' : 'none';
   }
+  const peer = applyWirelessPairEdit(instr);
   markDirty();
+  if(peer) renderInstrument(peer);
   renderInstrument(instr);
   renderAttachedAccessoryUI(instr);
   updateClasses();
@@ -9193,7 +9465,9 @@ function updAttachedAccessoryCableType(value) {
   instr.attachedAccessoryInputCableType = next;
   instr.attachedAccessoryOutputCableType = next;
   normalizeAttachedAccessoryForInstrument(instr);
+  const peer = applyWirelessPairEdit(instr);
   markDirty();
+  if(peer) renderInstrument(peer);
   renderInstrument(instr);
   renderAttachedAccessoryUI(instr);
   updateClasses();
@@ -9210,7 +9484,9 @@ function updAttachedAccessoryInputCableType(value) {
   pushHistoryState();
   instr.attachedAccessoryInputCableType = next;
   normalizeAttachedAccessoryForInstrument(instr);
+  const peer = applyWirelessPairEdit(instr);
   markDirty();
+  if(peer) renderInstrument(peer);
   renderInstrument(instr);
   renderAttachedAccessoryUI(instr);
   updateClasses();
@@ -9227,7 +9503,9 @@ function updAttachedAccessoryOutputCableType(value) {
   pushHistoryState();
   instr.attachedAccessoryOutputCableType = next;
   normalizeAttachedAccessoryForInstrument(instr);
+  const peer = applyWirelessPairEdit(instr);
   markDirty();
+  if(peer) renderInstrument(peer);
   renderInstrument(instr);
   renderAttachedAccessoryUI(instr);
   updateClasses();
@@ -9246,7 +9524,9 @@ function updAttachedAccessoryStereo(enabled) {
   normalizeAttachedAccessoryForInstrument(instr);
   if(isDiAccessoryLinked(instr)) syncDiAccessoryStereoFromInstrument(instr);
   pruneInvalidInstrumentPins(instr);
+  const peer = applyWirelessPairEdit(instr);
   markDirty();
+  if(peer) renderInstrument(peer);
   renderInstrument(instr);
   selectInstrument(instr.id);
   updateClasses();
@@ -9345,7 +9625,20 @@ function getDrumMicPins(instr) {
     ],
   };
 
-  return instr.drumMics.flatMap(m => mapping[m] || []);
+  const preferredOrder = [
+    'Kick',
+    'Snare',
+    'Hi-Hat',
+    'Tom 1',
+    'Tom 2',
+    'Tom 3',
+    'Ride',
+    'Crash',
+    'Overhead Mono',
+    'Overheads Stereo',
+  ];
+  const selected = new Set(instr.drumMics || []);
+  return preferredOrder.filter(label => selected.has(label)).flatMap(label => mapping[label] || []);
 }
 
 function pruneInvalidDrumConnections(instr) {
@@ -9374,9 +9667,10 @@ function pruneInvalidDrumConnections(instr) {
 
 function refreshInstrEl(instr) {
   const el=getEl(instr.id); if(!el) return;
-  const lbl=el.querySelector('.ilabel'); if(lbl) lbl.textContent=instr.label;
+  const visibleLabel = getVisibleInstrumentLabel(instr);
+  const lbl=el.querySelector('.ilabel'); if(lbl) lbl.textContent=visibleLabel;
   el.querySelectorAll('.ib-label').forEach(labelEl => {
-    labelEl.textContent = instr.label;
+    labelEl.textContent = visibleLabel;
   });
   if(isConnectionBoxInstrument(instr)){ renderInstrument(instr); return; }
   const body=el.querySelector('.ib');
@@ -9385,9 +9679,10 @@ function refreshInstrEl(instr) {
 }
 
 function updateClasses() {
+  const selectedIds = new Set(getWirelessSelectionIds(selectedId));
   instruments.forEach(instr=>{
     const el=getEl(instr.id); if(!el) return;
-    el.classList.toggle('selected', instr.id===selectedId);
+    el.classList.toggle('selected', selectedIds.has(instr.id));
     el.classList.toggle('connecting-source', connectingFrom&&connectingFrom.id===instr.id);
   });
   stageParts.forEach(part => {
@@ -9413,10 +9708,15 @@ function deleteSelected() {
 
 function deleteInstrument(id) {
   pushHistoryState();
-  const el=getEl(id); if(el) el.remove();
-  instruments=instruments.filter(i=>i.id!==id);
-  connections=connections.filter(c=>c.fromId!==id&&c.toId!==id);
-  if(selectedId===id){ selectedId=null; updateSelectionPanels(); }
+  const target = instruments.find(i => i && i.id === id) || null;
+  const idsToDelete = target ? getWirelessSelectionIds(target) : [id];
+  const idSet = new Set(idsToDelete);
+  idsToDelete.forEach(removeId => {
+    const el=getEl(removeId); if(el) el.remove();
+  });
+  instruments=instruments.filter(i=>!idSet.has(i.id));
+  connections=connections.filter(c=>!idSet.has(c.fromId)&&!idSet.has(c.toId));
+  if(selectedId && idSet.has(selectedId)){ selectedId=null; updateSelectionPanels(); }
   updateSnakeViewToggleUI();
   refreshCategoryCollapseButtons();
   markDirty();
@@ -9794,6 +10094,7 @@ function handleConnectClick(id, pin, e) {
       refreshConnectorStates(resolvedTo.id);
       maybeAutoRouteSnakeMixer(firstConn);
       maybeAutoRouteDrumkitSnake(firstConn);
+      maybeAutoRouteMultiPortToMixer(firstConn);
       maybeAutoAddTrsSplitCompanion(firstConn);
       maybeSuggestStereoCompanion(firstConn);
     }
@@ -10895,6 +11196,8 @@ function loadRiderFromData(data) {
       attachedAccessoryInputCableType: normalizeAttachedAccessoryCableType(raw.attachedAccessoryInputCableType || raw.attachedAccessoryCableType),
       attachedAccessoryOutputCableType: normalizeAttachedAccessoryCableType(raw.attachedAccessoryOutputCableType || raw.attachedAccessoryCableType),
       attachedAccessoryStereo: !!raw.attachedAccessoryStereo,
+      wirelessPairId: Number.isFinite(parseInt(raw.wirelessPairId, 10)) ? parseInt(raw.wirelessPairId, 10) : null,
+      wirelessRole: String(raw.wirelessRole || '').trim().toLowerCase(),
       noConnect: !!raw.noConnect || isStandType(raw.type),
       connSide: raw.connSide || 'bottom',
       connectionBoxKind: inferConnectionBoxKind(raw) || '',
@@ -11407,18 +11710,16 @@ function describeInlineAccessoryRouteHTML(instr, inboundConn, pin, visited = new
 function describeAttachedAccessoryChain(instr, pin) {
   if(!instr || !hasAttachedAccessory(instr)) return '';
   const label = getAttachedAccessoryLabel(instr.attachedAccessoryType);
-  const mode = instr.attachedAccessoryStereo ? 'Stereo' : 'Mono';
   const pinLabel = getReportPinLabel(instr, pin);
   const endpoint = (!pinLabel || pinLabel === 'MONO')
     ? (instr.label || instr.name || instr.type || 'Unknown')
     : `${instr.label || instr.name || instr.type || 'Unknown'} ${pinLabel}`;
-  return `${label} (${mode}) -> ${endpoint}`;
+  return `${label} -> ${endpoint}`;
 }
 
 function buildAttachedAccessoryRouteHTML(instr, pin, endpointHTML) {
   if(!instr || !hasAttachedAccessory(instr)) return endpointHTML;
   const typeLabel = getAttachedAccessoryLabel(instr.attachedAccessoryType);
-  const modeLabel = instr.attachedAccessoryStereo ? 'Stereo' : 'Mono';
   const pinId = pinKey(pin);
   const instrumentInputStereo = isPrimarySignalModeStereo(instr);
   const accessoryInputPort = instrumentInputStereo ? (pinId === 'R' ? 'I2' : 'I1') : 'I1';
@@ -11428,7 +11729,7 @@ function buildAttachedAccessoryRouteHTML(instr, pin, endpointHTML) {
   const outputCableLabel = formatInlineConnectorLabel(getCableTypeLabel(normalizeAttachedAccessoryCableType(instr.attachedAccessoryOutputCableType || instr.attachedAccessoryCableType)));
   const inputHopClass = getReportCableHopClass(inputCableLabel);
   const outputHopClass = getReportCableHopClass(outputCableLabel);
-  return `<span class="report-cable-hop report-cable-hop-${inputHopClass}">${escapeHtml(inputCableLabel)}</span> ${escapeHtml(typeLabel)} ${escapeHtml(accessoryInputPort)} -> ${escapeHtml(accessoryOutputPort)} (${modeLabel}) -> <span class="report-cable-hop report-cable-hop-${outputHopClass}">${escapeHtml(outputCableLabel)}</span> ${endpointHTML}`;
+  return `<span class="report-cable-hop report-cable-hop-${inputHopClass}">${escapeHtml(inputCableLabel)}</span> ${escapeHtml(typeLabel)} ${escapeHtml(accessoryInputPort)} -> ${escapeHtml(accessoryOutputPort)} -> <span class="report-cable-hop report-cable-hop-${outputHopClass}">${escapeHtml(outputCableLabel)}</span> ${endpointHTML}`;
 }
 
 function getReportRelevantConnections(selectedIds, hasSelection) {
@@ -11812,7 +12113,7 @@ function getReportSnapshotInstrument(instr) {
     width,
     height,
     angle: parseInt(instr.angle || 0, 10) || 0,
-    label: instr.label || instr.name || instr.type,
+    label: getVisibleInstrumentLabel(instr) || instr.name || instr.type,
     name: instr.name || instr.type,
     type: instr.type,
     cat: instr.cat,
