@@ -1218,7 +1218,7 @@ const INSTRUMENTS = [
   {type:'s16',         cat:'stageboxes', icon:'📦', name:'S16 Stagebox', wide:true,  size:96,  connSide:'bottom', isMixer:true, mixerInputs:16, mixerInputXlrOnly:16, mixerInputCombo:0, mixerInputJackOnly:0, mixerAux:8,  mixerMain:0, mixerJackOut:0, mixerP16:1, mixerAes50:2},
   {type:'di',        cat:'accessories',   icon:'📦', name:'DI',      wide:false, size:22, connSide:'bottom'},
   {type:'amp',       cat:'accessories', icon:'🔌', name:'Amp',         wide:false, size:60, connSide:'bottom'},
-  {type:'pedals',    cat:'accessories',   icon:'🎛', name:'Pedals',      wide:false, size:48, connSide:'bottom'},
+  {type:'pedals',    cat:'accessories',   icon:'🎛', name:'Pedals',      wide:false, size:22, connSide:'bottom'},
   {type:'scarlet2i2',cat:'accessories', icon:'🎛', name:'Scarlett 2i2', wide:true,  size:68, connSide:'bottom'},
   {type:'outlet',    cat:'accessories', icon:'◉', name:'Outlet',   wide:false, size:30, connSide:'bottom', connectionBoxKind:'outlet', outletConnectorType:'ethernet', outletPorts:2, outletPlacement:'wall'},
   {type:'micstand',  cat:'stands', icon:'🎙', name:'Mic Stand',         wide:false, size:54, footprintAspect:0.44, noConnect:true},
@@ -4893,17 +4893,22 @@ function speakerConnectorModeToCableTypes(mode) {
   return ['xlr'];
 }
 
+function isPedalsType(instrOrType) {
+  const type = typeof instrOrType === 'string' ? instrOrType : (instrOrType && instrOrType.type);
+  return type === 'pedals' || type === 'pedal';
+}
+
 function isCustomIOInstrument(instrOrType) {
   const type = typeof instrOrType === 'string' ? instrOrType : (instrOrType && instrOrType.type);
-  return type === 'di' || type === 'pedals' || type === 'ha8000' || type === 'ha400' || type === 'amp' || type === 'p16' || type === 'scarlet2i2' || type === 'laptop' || isSpeakerWithThru(type);
+  return type === 'di' || isPedalsType(type) || type === 'ha8000' || type === 'ha400' || type === 'amp' || type === 'p16' || type === 'scarlet2i2' || type === 'laptop' || isSpeakerWithThru(type);
 }
 
 function supportsInputModeToggle(instr) {
-  return false;
+  return !!instr && isPedalsType(instr);
 }
 
 function supportsOutputModeToggle(instr) {
-  return !!instr && instr.type === 'pedals';
+  return !!instr && isPedalsType(instr);
 }
 
 function getInstrumentInputPins(instr) {
@@ -4922,7 +4927,8 @@ function getInstrumentInputPins(instr) {
     if(isStereo) return [{ key:'IO-IN-L', label:'I.L' }, { key:'IO-IN-R', label:'I.R' }];
     return [{ key:'IO-IN-MONO', label:'IN' }];
   }
-  if(instr.type === 'pedals') {
+  if(isPedalsType(instr)) {
+    if(instr.inputStereo) return [{ key:'IO-IN-L', label:'I.L' }, { key:'IO-IN-R', label:'I.R' }];
     return [{ key:'IO-IN-MONO', label:'IN' }];
   }
   if(instr.type === 'ha8000') {
@@ -4964,7 +4970,7 @@ function getInstrumentOutputPins(instr) {
   if(isSpeakerWithThru(instr)) {
     return [{ key:'SPK-OUT', label:'OUT' }];
   }
-  if(instr.type === 'di' || instr.type === 'pedals') {
+  if(instr.type === 'di' || isPedalsType(instr)) {
     const isStereo = instr.type === 'di'
       ? !!(instr.stereo || instr.inputStereo || instr.outputStereo)
       : !!instr.outputStereo;
@@ -7284,7 +7290,12 @@ function addInstrument(data, x, y) {
   pushHistoryState();
   const id = ++idCounter;
   const size = Number(data.size) || (data.wide ? 82 : 52);
-  const diStereo = data.type === 'di' ? !!(data.stereo || data.inputStereo || data.outputStereo) : !!data.stereo;
+  const isDi = data.type === 'di';
+  const isPedals = isPedalsType(data.type);
+  const diStereo = isDi ? !!(data.stereo || data.inputStereo || data.outputStereo) : false;
+  const pedalsInputStereo = isPedals ? !!(data.inputStereo || data.stereo) : false;
+  const pedalsOutputStereo = isPedals ? !!(data.outputStereo || data.stereo) : false;
+  const ioStereo = isDi ? diStereo : (isPedals ? pedalsOutputStereo : !!data.stereo);
   const boxKind = inferConnectionBoxKind(data);
   instruments.push({
     id,
@@ -7302,9 +7313,9 @@ function addInstrument(data, x, y) {
     size,
     wide: !!data.wide,
     angle: 0,
-    stereo: diStereo,
-    inputStereo: data.type === 'di' ? diStereo : false,
-    outputStereo: data.type === 'di' ? diStereo : (data.type === 'pedals' ? !!data.outputStereo : false),
+    stereo: ioStereo,
+    inputStereo: isDi ? ioStereo : (isPedals ? pedalsInputStereo : false),
+    outputStereo: isDi ? ioStereo : (isPedals ? pedalsOutputStereo : false),
     haUseMainInputs: data.type === 'ha8000' ? !!data.haUseMainInputs : false,
     ampOutputs: data.type === 'amp' ? Math.max(1, Math.min(16, Number(data.ampOutputs) || 4)) : 0,
     spkInputMode: isSpeakerWithThru(data.type) ? normalizeSpeakerConnectorMode(data.spkInputMode, 'xlr') : '',
@@ -7864,8 +7875,9 @@ function buildMixerHTML(instr, widthPx) {
 function refreshSnakePins(id) {
   const instr = instruments.find(i=>i.id===id); if(!instr || !isConnectionBoxInstrument(instr)) return;
   const el = getEl(id); if(!el) return;
-  el.querySelectorAll('.connbox-pin').forEach(pin => {
+  el.querySelectorAll('.connbox-pin, .mixer-pin, .snake-ch-pin').forEach(pin => {
     const p = pin.dataset.pin;
+    if(!p) return;
     const used = isPinUsed(id, p);
     pin.classList.toggle('used', used);
   });
@@ -7875,7 +7887,11 @@ function refreshConnectorStates(id) {
   const instr = instruments.find(i => i.id === id);
   if(!instr) return;
   if(isConnectionBoxInstrument(instr)) {
-    refreshSnakePins(id);
+    renderInstrument(instr);
+    if(selectedId === instr.id) {
+      const el = getEl(instr.id);
+      if(el) el.classList.add('selected');
+    }
     return;
   }
   renderInstrument(instr);
@@ -8174,20 +8190,26 @@ function selectInstrument(id) {
     micWrap.style.display = (!isNonConnectable && supportsMicPickup(instr)) ? '' : 'none';
     micStandWrap.style.display = (supportsMicStandOption(instr) && instr.type !== 'drumkit') ? '' : 'none';
     document.getElementById('p-conn-type').value = instr.connectorMode || getDefaultConnectorMode(instr.type);
-    stereoWrap.style.display = (!isNonConnectable && supportsStereoToggle(instr)) ? '' : 'none';
+    const allowStereoCheckbox = !isNonConnectable && supportsStereoToggle(instr) && !isPedalsType(instr);
+    stereoWrap.style.display = allowStereoCheckbox ? '' : 'none';
     if(supportsStereoToggle(instr)) {
       const stereoVal = instr.type === 'di'
         ? !!(instr.stereo || instr.inputStereo || instr.outputStereo)
-        : !!instr.stereo;
+        : (isPedalsType(instr) ? !!(instr.stereo || instr.outputStereo) : !!instr.stereo);
       document.getElementById('p-stereo-mode').checked = stereoVal;
     }
     const showIOModeWrap = !isNonConnectable && (supportsInputModeToggle(instr) || supportsOutputModeToggle(instr));
     ioModeWrap.style.display = showIOModeWrap ? '' : 'none';
+    if(showIOModeWrap) stereoWrap.style.display = 'none';
     if(showIOModeWrap) {
       const inputSelect = document.getElementById('p-input-mode');
       const outputSelect = document.getElementById('p-output-mode');
-      inputSelect.disabled = !supportsInputModeToggle(instr);
-      outputSelect.disabled = !supportsOutputModeToggle(instr);
+      const canInputToggle = supportsInputModeToggle(instr);
+      const canOutputToggle = supportsOutputModeToggle(instr);
+      inputSelect.disabled = !canInputToggle;
+      outputSelect.disabled = !canOutputToggle;
+      if(canInputToggle) inputSelect.removeAttribute('disabled');
+      if(canOutputToggle) outputSelect.removeAttribute('disabled');
       inputSelect.value = instr.inputStereo ? 'stereo' : 'mono';
       outputSelect.value = instr.outputStereo ? 'stereo' : 'mono';
     }
@@ -8420,15 +8442,18 @@ function updConnSide(value) {
 function updStereoMode(value) {
   if(!selectedId) return;
   const instr = instruments.find(i => i.id === selectedId); if(!instr || !supportsStereoToggle(instr)) return;
+  if(isPedalsType(instr)) return;
   const next = value === true || value === 'stereo';
   const current = instr.type === 'di'
     ? !!(instr.stereo || instr.inputStereo || instr.outputStereo)
-    : !!instr.stereo;
+    : (isPedalsType(instr) ? !!(instr.stereo || instr.outputStereo) : !!instr.stereo);
   if(current === next) return;
   pushHistoryState();
   instr.stereo = next;
   if(instr.type === 'di') {
     instr.inputStereo = next;
+    instr.outputStereo = next;
+  } else if(isPedalsType(instr)) {
     instr.outputStereo = next;
   }
   instr.micStandCount = clampMicStandCountForInstrument(instr, instr.micStandCount);
@@ -8448,6 +8473,7 @@ function updInputMode(value) {
   if(!!instr.inputStereo === next) return;
   pushHistoryState();
   instr.inputStereo = next;
+  if(isPedalsType(instr)) instr.stereo = !!instr.outputStereo;
   pruneInvalidInstrumentPins(instr);
   markDirty();
   renderInstrument(instr);
@@ -8463,6 +8489,7 @@ function updOutputMode(value) {
   if(!!instr.outputStereo === next) return;
   pushHistoryState();
   instr.outputStereo = next;
+  if(isPedalsType(instr)) instr.stereo = !!instr.outputStereo;
   pruneInvalidInstrumentPins(instr);
   markDirty();
   renderInstrument(instr);
@@ -10459,7 +10486,11 @@ function loadRiderFromData(data) {
 
   newInstruments.forEach(raw => {
     const isDi = raw.type === 'di';
-    const diStereo = isDi ? !!(raw.stereo || raw.inputStereo || raw.outputStereo) : !!raw.stereo;
+    const isPedals = isPedalsType(raw.type);
+    const diStereo = isDi ? !!(raw.stereo || raw.inputStereo || raw.outputStereo) : false;
+    const pedalsInputStereo = isPedals ? !!(raw.inputStereo || raw.stereo) : false;
+    const pedalsOutputStereo = isPedals ? !!(raw.outputStereo || raw.stereo) : false;
+    const ioStereo = isDi ? diStereo : (isPedals ? pedalsOutputStereo : !!raw.stereo);
     const instr = {
       id: parseInt(raw.id, 10) || ++idCounter,
       type: raw.type || 'custom',
@@ -10476,9 +10507,9 @@ function loadRiderFromData(data) {
       size: parseInt(raw.size, 10) || 52,
       wide: !!raw.wide,
       angle: parseInt(raw.angle, 10) || 0,
-      stereo: diStereo,
-      inputStereo: isDi ? diStereo : !!raw.inputStereo,
-      outputStereo: isDi ? diStereo : !!raw.outputStereo,
+      stereo: ioStereo,
+      inputStereo: isDi ? ioStereo : (isPedals ? pedalsInputStereo : !!raw.inputStereo),
+      outputStereo: isDi ? ioStereo : (isPedals ? pedalsOutputStereo : !!raw.outputStereo),
       haUseMainInputs: !!raw.haUseMainInputs,
       ampOutputs: raw.type === 'amp' ? Math.max(1, Math.min(16, Number(raw.ampOutputs) || 4)) : 0,
       spkInputMode: isSpeakerWithThru(raw.type) ? normalizeSpeakerConnectorMode(raw.spkInputMode, 'xlr') : '',
