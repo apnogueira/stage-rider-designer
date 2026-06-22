@@ -254,9 +254,9 @@ canvas#conn-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer
 body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.92);box-shadow:0 0 2px rgba(194,88,22,.24);}
 .icon-emoji{display:inline-block;line-height:1;}
 .icon-img{width:82%;height:82%;object-fit:contain;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3));pointer-events:none;user-select:none;-webkit-user-drag:none;}
-.mic-stand-badge{position:absolute;left:-12px;top:-2px;display:flex;align-items:center;gap:0;padding:0;background:transparent;border:none;border-radius:0;z-index:9;pointer-events:none;}
-.mic-stand-badge img{width:42px;height:42px;object-fit:contain;filter:none;}
-.mic-stand-badge .count{margin-left:-6px;font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1;color:#132033;font-weight:700;text-shadow:0 0 2px rgba(255,255,255,.88);}
+.mic-stand-badge{position:absolute;left:-12px;top:-2px;display:flex;align-items:center;gap:0;padding:0;background:transparent;border:none;border-radius:0;z-index:9;pointer-events:none;--mic-stand-icon-size:42px;--mic-stand-multiplier-unit:1.6;}
+.mic-stand-badge img{width:var(--mic-stand-icon-size);height:var(--mic-stand-icon-size);object-fit:contain;filter:none;}
+.mic-stand-badge .count{margin-left:calc((var(--mic-stand-multiplier-unit) / 3 - 1) * var(--mic-stand-icon-size));font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1;color:#132033;font-weight:700;text-shadow:0 0 2px rgba(255,255,255,.88);}
 .accessory-badge{position:absolute;right:-10px;top:-2px;display:flex;align-items:center;justify-content:center;z-index:9;pointer-events:none;}
 .accessory-badge img{width:26px;height:26px;object-fit:contain;filter:none;}
 .accessory-badge .acc-emoji{display:flex;align-items:center;justify-content:center;width:20px;height:20px;font-size:14px;line-height:1;background:rgba(7,13,25,.74);border:1px solid rgba(255,255,255,.28);border-radius:999px;}
@@ -371,6 +371,11 @@ body:not(.stage-builder-mode) .stage-part .part-label{opacity:.48;background:rgb
 .pst{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:7px;}
 .pr{display:flex;flex-direction:column;gap:2px;margin-bottom:7px;}
 .plbl{font-size:10px;color:var(--muted);}
+.pr.instrument-linked{border-radius:6px;background:rgba(71,196,255,.08);box-shadow:inset 0 0 0 1px rgba(71,196,255,.25);}
+.pr.instrument-linked>.plbl{color:var(--accent2);font-weight:700;}
+.pr.instrument-linked .pselect{border-color:rgba(71,196,255,.45);}
+.pr.instrument-linked .mode-row .plbl{color:var(--accent2);font-weight:700;}
+body[data-theme='light'] .pr.instrument-linked{background:rgba(15,114,168,.06);box-shadow:inset 0 0 0 1px rgba(15,114,168,.22);}
 .pi{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:4px 6px;color:var(--text);font-size:11px;font-family:'Barlow',sans-serif;width:100%;outline:none;}
 .pi:focus{border-color:var(--accent);}
 .pselect{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:4px 6px;color:var(--text);font-size:11px;font-family:'Barlow',sans-serif;width:100%;outline:none;}
@@ -5017,7 +5022,9 @@ function getValidPinsForInstrument(instr) {
   if(isCustomIOInstrument(instr)) {
     return new Set([...getInstrumentInputPins(instr), ...getInstrumentOutputPins(instr)].map(p => p.key));
   }
-  if(instr.stereo || shouldUseAccessoryStereoPins(instr)) return new Set(['L', 'R']);
+  const useAccessoryOutputs = hasAttachedAccessory(instr);
+  const showStereo = useAccessoryOutputs ? !!instr.attachedAccessoryStereo : !!instr.stereo;
+  if(showStereo) return new Set(['L', 'R']);
   return new Set(['MONO']);
 }
 
@@ -5155,9 +5162,9 @@ function normalizeAttachedAccessoryCableType(value) {
 
 function getDefaultAttachedAccessoryCableType(type) {
   const key = normalizeAttachedAccessoryType(type);
-  if(key === 'pedals') return 'ts';
-  if(key === 'amp') return 'ts';
-  if(key === 'di') return 'ts';
+  if(key === 'pedals') return 'xlr';
+  if(key === 'amp') return 'xlr';
+  if(key === 'di') return 'xlr';
   return 'xlr';
 }
 
@@ -5171,6 +5178,28 @@ function isPrimarySignalModeStereo(instr) {
   return !!instr.stereo;
 }
 
+function isDiAccessoryLinked(instr) {
+  return !!(instr && normalizeAttachedAccessoryType(instr.attachedAccessoryType) === 'di');
+}
+
+function setInstrumentPrimarySignalModeStereo(instr, enabled) {
+  if(!instr) return;
+  const next = !!enabled;
+  if(supportsInputModeToggle(instr)) instr.inputStereo = next;
+  if(supportsOutputModeToggle(instr)) instr.outputStereo = next;
+  if(supportsStereoToggle(instr) && !isPedalsType(instr)) instr.stereo = next;
+  if(instr.type === 'di') {
+    instr.stereo = next;
+    instr.inputStereo = next;
+    instr.outputStereo = next;
+  }
+}
+
+function syncDiAccessoryStereoFromInstrument(instr) {
+  if(!isDiAccessoryLinked(instr)) return;
+  instr.attachedAccessoryStereo = isPrimarySignalModeStereo(instr);
+}
+
 function shouldUseAccessoryStereoPins(instr) {
   if(!instr || !hasAttachedAccessory(instr) || !instr.attachedAccessoryStereo) return false;
   if(isConnectionBoxInstrument(instr) || isNonConnectableInstrument(instr)) return false;
@@ -5179,21 +5208,44 @@ function shouldUseAccessoryStereoPins(instr) {
   return true;
 }
 
+function syncInstrumentSignalLabels(instr) {
+  const hasAccessory = !!(instr && hasAttachedAccessory(instr));
+  ['conn-type-wrap', 'stereo-wrap', 'io-mode-wrap'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.classList.toggle('instrument-linked', hasAccessory);
+  });
+  const connTypeLabel = document.querySelector('#conn-type-wrap > .plbl');
+  if(connTypeLabel) connTypeLabel.textContent = hasAccessory ? 'Instrument Connection Type' : 'Connection Type';
+  const stereoLabel = document.querySelector('#stereo-wrap > .plbl');
+  if(stereoLabel) stereoLabel.textContent = hasAccessory ? 'Instrument Signal Mode' : 'Signal Mode';
+  const ioLabel = document.querySelector('#io-mode-wrap > .plbl');
+  if(ioLabel) ioLabel.textContent = hasAccessory ? 'Instrument I/O Layout' : 'I/O Layout';
+  const ioModeLabels = document.querySelectorAll('#io-mode-wrap .mode-row .plbl');
+  if(ioModeLabels && ioModeLabels.length >= 2) {
+    ioModeLabels[0].textContent = hasAccessory ? 'Instrument Input' : 'Input';
+    ioModeLabels[1].textContent = hasAccessory ? 'Instrument Output' : 'Output';
+  }
+}
+
 function syncSignalModeConflictUI(instr) {
-  const hasAccessoryStereo = !!(instr && hasAttachedAccessory(instr) && instr.attachedAccessoryStereo);
+  syncInstrumentSignalLabels(instr);
   const stereoToggle = document.getElementById('p-stereo-mode');
-  if(stereoToggle) stereoToggle.disabled = hasAccessoryStereo;
+  if(stereoToggle) stereoToggle.disabled = false;
   const inputSelect = document.getElementById('p-input-mode');
-  if(inputSelect) inputSelect.disabled = hasAccessoryStereo || !supportsInputModeToggle(instr);
+  if(inputSelect) inputSelect.disabled = !supportsInputModeToggle(instr);
   const outputSelect = document.getElementById('p-output-mode');
-  if(outputSelect) outputSelect.disabled = hasAccessoryStereo || !supportsOutputModeToggle(instr);
+  if(outputSelect) outputSelect.disabled = !supportsOutputModeToggle(instr);
 }
 
 function normalizeAttachedAccessoryForInstrument(instr) {
   if(!instr) return;
   instr.attachedAccessoryType = normalizeAttachedAccessoryType(instr.attachedAccessoryType);
   const cableFallback = getDefaultAttachedAccessoryCableType(instr.attachedAccessoryType);
-  instr.attachedAccessoryCableType = normalizeAttachedAccessoryCableType(instr.attachedAccessoryCableType || cableFallback);
+  const legacyCable = normalizeAttachedAccessoryCableType(instr.attachedAccessoryCableType || cableFallback);
+  instr.attachedAccessoryInputCableType = normalizeAttachedAccessoryCableType(instr.attachedAccessoryInputCableType || legacyCable);
+  instr.attachedAccessoryOutputCableType = normalizeAttachedAccessoryCableType(instr.attachedAccessoryOutputCableType || legacyCable);
+  // Keep legacy field in sync for backward compatibility with older saved riders.
+  instr.attachedAccessoryCableType = instr.attachedAccessoryInputCableType;
   instr.attachedAccessoryStereo = !!instr.attachedAccessoryStereo;
   if(instr.attachedAccessoryType === 'none') instr.attachedAccessoryStereo = false;
 }
@@ -5233,13 +5285,12 @@ function isStandType(instrOrType) {
 function isNonConnectableInstrument(instrOrType) {
   const instr = (instrOrType && typeof instrOrType === 'object') ? instrOrType : getInstrumentDefinitionByType(instrOrType);
   if(!instr) return false;
-  return !!instr.noConnect || isStandType(instr);
+  return !!instr.noConnect;
 }
 
 function supportsMicStandOption(instrOrType) {
   if(!instrOrType) return false;
   const instr = (typeof instrOrType === 'string') ? getInstrumentDefinitionByType(instrOrType) : instrOrType;
-  if(!instr) return false;
   if(isConnectionBoxInstrument(instr) || isStandType(instr) || isNonConnectableInstrument(instr)) return false;
   return true;
 }
@@ -5254,7 +5305,7 @@ function normalizeDrumMicStandAssignments(raw) {
 }
 
 function getDrumMicStandUnitCount(label) {
-  return label === 'Overheads Stereo' ? 2 : 1;
+  return String(label || '').toLowerCase() === 'overheads stereo' ? 2 : 1;
 }
 
 function getMicStandMaxForInstrument(instr) {
@@ -5263,7 +5314,6 @@ function getMicStandMaxForInstrument(instr) {
     const mics = Array.isArray(instr.drumMics) ? instr.drumMics : [];
     return mics.reduce((sum, m) => sum + getDrumMicStandUnitCount(m), 0);
   }
-  if(instr.type === 'vox' || instr.type === 'bgvox' || instr.type === 'talkback') return 1;
   const stereoLike = !!(instr.stereo || instr.inputStereo || instr.outputStereo);
   return stereoLike ? 2 : 1;
 }
@@ -5592,7 +5642,13 @@ function getPinAllowedCableTypes(instr, pin) {
   if(instr.type === 'keys' && (p === 'MONO' || p === 'L' || p === 'R')) return ['xlr', 'ts'];
 
   if(p.startsWith('DM-')) return ['xlr'];
-  if(p === 'L' || p === 'R' || p === 'MONO') return connectorModeToCableTypes(instr.connectorMode || getDefaultConnectorMode(instr.type));
+  if(p === 'L' || p === 'R' || p === 'MONO') {
+    if(hasAttachedAccessory(instr)) {
+      const accessoryOutType = normalizeAttachedAccessoryCableType(instr.attachedAccessoryOutputCableType || instr.attachedAccessoryCableType);
+      return [accessoryOutType];
+    }
+    return connectorModeToCableTypes(instr.connectorMode || getDefaultConnectorMode(instr.type));
+  }
   return ['xlr', 'ts', 'trs', 'usb'];
 }
 
@@ -5708,6 +5764,8 @@ function cloneInstruments(list) {
       : i.drumMicStandAssignments,
     attachedAccessoryType: normalizeAttachedAccessoryType(i && i.attachedAccessoryType),
     attachedAccessoryCableType: normalizeAttachedAccessoryCableType(i && i.attachedAccessoryCableType),
+    attachedAccessoryInputCableType: normalizeAttachedAccessoryCableType(i && i.attachedAccessoryInputCableType),
+    attachedAccessoryOutputCableType: normalizeAttachedAccessoryCableType(i && i.attachedAccessoryOutputCableType),
     attachedAccessoryStereo: !!(i && i.attachedAccessoryStereo),
   }));
 }
@@ -5876,7 +5934,7 @@ function serializeLayout() {
     showStageGrid: !!showStageGrid,
     isStageBuilderMode: !!isStageBuilderMode,
     stage:{widthM:stageW, depthM:stageD, showStairs:showStageStairs, suppressBuiltInStairsPart:!!suppressBuiltInStairsPart, themeMode, color:stageColor},
-    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,connSide,connectionBoxKind,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,outletConnectorType,outletPorts,outletViewMode,outletPortModes,outletPortNames,outletPlacement,isSnake,snakeViewMode,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,drumMicStandAssignments,micStandCount,attachedAccessoryType,attachedAccessoryCableType,attachedAccessoryStereo,collapsed,noConnect})=>({
+    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,connSide,connectionBoxKind,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,outletConnectorType,outletPorts,outletViewMode,outletPortModes,outletPortNames,outletPlacement,isSnake,snakeViewMode,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,drumMicStandAssignments,micStandCount,attachedAccessoryType,attachedAccessoryCableType,attachedAccessoryInputCableType,attachedAccessoryOutputCableType,attachedAccessoryStereo,collapsed,noConnect})=>({
       id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,
       haUseMainInputs:!!haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,
       micModels:Object.values(pinMicAssignments||{}),micModel:Object.values(pinMicAssignments||{})[0]||'',
@@ -5887,6 +5945,8 @@ function serializeLayout() {
       drumMics,drumMicStandAssignments,micStandCount,
       attachedAccessoryType: normalizeAttachedAccessoryType(attachedAccessoryType),
       attachedAccessoryCableType: normalizeAttachedAccessoryCableType(attachedAccessoryCableType),
+      attachedAccessoryInputCableType: normalizeAttachedAccessoryCableType(attachedAccessoryInputCableType || attachedAccessoryCableType),
+      attachedAccessoryOutputCableType: normalizeAttachedAccessoryCableType(attachedAccessoryOutputCableType || attachedAccessoryCableType),
       attachedAccessoryStereo: !!attachedAccessoryStereo,
       noConnect:!!noConnect,collapsed:!!collapsed
     })),
@@ -7463,6 +7523,8 @@ function addInstrument(data, x, y) {
     drumMicStandAssignments: normalizeDrumMicStandAssignments(data.drumMicStandAssignments),
     attachedAccessoryType: normalizeAttachedAccessoryType(data.attachedAccessoryType),
     attachedAccessoryCableType: normalizeAttachedAccessoryCableType(data.attachedAccessoryCableType),
+    attachedAccessoryInputCableType: normalizeAttachedAccessoryCableType(data.attachedAccessoryInputCableType || data.attachedAccessoryCableType),
+    attachedAccessoryOutputCableType: normalizeAttachedAccessoryCableType(data.attachedAccessoryOutputCableType || data.attachedAccessoryCableType),
     attachedAccessoryStereo: !!data.attachedAccessoryStereo,
     noConnect: !!data.noConnect || isStandType(data.type),
     connSide: data.connSide || 'bottom',
@@ -7606,7 +7668,8 @@ function renderInstrument(instr) {
     const isNonConnectable = isNonConnectableInstrument(instr);
     const isDrumKit = instr.type === 'drumkit';
     const hasCustomIO = isCustomIOInstrument(instr);
-    const isStereo = !!instr.stereo || shouldUseAccessoryStereoPins(instr);
+    const useAccessoryOutputs = hasAttachedAccessory(instr);
+    const isStereo = useAccessoryOutputs ? !!instr.attachedAccessoryStereo : !!instr.stereo;
     const side = instr.connSide || 'bottom';
     const renderP16SidePins = !isNonConnectable && instr.type === 'p16';
     const drumPins = isDrumKit ? getDrumMicPins(instr) : [];
@@ -8343,7 +8406,7 @@ function selectInstrument(id) {
     const isNonConnectable = isNonConnectableInstrument(instr);
     const hideConnTypeSelector = isCustomIOInstrument(instr) || instr.type === 'p16' || isNonConnectable;
     connTypeWrap.style.display = hideConnTypeSelector ? 'none' : '';
-    micWrap.style.display = (!isNonConnectable && supportsMicPickup(instr)) ? '' : 'none';
+    micWrap.style.display = (!isNonConnectable && supportsMicPickup(instr) && !hasAttachedAccessory(instr)) ? '' : 'none';
     micStandWrap.style.display = (supportsMicStandOption(instr) && instr.type !== 'drumkit') ? '' : 'none';
     accessoryWrap.style.display = '';
     document.getElementById('p-conn-type').value = instr.connectorMode || getDefaultConnectorMode(instr.type);
@@ -8603,7 +8666,6 @@ function updStereoMode(value) {
   const instr = instruments.find(i => i.id === selectedId); if(!instr || !supportsStereoToggle(instr)) return;
   if(isPedalsType(instr)) return;
   const next = value === true || value === 'stereo';
-  if(next && hasAttachedAccessory(instr) && !!instr.attachedAccessoryStereo) return;
   const current = instr.type === 'di'
     ? !!(instr.stereo || instr.inputStereo || instr.outputStereo)
     : (isPedalsType(instr) ? !!(instr.stereo || instr.outputStereo) : !!instr.stereo);
@@ -8616,6 +8678,7 @@ function updStereoMode(value) {
   } else if(isPedalsType(instr)) {
     instr.outputStereo = next;
   }
+  syncDiAccessoryStereoFromInstrument(instr);
   instr.micStandCount = clampMicStandCountForInstrument(instr, instr.micStandCount);
   pruneInvalidInstrumentPins(instr);
   markDirty();
@@ -8630,11 +8693,11 @@ function updInputMode(value) {
   if(!selectedId) return;
   const instr = instruments.find(i => i.id === selectedId); if(!instr || !supportsInputModeToggle(instr)) return;
   const next = value === 'stereo';
-  if(next && hasAttachedAccessory(instr) && !!instr.attachedAccessoryStereo) return;
   if(!!instr.inputStereo === next) return;
   pushHistoryState();
   instr.inputStereo = next;
   if(isPedalsType(instr)) instr.stereo = !!instr.outputStereo;
+  syncDiAccessoryStereoFromInstrument(instr);
   pruneInvalidInstrumentPins(instr);
   markDirty();
   renderInstrument(instr);
@@ -8647,11 +8710,11 @@ function updOutputMode(value) {
   if(!selectedId) return;
   const instr = instruments.find(i => i.id === selectedId); if(!instr || !supportsOutputModeToggle(instr)) return;
   const next = value === 'stereo';
-  if(next && hasAttachedAccessory(instr) && !!instr.attachedAccessoryStereo) return;
   if(!!instr.outputStereo === next) return;
   pushHistoryState();
   instr.outputStereo = next;
   if(isPedalsType(instr)) instr.stereo = !!instr.outputStereo;
+  syncDiAccessoryStereoFromInstrument(instr);
   pruneInvalidInstrumentPins(instr);
   markDirty();
   renderInstrument(instr);
@@ -9060,7 +9123,6 @@ function renderAttachedAccessoryUI(instr) {
   }
   normalizeAttachedAccessoryForInstrument(instr);
   const selectedType = normalizeAttachedAccessoryType(instr.attachedAccessoryType);
-  const primaryStereoActive = isPrimarySignalModeStereo(instr);
   const options = [
     { value: 'none', label: 'None' },
     { value: 'amp', label: 'Amp' },
@@ -9068,8 +9130,7 @@ function renderAttachedAccessoryUI(instr) {
     { value: 'pedals', label: 'Pedals' },
   ].map(opt => `<option value="${opt.value}"${opt.value === selectedType ? ' selected' : ''}>${opt.label}</option>`).join('');
 
-  const cableOptions = CABLE_TYPES.map(type => `<option value="${type.id}"${type.id === normalizeAttachedAccessoryCableType(instr.attachedAccessoryCableType) ? ' selected' : ''}>${type.label}</option>`).join('');
-  const modeLabel = instr.attachedAccessoryStereo ? 'Stereo' : 'Mono';
+  const outputCableOptions = CABLE_TYPES.map(type => `<option value="${type.id}"${type.id === normalizeAttachedAccessoryCableType(instr.attachedAccessoryOutputCableType || instr.attachedAccessoryCableType) ? ' selected' : ''}>${type.label}</option>`).join('');
 
   controls.innerHTML = `
     <div class="stand-row">
@@ -9078,12 +9139,12 @@ function renderAttachedAccessoryUI(instr) {
     </div>
     ${selectedType !== 'none' ? `
       <div class="stand-row">
-        <span class="stand-label">Cable to accessory</span>
-        <select onchange="updAttachedAccessoryCableType(this.value)">${cableOptions}</select>
+        <span class="stand-label">Accessory output type</span>
+        <select onchange="updAttachedAccessoryOutputCableType(this.value)">${outputCableOptions}</select>
       </div>
       <label class="stand-row">
-        <span class="stand-label">Signal mode (${modeLabel})</span>
-        <input type="checkbox" ${instr.attachedAccessoryStereo ? 'checked' : ''} ${primaryStereoActive ? 'disabled' : ''} onchange="updAttachedAccessoryStereo(this.checked)">
+        <span class="stand-label">Output signal mode (Stereo)</span>
+        <input type="checkbox" ${instr.attachedAccessoryStereo ? 'checked' : ''} onchange="updAttachedAccessoryStereo(this.checked)">
       </label>
     ` : ''}
   `;
@@ -9099,8 +9160,19 @@ function updAttachedAccessoryType(value) {
   pushHistoryState();
   instr.attachedAccessoryType = next;
   if(next === 'none') instr.attachedAccessoryStereo = false;
-  else instr.attachedAccessoryCableType = getDefaultAttachedAccessoryCableType(next);
+  else {
+    const defaultCable = getDefaultAttachedAccessoryCableType(next);
+    instr.attachedAccessoryCableType = defaultCable;
+    instr.attachedAccessoryInputCableType = defaultCable;
+    instr.attachedAccessoryOutputCableType = defaultCable;
+    if(next === 'di') instr.attachedAccessoryStereo = isPrimarySignalModeStereo(instr);
+  }
   normalizeAttachedAccessoryForInstrument(instr);
+  const micWrap = document.getElementById('mic-wrap');
+  if(micWrap) {
+    const showMicPickup = !isConnectionBoxInstrument(instr) && !isNonConnectableInstrument(instr) && supportsMicPickup(instr) && !hasAttachedAccessory(instr);
+    micWrap.style.display = showMicPickup ? '' : 'none';
+  }
   markDirty();
   renderInstrument(instr);
   renderAttachedAccessoryUI(instr);
@@ -9113,9 +9185,47 @@ function updAttachedAccessoryCableType(value) {
   const instr = instruments.find(i => i.id === selectedId); if(!instr) return;
   if(normalizeAttachedAccessoryType(instr.attachedAccessoryType) === 'none') return;
   const next = normalizeAttachedAccessoryCableType(value);
-  if(normalizeAttachedAccessoryCableType(instr.attachedAccessoryCableType) === next) return;
+  const currentIn = normalizeAttachedAccessoryCableType(instr.attachedAccessoryInputCableType || instr.attachedAccessoryCableType);
+  const currentOut = normalizeAttachedAccessoryCableType(instr.attachedAccessoryOutputCableType || instr.attachedAccessoryCableType);
+  if(currentIn === next && currentOut === next) return;
   pushHistoryState();
   instr.attachedAccessoryCableType = next;
+  instr.attachedAccessoryInputCableType = next;
+  instr.attachedAccessoryOutputCableType = next;
+  normalizeAttachedAccessoryForInstrument(instr);
+  markDirty();
+  renderInstrument(instr);
+  renderAttachedAccessoryUI(instr);
+  updateClasses();
+  render();
+}
+
+function updAttachedAccessoryInputCableType(value) {
+  if(!selectedId) return;
+  const instr = instruments.find(i => i.id === selectedId); if(!instr) return;
+  if(normalizeAttachedAccessoryType(instr.attachedAccessoryType) === 'none') return;
+  const next = normalizeAttachedAccessoryCableType(value);
+  const prev = normalizeAttachedAccessoryCableType(instr.attachedAccessoryInputCableType || instr.attachedAccessoryCableType);
+  if(prev === next) return;
+  pushHistoryState();
+  instr.attachedAccessoryInputCableType = next;
+  normalizeAttachedAccessoryForInstrument(instr);
+  markDirty();
+  renderInstrument(instr);
+  renderAttachedAccessoryUI(instr);
+  updateClasses();
+  render();
+}
+
+function updAttachedAccessoryOutputCableType(value) {
+  if(!selectedId) return;
+  const instr = instruments.find(i => i.id === selectedId); if(!instr) return;
+  if(normalizeAttachedAccessoryType(instr.attachedAccessoryType) === 'none') return;
+  const next = normalizeAttachedAccessoryCableType(value);
+  const prev = normalizeAttachedAccessoryCableType(instr.attachedAccessoryOutputCableType || instr.attachedAccessoryCableType);
+  if(prev === next) return;
+  pushHistoryState();
+  instr.attachedAccessoryOutputCableType = next;
   normalizeAttachedAccessoryForInstrument(instr);
   markDirty();
   renderInstrument(instr);
@@ -9128,15 +9238,17 @@ function updAttachedAccessoryStereo(enabled) {
   if(!selectedId) return;
   const instr = instruments.find(i => i.id === selectedId); if(!instr) return;
   if(normalizeAttachedAccessoryType(instr.attachedAccessoryType) === 'none') return;
-  if(!!enabled && isPrimarySignalModeStereo(instr)) return;
   const next = !!enabled;
   if(!!instr.attachedAccessoryStereo === next) return;
   pushHistoryState();
   instr.attachedAccessoryStereo = next;
+  if(isDiAccessoryLinked(instr)) setInstrumentPrimarySignalModeStereo(instr, next);
   normalizeAttachedAccessoryForInstrument(instr);
+  if(isDiAccessoryLinked(instr)) syncDiAccessoryStereoFromInstrument(instr);
+  pruneInvalidInstrumentPins(instr);
   markDirty();
   renderInstrument(instr);
-  renderAttachedAccessoryUI(instr);
+  selectInstrument(instr.id);
   updateClasses();
   render();
 }
@@ -9818,13 +9930,18 @@ function autoRouteStereoSuggestion() {
   }
 
   const stereoSources = instruments
-    .filter(i => !i.isSnake && i.stereo)
+    .filter(i => {
+      if(!i || i.isSnake || isConnectionBoxInstrument(i) || isNonConnectableInstrument(i)) return false;
+      const hasAccessoryStereoOut = hasAttachedAccessory(i) && !!i.attachedAccessoryStereo;
+      return !!i.stereo || hasAccessoryStereoOut;
+    })
     .sort((a,b) => a.id - b.id);
 
   const plan = [];
   const reserved = new Set();
   for(const src of stereoSources) {
-    ['L','R'].forEach(pin => {
+    const sourcePins = ['L', 'R'];
+    sourcePins.forEach(pin => {
       if(isPinUsed(src.id, pin)) return;
       const next = freeInputs.find(f => !reserved.has(`${f.snakeId}:${f.pin}`));
       if(!next) return;
@@ -10775,6 +10892,8 @@ function loadRiderFromData(data) {
       drumMicStandAssignments: normalizeDrumMicStandAssignments(raw.drumMicStandAssignments),
       attachedAccessoryType: normalizeAttachedAccessoryType(raw.attachedAccessoryType),
       attachedAccessoryCableType: normalizeAttachedAccessoryCableType(raw.attachedAccessoryCableType),
+      attachedAccessoryInputCableType: normalizeAttachedAccessoryCableType(raw.attachedAccessoryInputCableType || raw.attachedAccessoryCableType),
+      attachedAccessoryOutputCableType: normalizeAttachedAccessoryCableType(raw.attachedAccessoryOutputCableType || raw.attachedAccessoryCableType),
       attachedAccessoryStereo: !!raw.attachedAccessoryStereo,
       noConnect: !!raw.noConnect || isStandType(raw.type),
       connSide: raw.connSide || 'bottom',
@@ -11300,9 +11419,16 @@ function buildAttachedAccessoryRouteHTML(instr, pin, endpointHTML) {
   if(!instr || !hasAttachedAccessory(instr)) return endpointHTML;
   const typeLabel = getAttachedAccessoryLabel(instr.attachedAccessoryType);
   const modeLabel = instr.attachedAccessoryStereo ? 'Stereo' : 'Mono';
-  const cableLabel = formatInlineConnectorLabel(getCableTypeLabel(normalizeAttachedAccessoryCableType(instr.attachedAccessoryCableType)));
-  const hopClass = getReportCableHopClass(cableLabel);
-  return `<span class="report-cable-hop report-cable-hop-${hopClass}">${escapeHtml(cableLabel)}</span> ${escapeHtml(typeLabel)} (${modeLabel}) -> ${endpointHTML}`;
+  const pinId = pinKey(pin);
+  const instrumentInputStereo = isPrimarySignalModeStereo(instr);
+  const accessoryInputPort = instrumentInputStereo ? (pinId === 'R' ? 'I2' : 'I1') : 'I1';
+  const accessoryOutputPort = instr.attachedAccessoryStereo ? (pinId === 'R' ? 'O2' : 'O1') : 'O1';
+  const instrumentInputType = normalizeCableType((instr && instr.connectorMode) === 'jack' ? 'ts' : 'xlr');
+  const inputCableLabel = formatInlineConnectorLabel(getCableTypeLabel(instrumentInputType));
+  const outputCableLabel = formatInlineConnectorLabel(getCableTypeLabel(normalizeAttachedAccessoryCableType(instr.attachedAccessoryOutputCableType || instr.attachedAccessoryCableType)));
+  const inputHopClass = getReportCableHopClass(inputCableLabel);
+  const outputHopClass = getReportCableHopClass(outputCableLabel);
+  return `<span class="report-cable-hop report-cable-hop-${inputHopClass}">${escapeHtml(inputCableLabel)}</span> ${escapeHtml(typeLabel)} ${escapeHtml(accessoryInputPort)} -> ${escapeHtml(accessoryOutputPort)} (${modeLabel}) -> <span class="report-cable-hop report-cable-hop-${outputHopClass}">${escapeHtml(outputCableLabel)}</span> ${endpointHTML}`;
 }
 
 function getReportRelevantConnections(selectedIds, hasSelection) {
@@ -11677,6 +11803,8 @@ function getReportSnapshotInstrument(instr) {
   const height = (liveBody && liveBody.offsetHeight > 0)
     ? (liveBody.offsetHeight / Math.max(zoomLevel, 0.001))
     : fallback.height;
+  const attachedAccessory = getAttachedAccessoryIcon(instr);
+  const micStandCount = getMicStandCount(instr);
   return {
     id: instr.id,
     worldX: instr.x,
@@ -11690,6 +11818,11 @@ function getReportSnapshotInstrument(instr) {
     cat: instr.cat,
     image: getEffectiveInstrumentImage(instr) || '',
     icon: instr.icon || '•',
+    micStandCount,
+    micStandImage: micStandCount > 0 ? MIC_STAND_IMAGE_PATH : '',
+    hasAccessory: !!attachedAccessory,
+    accessoryImage: attachedAccessory && attachedAccessory.image ? attachedAccessory.image : '',
+    accessoryEmoji: attachedAccessory && !attachedAccessory.image ? attachedAccessory.emoji : '',
     isStand: isStandType(instr),
     isSnake: !!isSnakeBox(instr),
     isMixer: !!isMixerBox(instr),
@@ -12703,11 +12836,64 @@ function computeFittedSceneTransform(data, canvasWidth, canvasHeight) {
 }
 
 function loadReportImagesForData(win, data) {
-  return Promise.all((data.items || []).filter(item => item.image).map(item => new Promise(resolve => {
-    const img = new win.Image();
-    img.onload = () => resolve({ item, img });
-    img.onerror = () => resolve({ item, img: null });
-    img.src = item.image;
+  return Promise.all((data.items || []).map(item => new Promise(resolve => {
+    const hasPrimary = !!item.image;
+    const hasAccessory = !!item.accessoryImage;
+    const hasMicStand = !!item.micStandImage;
+    let primaryLoaded = !hasPrimary;
+    let accessoryLoaded = !hasAccessory;
+    let micStandLoaded = !hasMicStand;
+    let primaryImg = null;
+    let accessoryImg = null;
+    let micStandImg = null;
+
+    const done = () => {
+      if(primaryLoaded && accessoryLoaded && micStandLoaded) resolve({ item, img: primaryImg, accessoryImg, micStandImg });
+    };
+
+    if(hasPrimary) {
+      const img = new win.Image();
+      img.onload = () => {
+        primaryImg = img;
+        primaryLoaded = true;
+        done();
+      };
+      img.onerror = () => {
+        primaryLoaded = true;
+        done();
+      };
+      img.src = item.image;
+    }
+
+    if(hasAccessory) {
+      const accImg = new win.Image();
+      accImg.onload = () => {
+        accessoryImg = accImg;
+        accessoryLoaded = true;
+        done();
+      };
+      accImg.onerror = () => {
+        accessoryLoaded = true;
+        done();
+      };
+      accImg.src = item.accessoryImage;
+    }
+
+    if(hasMicStand) {
+      const standImg = new win.Image();
+      standImg.onload = () => {
+        micStandImg = standImg;
+        micStandLoaded = true;
+        done();
+      };
+      standImg.onerror = () => {
+        micStandLoaded = true;
+        done();
+      };
+      standImg.src = item.micStandImage;
+    }
+
+    done();
   })));
 }
 
@@ -12972,6 +13158,8 @@ async function renderSceneDiffCanvasToContext(win, ctx, prevState, nextState, di
   const images = await loadReportImagesForData(win, nextData);
   const prevImages = await loadReportImagesForData(win, prevData);
   const byKey = new Map(images.map(entry => [entry.item.id, entry.img]));
+  const byAccessoryKey = new Map(images.filter(entry => entry && entry.accessoryImg).map(entry => [entry.item.id, entry.accessoryImg]));
+  const byMicStandKey = new Map(images.filter(entry => entry && entry.micStandImg).map(entry => [entry.item.id, entry.micStandImg]));
   const prevByKey = new Map(prevImages.map(entry => [entry.item.id, entry.img]));
 
   const fit = computeFittedSceneTransform(nextData, canvasWidth, canvasHeight);
@@ -12989,7 +13177,7 @@ async function renderSceneDiffCanvasToContext(win, ctx, prevState, nextState, di
   baseCtx.save();
   baseCtx.translate(fit.ox, fit.oy);
   baseCtx.scale(fit.scale, fit.scale);
-  drawReportStageSnapshot(baseCtx, nextData, byKey);
+  drawReportStageSnapshot(baseCtx, nextData, byKey, byAccessoryKey, byMicStandKey);
   baseCtx.restore();
 
   ctx.fillStyle = '#ffffff';
@@ -13373,13 +13561,27 @@ async function renderReportStageCanvas(win, reportOptions = {}, autoPrint = fals
     img.src = item.image;
   })));
   const byKey = new Map(images.map(entry => [entry.item.id, entry.img]));
+  const accessoryImages = await Promise.all(data.items.filter(item => item.accessoryImage).map(item => new Promise(resolve => {
+    const img = new win.Image();
+    img.onload = () => resolve({ item, img });
+    img.onerror = () => resolve({ item, img: null });
+    img.src = item.accessoryImage;
+  })));
+  const byAccessoryKey = new Map(accessoryImages.filter(entry => entry && entry.img).map(entry => [entry.item.id, entry.img]));
+  const micStandImages = await Promise.all(data.items.filter(item => item.micStandImage).map(item => new Promise(resolve => {
+    const img = new win.Image();
+    img.onload = () => resolve({ item, img });
+    img.onerror = () => resolve({ item, img: null });
+    img.src = item.micStandImage;
+  })));
+  const byMicStandKey = new Map(micStandImages.filter(entry => entry && entry.img).map(entry => [entry.item.id, entry.img]));
 
   // Use the same fitted snapshot rendering path used in scene diff canvases.
   const fit = computeFittedSceneTransform(data, cssWidth, cssHeight);
   ctx.save();
   ctx.translate(fit.ox, fit.oy);
   ctx.scale(fit.scale, fit.scale);
-  drawReportStageSnapshot(ctx, data, byKey);
+  drawReportStageSnapshot(ctx, data, byKey, byAccessoryKey, byMicStandKey);
   ctx.restore();
   if(autoPrint) {
     setTimeout(() => {
@@ -13393,7 +13595,7 @@ async function renderReportStageCanvas(win, reportOptions = {}, autoPrint = fals
   }
 }
 
-function drawReportStageSnapshot(ctx, data, byKey) {
+function drawReportStageSnapshot(ctx, data, byKey, byAccessoryKey = new Map(), byMicStandKey = new Map()) {
   const { stage } = data;
   ctx.fillStyle = stage.color;
   ctx.strokeStyle = stage.borderColor;
@@ -13521,6 +13723,80 @@ function drawReportStageSnapshot(ctx, data, byKey) {
         const labelY = item.y + item.height - 5;
         drawReportOutlinedLabelText(ctx, item.label, item.x + (item.width / 2), labelY, '600 8px Barlow, sans-serif');
       }
+    }
+
+    if(item.micStandCount > 0) {
+      const micStandImg = byMicStandKey.get(item.id) || null;
+      const standX = item.x - 12;
+      const standY = item.y - 2;
+      const standSize = 42;
+      if(micStandImg) {
+        const srcW = Math.max(1, Number(micStandImg.width) || 1);
+        const srcH = Math.max(1, Number(micStandImg.height) || 1);
+        const fitRatio = Math.min(standSize / srcW, standSize / srcH);
+        const drawW = srcW * fitRatio;
+        const drawH = srcH * fitRatio;
+        const drawX = standX + ((standSize - drawW) / 2);
+        const drawY = standY + ((standSize - drawH) / 2);
+        ctx.drawImage(micStandImg, drawX, drawY, drawW, drawH);
+      } else {
+        ctx.fillStyle = '#17324f';
+        ctx.font = '20px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🎙', standX + (standSize / 2), standY + (standSize / 2));
+      }
+      if(item.micStandCount > 1) {
+        const multiplierUnit = 1.6;
+        const countX = standX + standSize + (((multiplierUnit / 3) - 1) * standSize);
+        const countY = standY + (standSize / 2);
+        ctx.save();
+        ctx.font = '700 12px "Share Tech Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#132033';
+        ctx.shadowColor = 'rgba(255,255,255,.88)';
+        ctx.shadowBlur = 2;
+        ctx.fillText(`x${item.micStandCount}`, countX, countY);
+        ctx.restore();
+      }
+    }
+
+    if(item.hasAccessory) {
+      const accessoryImg = byAccessoryKey.get(item.id) || null;
+      // Match live editor CSS: .accessory-badge { right:-10px; top:-2px } and img { width:26px; height:26px; object-fit:contain }
+      const badgeW = 26;
+      const badgeH = 26;
+      const bx = item.x + item.width - 16;
+      const by = item.y - 2;
+      ctx.save();
+      if(accessoryImg) {
+        const srcW = Math.max(1, Number(accessoryImg.width) || 1);
+        const srcH = Math.max(1, Number(accessoryImg.height) || 1);
+        const fitRatio = Math.min(badgeW / srcW, badgeH / srcH);
+        const drawW = srcW * fitRatio;
+        const drawH = srcH * fitRatio;
+        const drawX = bx + ((badgeW - drawW) / 2);
+        const drawY = by + ((badgeH - drawH) / 2);
+        ctx.drawImage(accessoryImg, drawX, drawY, drawW, drawH);
+      } else if(item.accessoryEmoji) {
+        const emojiSize = 20;
+        const ex = bx + ((badgeW - emojiSize) / 2);
+        const ey = by + ((badgeH - emojiSize) / 2);
+        ctx.fillStyle = 'rgba(7,13,25,.82)';
+        ctx.strokeStyle = 'rgba(255,255,255,.3)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(ex + (emojiSize / 2), ey + (emojiSize / 2), emojiSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.font = '14px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(String(item.accessoryEmoji), ex + (emojiSize / 2), ey + (emojiSize / 2) + 0.2);
+      }
+      ctx.restore();
     }
     ctx.restore();
   });
