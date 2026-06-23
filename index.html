@@ -321,16 +321,16 @@ body[data-theme='light'] .front-edge::after{border-bottom-color:rgba(194,88,22,.
 .pin-tag{position:absolute;bottom:-16px;font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--accent2);opacity:.85;pointer-events:none;}
 .pin-tag.left{left:37%;}
 .pin-tag.right{left:57%;}
-.drum-pin-row{display:grid;gap:6px;max-width:140px;margin-top:2px;}
+.drum-pin-row{display:grid;gap:6px;max-width:140px;margin-top:2px;--drum-pin-cols:4;}
 .drum-pin-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:16px;}
 .drum-pin-row .iconn{position:static;transform:none;left:auto;bottom:auto;width:9px;height:9px;border-width:1.5px;}
 .drum-pin-row .iconn:hover{transform:scale(1.35);}
 .drum-pin-tag{position:static;left:auto;bottom:auto;font-size:7px;line-height:1;color:var(--accent2);opacity:.9;}
 .drum-pin-row{position:absolute;z-index:6;}
-.drum-pin-row.side-bottom{left:6px;right:6px;top:calc(100% + 4px);grid-template-columns:repeat(4,minmax(0,1fr));justify-items:center;}
-.drum-pin-row.side-top{left:6px;right:6px;bottom:calc(100% + 4px);grid-template-columns:repeat(4,minmax(0,1fr));justify-items:center;}
-.drum-pin-row.side-left{left:-30px;top:50%;bottom:auto;transform:translateY(-50%);width:24px;grid-template-columns:repeat(2,minmax(0,1fr));align-content:center;justify-items:center;}
-.drum-pin-row.side-right{right:-30px;top:50%;bottom:auto;transform:translateY(-50%);width:24px;grid-template-columns:repeat(2,minmax(0,1fr));align-content:center;justify-items:center;}
+.drum-pin-row.side-bottom{left:50%;right:auto;top:calc(100% + 4px);transform:translateX(-50%);grid-template-columns:repeat(var(--drum-pin-cols, 4),minmax(16px,max-content));justify-content:center;justify-items:center;width:max-content;max-width:calc(100% + 44px);}
+.drum-pin-row.side-top{left:50%;right:auto;bottom:calc(100% + 4px);transform:translateX(-50%);grid-template-columns:repeat(var(--drum-pin-cols, 4),minmax(16px,max-content));justify-content:center;justify-items:center;width:max-content;max-width:calc(100% + 44px);}
+.drum-pin-row.side-left{left:auto;right:calc(100% + 4px);top:50%;bottom:auto;transform:translateY(-50%);grid-template-columns:repeat(var(--drum-pin-cols, 2),minmax(16px,max-content));align-content:center;justify-content:center;justify-items:center;width:max-content;}
+.drum-pin-row.side-right{right:auto;left:calc(100% + 4px);top:50%;bottom:auto;transform:translateY(-50%);grid-template-columns:repeat(var(--drum-pin-cols, 2),minmax(16px,max-content));align-content:center;justify-content:center;justify-items:center;width:max-content;}
 .iface{display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;}
 .elem-collapse-btn{position:absolute;top:-4px;left:-4px;z-index:8;width:16px;height:16px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:10px;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;}
 .elem-collapse-btn:hover{border-color:var(--accent2);color:var(--accent2);}
@@ -773,6 +773,7 @@ body[data-theme='light'] .pr.instrument-linked{background:rgba(15,114,168,.06);b
         <div class="header-submenu" role="menu" aria-label="Scene actions">
           <button class="btn btn-ghost" type="button" onclick="runSceneMenuAction('create')">Create Scene</button>
           <button class="btn btn-ghost" type="button" onclick="runSceneMenuAction('delete')">Delete Scene</button>
+          <button class="btn btn-ghost" type="button" onclick="runSceneMenuAction('clear-scene')">Clear Scene</button>
           <div class="header-submenu-divider" aria-hidden="true"></div>
           <details id="scenes-load-from-menu" class="header-submenu-details" ontoggle="syncHeaderMenuState('scenes-load-from-menu')">
             <summary class="btn btn-ghost header-menu-trigger">Load file as scenes</summary>
@@ -1352,6 +1353,11 @@ const GOOGLE_DRIVE_CLIENT_ID_DEFAULT = '1093130700852-86h3m2vltnqu9v4rqfhucsstgg
 const GOOGLE_PICKER_API_KEY_DEFAULT = '';
 const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const HISTORY_LIMIT = 120;
+const MAX_RIDER_FILE_BYTES = 5 * 1024 * 1024;
+const MAX_RIDER_INSTRUMENTS = 400;
+const MAX_RIDER_CONNECTIONS = 2000;
+const MAX_RIDER_STAGE_PARTS = 200;
+const MAX_RIDER_SCENES = 60;
 let historyStack = [];
 let redoStack = [];
 let isRestoringHistory = false;
@@ -1361,6 +1367,8 @@ let projectNameHistorySessionTimer = null;
 let pendingHardLoadUndoSnapshot = null;
 let connectionHandleCache = [];
 let hoveredConnectionId = null;
+let pendingHoverPoint = null;
+let hoverConnectionFrameId = 0;
 let touchPaletteDragData = null;
 let touchPaletteGhost = null;
 let isLeftPanelCollapsed = false;
@@ -2785,6 +2793,10 @@ async function runSceneMenuAction(action) {
   }
   if(action === 'delete') {
     deleteCurrentScene();
+    return;
+  }
+  if(action === 'clear-scene') {
+    clearCurrentScene();
     return;
   }
   if(action === 'clear-load-recent') {
@@ -5550,7 +5562,7 @@ function renderCustomMicOptionsUI() {
     return;
   }
   select.disabled = false;
-  select.innerHTML = customMicOptions.map(v => `<option value="${v}">${v}</option>`).join('');
+  select.innerHTML = customMicOptions.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
 }
 
 function addCustomMicOption() {
@@ -5965,7 +5977,7 @@ function applySnapshot(snapshot, keepCleanState, preserveDirtyState = false) {
   projectName = snapshot.projectName || 'untitled-project';
   stageW = snapshot.stageW;
   stageD = snapshot.stageD;
-  showStageStairs = false;
+  showStageStairs = !!snapshot.showStageStairs;
   showMainStage = snapshot.showMainStage !== false;
   showStageGrid = snapshot.showStageGrid !== false;
   suppressBuiltInStairsPart = !!snapshot.suppressBuiltInStairsPart;
@@ -6027,15 +6039,45 @@ function pushHistoryState() {
   redoStack = [];
 }
 
+function getSnapshotSignature(snapshot) {
+  if(!snapshot || typeof snapshot !== 'object') return '';
+  const instrSig = (snapshot.instruments || []).map(i => [
+    i.id, i.type, i.label, i.channel, i.notes, i.x, i.y, i.size, i.angle,
+    i.stereo, i.inputStereo, i.outputStereo, i.connectorMode, i.connSide,
+    i.attachedAccessoryType, i.attachedAccessoryStereo, i.micStandCount,
+    i.wirelessPairId, i.wirelessRole, i.hideWirelessReceiver,
+  ].join('|')).join('||');
+  const connSig = (snapshot.connections || []).map(c => [
+    c.id, c.fromId, c.fromPin, c.toId, c.toPin, c.cableType, c.routeX,
+  ].join('|')).join('||');
+  const stagePartSig = (snapshot.stageParts || []).map(p => [
+    p.id, p.shape, p.label, p.x, p.y, p.widthM, p.depthM, p.color,
+  ].join('|')).join('||');
+  return [
+    snapshot.stageW,
+    snapshot.stageD,
+    snapshot.showStageStairs,
+    snapshot.showMainStage,
+    snapshot.showStageGrid,
+    snapshot.suppressBuiltInStairsPart,
+    snapshot.themeMode,
+    snapshot.stageColor,
+    snapshot.isStageBuilderMode,
+    snapshot.selectedId,
+    snapshot.selectedStagePartId,
+    snapshot.idCounter,
+    snapshot.stagePartIdCounter,
+    snapshot.selectedCable,
+    instrSig,
+    connSig,
+    stagePartSig,
+  ].join('###');
+}
+
 function commitSnapshotBeforeChange(snapshotBefore) {
   if(isRestoringHistory || !snapshotBefore) return false;
   const snapshotAfter = captureSnapshot();
-  let changed = false;
-  try {
-    changed = JSON.stringify(snapshotBefore) !== JSON.stringify(snapshotAfter);
-  } catch(_err) {
-    changed = true;
-  }
+  const changed = getSnapshotSignature(snapshotBefore) !== getSnapshotSignature(snapshotAfter);
   if(!changed) return false;
   historyStack.push(snapshotBefore);
   if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
@@ -7656,10 +7698,15 @@ function findConnectionAtPoint(x, y) {
 
 function handleCanvasConnectionHover(e) {
   const wr = canvasWrap.getBoundingClientRect();
-  const x = e.clientX - wr.left;
-  const y = e.clientY - wr.top;
-  const id = findConnectionAtPoint(x, y);
-  setHoveredConnection(id);
+  pendingHoverPoint = { x: e.clientX - wr.left, y: e.clientY - wr.top };
+  if(hoverConnectionFrameId) return;
+  hoverConnectionFrameId = requestAnimationFrame(() => {
+    hoverConnectionFrameId = 0;
+    if(!pendingHoverPoint) return;
+    const id = findConnectionAtPoint(pendingHoverPoint.x, pendingHoverPoint.y);
+    pendingHoverPoint = null;
+    setHoveredConnection(id);
+  });
 }
 
 function handleCableHandleMouseDown(e) {
@@ -7688,6 +7735,7 @@ function startCableHandleDrag(e, x, y, isTouch) {
 
   const isBusHandle = Array.isArray(hit.connIds) && hit.connIds.length > 1;
   const conn = isBusHandle ? null : connections.find(c => c.id === hit.id);
+  const connById = isBusHandle ? new Map(connections.map(item => [item.id, item])) : null;
   if(!isBusHandle && !conn) return;
   const snapshot = captureSnapshot();
   let changed = false;
@@ -7700,7 +7748,7 @@ function startCableHandleDrag(e, x, y, isTouch) {
     let routeX = (nx - panX) / zoomLevel;
     if(isBusHandle) {
       hit.connIds.forEach(id => {
-        const c = connections.find(item => item.id === id);
+        const c = connById ? connById.get(id) : null;
         if(c) {
           if(c.routeX !== routeX) changed = true;
           c.routeX = routeX;
@@ -7907,6 +7955,8 @@ function renderInstrument(instr) {
   const el = document.createElement('div');
   const boxKind = getConnectionBoxKind(instr);
   const visibleLabel = getVisibleInstrumentLabel(instr);
+  const safeVisibleLabel = escapeHtml(visibleLabel);
+  const safeChannel = escapeHtml(instr.channel || '');
   el.className = 'si';
   if(instr.cat === 'monitoring') el.classList.add('is-monitoring');
   if(boxKind) {
@@ -7942,8 +7992,8 @@ function renderInstrument(instr) {
         <div class="iface" style="transform:rotate(${angle}deg);transform-origin:center center;">
           ${buildRotationHandleHTML()}
           <div class="ib" style="width:${bw}px;min-height:${Math.round(Math.max(collapsedMin, bh * collapsedHeightFactor))}px;padding:${Math.round(5 * uiScale)}px;--ui-scale:${uiScale};">
-            ${boxImage ? `<img class="icon-img" src="${boxImage}" alt="${visibleLabel}" draggable="false">` : buildStageIconHTML(instr, Math.round(14 * uiScale))}
-            <div class="ib-label${boxKind === 'snake' ? '' : ' inside-top'}">${visibleLabel}</div>
+            ${boxImage ? `<img class="icon-img" src="${boxImage}" alt="${safeVisibleLabel}" draggable="false">` : buildStageIconHTML(instr, Math.round(14 * uiScale))}
+            <div class="ib-label${boxKind === 'snake' ? '' : ' inside-top'}">${safeVisibleLabel}</div>
           </div>
           ${accessoryBadgeHTML}
         </div>
@@ -7977,6 +8027,9 @@ function renderInstrument(instr) {
     const side = instr.connSide || 'bottom';
     const renderP16SidePins = !suppressPins && instr.type === 'p16';
     const drumPins = isDrumKit ? getDrumMicPins(instr) : [];
+    const drumPinCols = (side === 'left' || side === 'right')
+      ? Math.min(2, Math.max(1, drumPins.length))
+      : Math.min(4, Math.max(1, drumPins.length));
     const inputPins = hasCustomIO ? getInstrumentInputPins(instr) : [];
     const outputPins = hasCustomIO ? getInstrumentOutputPins(instr) : [];
     const monoUsed = !isStereo && isPinUsed(instr.id, 'MONO');
@@ -8036,11 +8089,11 @@ function renderInstrument(instr) {
           ${standBadgeHTML}
           ${accessoryBadgeHTML}
           ${showFacingMarker ? `<div class="front-edge" aria-hidden="true"></div>` : ''}
-          <div class="ib-label">${visibleLabel}</div>
-          ${instr.channel?`<div class="ich">${instr.channel}</div>`:''}
+          <div class="ib-label">${safeVisibleLabel}</div>
+          ${instr.channel?`<div class="ich">${safeChannel}</div>`:''}
         </div>
         ${!suppressPins && isDrumKit ? `
-          <div class="drum-pin-row side-${side}">${drumPinsHTML}</div>
+          <div class="drum-pin-row side-${side}" style="--drum-pin-cols:${drumPinCols};">${drumPinsHTML}</div>
         ` : (!renderP16SidePins && !suppressPins && renderCustomIOSidePins) ? `
           ${customSidePinsHTML}
         ` : (!renderP16SidePins && !suppressPins && hasCustomIO) ? `
@@ -9344,8 +9397,8 @@ function renderMicAssignmentsUI(instr) {
   box.innerHTML = targets.map(t => {
     const current = map[t.pin] || '';
     const choices = allMicOptions.includes(current) || !current ? allMicOptions : [current, ...allMicOptions];
-    const options = ['<option value="">None</option>', ...choices.map(m => `<option value="${m}"${m===current?' selected':''}>${m}</option>`)].join('');
-    return `<div class="mic-assignment-row"><label>${t.label}</label><select onchange="setPinMicAssignment('${t.pin}', this.value)">${options}</select></div>`;
+    const options = ['<option value="">None</option>', ...choices.map(m => `<option value="${escapeHtml(m)}"${m===current?' selected':''}>${escapeHtml(m)}</option>`)].join('');
+    return `<div class="mic-assignment-row"><label>${escapeHtml(t.label)}</label><select onchange="setPinMicAssignment('${t.pin}', this.value)">${options}</select></div>`;
   }).join('');
 }
 
@@ -10224,13 +10277,13 @@ function updateConnList() {
     : connections;
 
   if(focusedInstr && !viewConnections.length) {
-    list.innerHTML = `<div class="conn-focus-meta">Selected: ${focusedInstr.label}</div><div class="no-conn">No connections for this item</div>`;
+    list.innerHTML = `<div class="conn-focus-meta">Selected: ${escapeHtml(focusedInstr.label)}</div><div class="no-conn">No connections for this item</div>`;
     hoveredConnectionId = null;
     return;
   }
 
   const meta = focusedInstr
-    ? `<div class="conn-focus-meta">Selected: ${focusedInstr.label}${isSnakeBox(focusedInstr)?' (snake pin map)':''}</div>`
+    ? `<div class="conn-focus-meta">Selected: ${escapeHtml(focusedInstr.label)}${isSnakeBox(focusedInstr)?' (snake pin map)':''}</div>`
     : '';
 
   list.innerHTML = meta + viewConnections.map(conn => {
@@ -10253,7 +10306,7 @@ function updateConnList() {
     const activeClass = (hoveredConnectionId === conn.id) ? ' active' : '';
     return `<div class="ci${activeClass}" data-conn-id="${conn.id}">
       <div class="cdot" style="background:${conn.color}"></div>
-      <div class="ctext">${fromLabel} → ${toLabel}<br><span style="color:var(--muted)">${conn.label}</span></div>
+      <div class="ctext">${escapeHtml(fromLabel)} → ${escapeHtml(toLabel)}<br><span style="color:var(--muted)">${escapeHtml(conn.label)}</span></div>
       <button class="cdel" onclick="deleteConn(${conn.id})">×</button>
     </div>`;
   }).join('');
@@ -10366,9 +10419,7 @@ function autoRouteStereoSuggestion() {
 // CLEAR
 // ═══════════════════════════════════════════════════════════════
 
-function clearAll() {
-  if(!confirm('Clear the entire stage layout?')) return;
-  pushHistoryState();
+function resetLayoutToDefaults() {
   instruments.forEach(i=>{ const el=getEl(i.id); if(el) el.remove(); });
   stageParts.forEach(p=>{ const el=getStagePartEl(p.id); if(el) el.remove(); });
   instruments=[]; connections=[]; stageParts=[]; selectedId=null; selectedStagePartId=null; connectingFrom=null; drawingLine=null;
@@ -10395,6 +10446,30 @@ function clearAll() {
   refreshCategoryCollapseButtons();
   applyModeUI();
   updateStage(true);
+}
+
+function clearCurrentScene() {
+  if(!confirm('Clear the current scene layout?')) return;
+  pushHistoryState();
+  resetLayoutToDefaults();
+  saveCurrentSceneState();
+  renderSceneTabs();
+  markDirty();
+  render(false);
+}
+
+function clearAll() {
+  if(!confirm('Clear all scenes and reset to a new empty project?')) return;
+  pushHistoryState();
+  resetLayoutToDefaults();
+  scenes = [{
+    id: 1,
+    name: `Scene ${indexToLetters(1)}`,
+    state: captureSceneState(),
+  }];
+  activeSceneId = 1;
+  sceneIdCounter = 1;
+  renderSceneTabs();
   markDirty();
   render(false);
 }
@@ -10873,6 +10948,28 @@ function saveRiderByDownload(data, fileName = getRiderSaveFileName()) {
   URL.revokeObjectURL(url);
 }
 
+function assertImportFileSize(file, contextLabel = 'file') {
+  if(!file) return;
+  const size = Number(file.size) || 0;
+  if(size <= 0) return;
+  if(size > MAX_RIDER_FILE_BYTES) {
+    const mb = (MAX_RIDER_FILE_BYTES / (1024 * 1024)).toFixed(1);
+    throw new Error(`The selected ${contextLabel} is too large. Maximum allowed size is ${mb} MB.`);
+  }
+}
+
+function assertRiderDataLimits(data) {
+  if(!data || typeof data !== 'object') throw new Error('Invalid rider data.');
+  const instrumentsCount = Array.isArray(data.instruments) ? data.instruments.length : 0;
+  const connectionsCount = Array.isArray(data.connections) ? data.connections.length : 0;
+  const stagePartsCount = Array.isArray(data.stageParts) ? data.stageParts.length : 0;
+  const scenesCount = Array.isArray(data.scenes) ? data.scenes.length : 0;
+  if(instrumentsCount > MAX_RIDER_INSTRUMENTS) throw new Error(`Rider exceeds instrument limit (${MAX_RIDER_INSTRUMENTS}).`);
+  if(connectionsCount > MAX_RIDER_CONNECTIONS) throw new Error(`Rider exceeds connection limit (${MAX_RIDER_CONNECTIONS}).`);
+  if(stagePartsCount > MAX_RIDER_STAGE_PARTS) throw new Error(`Rider exceeds stage-part limit (${MAX_RIDER_STAGE_PARTS}).`);
+  if(scenesCount > MAX_RIDER_SCENES) throw new Error(`Rider exceeds scene limit (${MAX_RIDER_SCENES}).`);
+}
+
 async function saveRider() {
   await saveRiderFromFileMenu(false);
 }
@@ -10884,9 +10981,18 @@ async function saveRiderAs() {
 function extractScenesFromRiderData(data) {
   if(!data || typeof data !== 'object') return [];
   if(!Array.isArray(data.scenes) || !data.scenes.length) return [];
+  if(data.scenes.length > MAX_RIDER_SCENES) {
+    throw new Error(`This rider has too many scenes (${data.scenes.length}). Limit is ${MAX_RIDER_SCENES}.`);
+  }
   return data.scenes.map((raw, index) => {
     const stateRaw = raw && raw.state && typeof raw.state === 'object' ? raw.state : null;
     if(!stateRaw) return null;
+    const sceneInstrCount = Array.isArray(stateRaw.instruments) ? stateRaw.instruments.length : 0;
+    const sceneConnCount = Array.isArray(stateRaw.connections) ? stateRaw.connections.length : 0;
+    const scenePartsCount = Array.isArray(stateRaw.stageParts) ? stateRaw.stageParts.length : 0;
+    if(sceneInstrCount > MAX_RIDER_INSTRUMENTS) throw new Error(`Scene \"${String(raw.name || `Scene ${indexToLetters(index + 1)}`)}\" exceeds instrument limit (${MAX_RIDER_INSTRUMENTS}).`);
+    if(sceneConnCount > MAX_RIDER_CONNECTIONS) throw new Error(`Scene \"${String(raw.name || `Scene ${indexToLetters(index + 1)}`)}\" exceeds connection limit (${MAX_RIDER_CONNECTIONS}).`);
+    if(scenePartsCount > MAX_RIDER_STAGE_PARTS) throw new Error(`Scene \"${String(raw.name || `Scene ${indexToLetters(index + 1)}`)}\" exceeds stage-part limit (${MAX_RIDER_STAGE_PARTS}).`);
     return {
       name: String(raw.name || `Scene ${indexToLetters(index + 1)}`),
       state: cloneSceneState(stateRaw),
@@ -10959,8 +11065,10 @@ function triggerLoadScenesFromFile() {
         if(!picked || !picked.length) return;
         const handle = picked[0];
         const file = await handle.getFile();
+        assertImportFileSize(file, 'scenes file');
         const text = await file.text();
         const data = JSON.parse(text);
+        assertRiderDataLimits(data);
         const importedCount = importScenesFromRiderData(data, file.name || 'local file');
         if(!importedCount) return;
         addRecentRiderFile({ source: 'local', fileName: normalizeRiderFileName(file.name), localFileHandle: handle });
@@ -10989,10 +11097,17 @@ function handleLoadScenesFile(e) {
   isLoadScenesPickerOpen = false;
   const file = e.target.files && e.target.files[0];
   if(!file) return;
+  try {
+    assertImportFileSize(file, 'scenes file');
+  } catch(err) {
+    alert((err && err.message) ? err.message : 'Scenes file is too large.');
+    return;
+  }
   const reader = new FileReader();
   reader.onload = () => {
     try {
       const data = JSON.parse(reader.result);
+      assertRiderDataLimits(data);
       const importedCount = importScenesFromRiderData(data, file.name || 'local file');
       if(!importedCount) return;
       addRecentRiderFile({ source: 'local', fileName: normalizeRiderFileName(file.name) });
@@ -11102,8 +11217,10 @@ function triggerLoadRider(options = {}) {
         if(!picked || !picked.length) return;
         const handle = picked[0];
         const file = await handle.getFile();
+        assertImportFileSize(file, 'rider file');
         const text = await file.text();
         const data = JSON.parse(text);
+        assertRiderDataLimits(data);
         pendingHardLoadUndoSnapshot = captureSnapshot();
         loadRiderFromData(data);
         setProjectNameFromFileName(file.name);
@@ -11140,6 +11257,12 @@ function handleLoadRiderFile(e) {
   isLoadRiderPickerOpen = false;
   const file = e.target.files && e.target.files[0];
   if(!file) return;
+  try {
+    assertImportFileSize(file, 'rider file');
+  } catch(err) {
+    alert((err && err.message) ? err.message : 'Rider file is too large.');
+    return;
+  }
   riderSaveDirHandle = null;
   riderFileHandle = null;
   riderLastSavedFileName = '';
@@ -11149,6 +11272,7 @@ function handleLoadRiderFile(e) {
   reader.onload = () => {
     try {
       const data = JSON.parse(reader.result);
+      assertRiderDataLimits(data);
       pendingHardLoadUndoSnapshot = captureSnapshot();
       loadRiderFromData(data);
       setProjectNameFromFileName(file.name);
@@ -11164,7 +11288,7 @@ function handleLoadRiderFile(e) {
 function loadRiderFromData(data) {
   const hardLoadUndoSnapshot = pendingHardLoadUndoSnapshot;
   pendingHardLoadUndoSnapshot = null;
-  if(!data || typeof data !== 'object') throw new Error('Invalid rider data');
+  assertRiderDataLimits(data);
   if(typeof data.projectName === 'string' && data.projectName.trim()) {
     projectName = data.projectName.trim();
     updateProjectNameUI();
@@ -11220,7 +11344,7 @@ function loadRiderFromData(data) {
 
   stageW = Math.max(2, Math.min(80, parseFloat(stage.widthM) || 7.5));
   stageD = Math.max(2, Math.min(50, parseFloat(stage.depthM) || 4.4));
-  showStageStairs = false;
+  showStageStairs = !!stage.showStairs;
   suppressBuiltInStairsPart = !!(stage && stage.suppressBuiltInStairsPart);
   themeMode = stage.themeMode === 'dark' ? 'dark' : DEFAULT_THEME_MODE;
   stageColor = /^#[0-9a-fA-F]{6}$/.test(String(stage.color || '')) ? stage.color : DEFAULT_STAGE_COLOR;
@@ -11293,7 +11417,6 @@ function loadRiderFromData(data) {
       mixerJackOut: Number(raw.mixerJackOut) || (raw.type === 'x32' ? 6 : ((raw.type === 'x32compact' || raw.type === 'x32rack') ? 6 : (raw.type === 'wing' ? 8 : 0))),
       mixerP16: Number(raw.mixerP16) || ((raw.type === 's32' || raw.type === 's16' || raw.type === 'xr18' || raw.type === 'x32' || raw.type === 'x32compact' || raw.type === 'x32rack') ? 1 : 0),
       mixerAes50: Number(raw.mixerAes50) || ((raw.type === 's32' || raw.type === 's16' || raw.type === 'x32' || raw.type === 'x32compact' || raw.type === 'x32rack') ? 2 : ((raw.type === 'wing' || raw.type === 'wingcompact' || raw.type === 'wingrack') ? 3 : 0)),
-      outletConnectorType: normalizeOutletConnectorType(raw.outletConnectorType, 'ethernet'),
       outletConnectorType: normalizeOutletConnectorType(raw.outletConnectorType, 'ethernet'),
       outletPorts: Math.max(1, Math.min(32, parseInt(raw.outletPorts, 10) || 2)),
       outletViewMode: normalizeOutletViewMode(raw.outletViewMode, 'outlet'),
@@ -11579,7 +11702,9 @@ function submitReportOptions(autoPrint) {
         .filter(Number.isFinite);
     }
   } else if(!selectedSceneIds.length) {
-    selectedSceneIds = [activeSceneId].filter(Number.isFinite);
+    selectedSceneIds = (Array.isArray(scenes) && scenes.length > 1)
+      ? scenes.map(scene => scene && scene.id).filter(Number.isFinite)
+      : [activeSceneId].filter(Number.isFinite);
   }
   const includeStageImage = !!overlay.querySelector('#report-include-stage-image')?.checked;
   const stageOrientation = overlay.querySelector('#report-stage-orientation')?.value === 'vertical' ? 'vertical' : 'horizontal';
@@ -11640,7 +11765,7 @@ function getReportPinLabel(instr, pin) {
   return pinForReport(key);
 }
 
-function getReportConnectionForPin(instrId, pin) {
+function getReportConnectionsForPin(instrId, pin) {
   const key = pinKey(pin);
   const instr = getReportItemById(instrId);
   const matchSnakeAlias = connKey => {
@@ -11657,11 +11782,16 @@ function getReportConnectionForPin(instrId, pin) {
     }
     return connKey === key;
   };
-  return connections.find(conn => {
+  return connections.filter(conn => {
     const fromMatch = conn.fromId === instrId && matchSnakeAlias(pinKey(conn.fromPin));
     const toMatch = conn.toId === instrId && matchSnakeAlias(pinKey(conn.toPin));
     return fromMatch || toMatch;
-  }) || null;
+  });
+}
+
+function getReportConnectionForPin(instrId, pin) {
+  const matches = getReportConnectionsForPin(instrId, pin);
+  return matches.length ? matches[0] : null;
 }
 
 function getReportOtherEndpoint(conn, instrId) {
@@ -12082,42 +12212,47 @@ function buildBundledOutletReportCards(reportConnections) {
 }
 
 function buildReportPinLine(instr, pin, notePrefix = '') {
-  const conn = getReportConnectionForPin(instr.id, pin);
+  const pinConnections = getReportConnectionsForPin(instr.id, pin);
   const pinLabel = getReportPinLabel(instr, pin);
   const pinTone = getReportPinTone(instr, pin);
-  if(!conn) return '';
-  const other = getReportOtherEndpoint(conn, instr.id);
-  const otherText = other && other.instr ? describeReportEndpoint(other.instr, other.pin, conn.id) : 'Unknown';
-  const hasVirtualAccessory = !!(other && other.instr && hasAttachedAccessory(other.instr) && !isReportAccessory(other.instr));
+  if(!pinConnections.length) return '';
 
   if(instr && isSnakeBox(instr)) {
-    let destinationHTML = other && other.instr && isReportAccessory(other.instr)
-      ? describeInlineAccessoryRouteHTML(other.instr, conn, other.pin, new Set())
-      : buildReportEndpointLabelHTML(other && other.instr, other && other.pin, otherText);
-    if(!isReportAccessory(other && other.instr) && hasVirtualAccessory) {
-      destinationHTML = buildAttachedAccessoryRouteHTML(other.instr, other.pin, destinationHTML);
-    }
-    const numberMarkup = `<span class="report-inline-key report-pin-tone-${pinTone}">${escapeHtml(pinLabel)}</span>`;
-    return `<div class="report-pin-line compact">
-      <div class="report-pin-main">${numberMarkup} - ${destinationHTML}</div>
-    </div>`;
+    return pinConnections.map(conn => {
+      const other = getReportOtherEndpoint(conn, instr.id);
+      const otherText = other && other.instr ? describeReportEndpoint(other.instr, other.pin, conn.id) : 'Unknown';
+      const hasVirtualAccessory = !!(other && other.instr && hasAttachedAccessory(other.instr) && !isReportAccessory(other.instr));
+      let destinationHTML = other && other.instr && isReportAccessory(other.instr)
+        ? describeInlineAccessoryRouteHTML(other.instr, conn, other.pin, new Set())
+        : buildReportEndpointLabelHTML(other && other.instr, other && other.pin, otherText);
+      if(!isReportAccessory(other && other.instr) && hasVirtualAccessory) {
+        destinationHTML = buildAttachedAccessoryRouteHTML(other.instr, other.pin, destinationHTML);
+      }
+      const numberMarkup = `<span class="report-inline-key report-pin-tone-${pinTone}">${escapeHtml(pinLabel)}</span>`;
+      return `<div class="report-pin-line compact"><div class="report-pin-main">${numberMarkup} - ${destinationHTML}</div></div>`;
+    }).join('');
   }
 
-  const accessoryHint = other && other.instr && isReportAccessory(other.instr)
-    ? `<div class="report-pin-note">Middle accessory path: ${escapeHtml(describeAccessoryChain(other.instr, conn.id, new Set()))}</div>`
-    : (hasVirtualAccessory
-      ? `<div class="report-pin-note">Middle accessory path: ${escapeHtml(describeAttachedAccessoryChain(other.instr, other.pin))}</div>`
-      : '');
-  let endpointHTML = buildReportEndpointLabelHTML(other && other.instr, other && other.pin, otherText);
-  if(hasVirtualAccessory) endpointHTML = buildAttachedAccessoryRouteHTML(other.instr, other.pin, endpointHTML);
   const micNote = getPinMicNote(instr, pin);
   const extraNote = [notePrefix, micNote ? `Mic: ${micNote}` : ''].filter(Boolean).join(' · ');
-  return `<div class="report-pin-line">
-    <div class="report-pin-key report-pin-tone-${pinTone}">${escapeHtml(pinLabel)}</div>
-    <div class="report-pin-main">Connect to ${endpointHTML}</div>
-    <div class="report-pin-meta">${escapeHtml(conn.label || 'Cable')} ${extraNote ? `· ${escapeHtml(extraNote)}` : ''}</div>
-    ${accessoryHint}
-  </div>`;
+  return pinConnections.map(conn => {
+    const other = getReportOtherEndpoint(conn, instr.id);
+    const otherText = other && other.instr ? describeReportEndpoint(other.instr, other.pin, conn.id) : 'Unknown';
+    const hasVirtualAccessory = !!(other && other.instr && hasAttachedAccessory(other.instr) && !isReportAccessory(other.instr));
+    const accessoryHint = other && other.instr && isReportAccessory(other.instr)
+      ? `<div class="report-pin-note">Middle accessory path: ${escapeHtml(describeAccessoryChain(other.instr, conn.id, new Set()))}</div>`
+      : (hasVirtualAccessory
+        ? `<div class="report-pin-note">Middle accessory path: ${escapeHtml(describeAttachedAccessoryChain(other.instr, other.pin))}</div>`
+        : '');
+    let endpointHTML = buildReportEndpointLabelHTML(other && other.instr, other && other.pin, otherText);
+    if(hasVirtualAccessory) endpointHTML = buildAttachedAccessoryRouteHTML(other.instr, other.pin, endpointHTML);
+    return `<div class="report-pin-line">
+      <div class="report-pin-key report-pin-tone-${pinTone}">${escapeHtml(pinLabel)}</div>
+      <div class="report-pin-main">Connect to ${endpointHTML}</div>
+      <div class="report-pin-meta">${escapeHtml(conn.label || 'Cable')} ${extraNote ? `· ${escapeHtml(extraNote)}` : ''}</div>
+      ${accessoryHint}
+    </div>`;
+  }).join('');
 }
 
 function buildReportEndpointLabelHTML(instr, pin, baseText) {
@@ -12215,7 +12350,7 @@ function getReportSnapshotInstrument(instr) {
     mixerAes50: Math.max(0, Number(instr.mixerAes50) || 0),
     connectionBoxKind: inferConnectionBoxKind(instr) || '',
     outletPorts: Math.max(1, Math.min(32, parseInt(instr.outletPorts, 10) || 2)),
-    outletViewMode: normalizeOutletPortMode(instr.outletViewMode, 'out'),
+    outletViewMode: normalizeOutletViewMode(instr.outletViewMode, 'outlet'),
     outletPortModes: normalizeOutletPortModes(instr.outletPortModes, Math.max(1, Math.min(32, parseInt(instr.outletPorts, 10) || 2))),
     outletPortNames: normalizeOutletPortNames(instr.outletPortNames, Math.max(1, Math.min(32, parseInt(instr.outletPorts, 10) || 2))),
     outletConnectorType: normalizeOutletConnectorType(instr.outletConnectorType || 'ethernet'),
@@ -12557,6 +12692,15 @@ function getReportStageSnapshotData(stageOrientation) {
 
 function getReportWorldCenterForPin(id, pin) {
   const instr = instruments.find(i => i && i.id === id) || null;
+  const point = getCenterOf(id, pin);
+  if(point) {
+    return {
+      x: (point.x - panX) / zoomLevel,
+      y: (point.y - panY) / zoomLevel,
+    };
+  }
+
+  // Fallback for report contexts where a pin DOM node is not currently available.
   if(instr && instr.type === 'drumkit') {
     const key = pinKey(pin);
     const drumAnchorMap = {
@@ -12588,12 +12732,7 @@ function getReportWorldCenterForPin(id, pin) {
     }
   }
 
-  const point = getCenterOf(id, pin);
-  if(!point) return null;
-  return {
-    x: (point.x - panX) / zoomLevel,
-    y: (point.y - panY) / zoomLevel,
-  };
+  return null;
 }
 
 function getReportPinExtraSlackMeters(instr, pin) {
