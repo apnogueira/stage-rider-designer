@@ -1067,6 +1067,10 @@ body[data-theme='light'] .pr.instrument-linked{background:rgba(15,114,168,.06);b
           <div class="pr"><label class="plbl">Port Names</label><div id="outlet-port-names-list" class="mic-assignment-list"></div></div>
         </div>
 
+        <div id="router-extra" style="display:none;" class="snake-props">
+          <div class="pr"><label class="plbl">LAN Ports</label><input class="pi" id="p-router-ports" type="number" min="1" max="8" step="1" value="4" oninput="updRouterPorts(this.value)"></div>
+        </div>
+
         <div id="amp-extra" style="display:none;" class="snake-props">
           <div class="pr"><label class="plbl">Speakon Outputs</label><input class="pi" id="p-amp-outs" type="number" min="1" max="16" step="1" value="4" oninput="updAmpOutputs(this.value)"></div>
         </div>
@@ -1164,6 +1168,7 @@ const ICON_ASSET_BY_TYPE = {
   flute:'images/flute.png',
   monitor:'images/monitor.png',
   p16:'images/p16.png',
+  p16d:'images/P16-D.png',
   pm1:'images/pm1.png',
   ha8000:'images/ha8000.png',
   ha400:'images/ha400.png',
@@ -1229,6 +1234,7 @@ const INSTRUMENTS = [
   {type:'iem',       cat:'monitoring', icon:'🎧', name:'In-Ears',     wide:false, size:44, connSide:'top', requiresOutput:true},
   {type:'headphones',cat:'monitoring', icon:'🎧', name:'Headphones',  wide:false, size:44, connSide:'top', requiresOutput:true},
   {type:'p16',       cat:'monitoring', icon:'🔷', name:'P16',         wide:false, size:30, connSide:'top', requiresOutput:true},
+  {type:'p16d',      cat:'monitoring', icon:'🔷', image:'images/P16-D.png', name:'P16-D', wide:true, size:82, footprintAspect:2.05, connSide:'bottom'},
   {type:'pm1',       cat:'monitoring', icon:'🔶', name:'PM1',         wide:false, size:30, connSide:'top', requiresOutput:true},
   {type:'ha8000',    cat:'monitoring', icon:'🎚', name:'HA8000',      wide:true,  size:84, connSide:'bottom', haUseMainInputs:false},
   {type:'ha400',     cat:'monitoring', icon:'🎧', name:'HA400',       wide:false, size:30, connSide:'bottom'},
@@ -1248,7 +1254,7 @@ const INSTRUMENTS = [
   {type:'poweramp',  cat:'monitoring', icon:'🔌', image:'images/power_amp.png', name:'Power Amp', wide:true, size:84, connSide:'bottom', ampOutputs:4},
   {type:'pedals',    cat:'accessories',   icon:'🎛', name:'Pedals',      wide:false, size:22, connSide:'bottom'},
   {type:'scarlet2i2',cat:'accessories', icon:'🎛', name:'Scarlett 2i2', wide:true,  size:68, connSide:'bottom'},
-  {type:'router',    cat:'accessories', icon:'📶', image:'images/router.png', name:'Router', wide:true, size:76, connSide:'bottom', connectionBoxKind:'outlet', outletConnectorType:'ethernet', outletPorts:4, outletPlacement:'wall'},
+  {type:'router',    cat:'accessories', icon:'📶', image:'images/router.png', name:'Router', wide:true, size:84, footprintAspect:2.2, connSide:'bottom', outletPorts:4},
   {type:'outlet',    cat:'accessories', icon:'◉', name:'Outlet',   wide:false, size:30, connSide:'bottom', connectionBoxKind:'outlet', outletConnectorType:'ethernet', outletPorts:2, outletPlacement:'wall'},
   {type:'micstand',  cat:'stands', icon:'🎙', name:'Mic Stand',         wide:false, size:54, footprintAspect:0.44, noConnect:true},
   {type:'micstandmulti',cat:'stands', icon:'🎙', name:'Mic Stand (Multi-Rest)', wide:false, size:58, footprintAspect:0.48, noConnect:true},
@@ -3798,10 +3804,11 @@ function normalizeSnakeViewMode(mode) {
 
 function inferConnectionBoxKind(item) {
   if(!item) return null;
+  if(item.type === 'router') return null;
   if(item.connectionBoxKind === 'snake' || item.connectionBoxKind === 'mixer' || item.connectionBoxKind === 'stagebox' || item.connectionBoxKind === 'outlet') {
     return item.connectionBoxKind;
   }
-  if(item.type === 'outlet' || item.type === 'router') return 'outlet';
+  if(item.type === 'outlet') return 'outlet';
   if(item.isSnake) return 'snake';
   if(item.cat === 'stageboxes' || item.type === 's32' || item.type === 's16') return 'stagebox';
   if(item.isMixer || item.cat === 'mixers') return 'mixer';
@@ -4967,7 +4974,7 @@ function isPedalsType(instrOrType) {
 
 function isCustomIOInstrument(instrOrType) {
   const type = typeof instrOrType === 'string' ? instrOrType : (instrOrType && instrOrType.type);
-  return type === 'di' || isPedalsType(type) || type === 'ha8000' || type === 'ha400' || type === 'amp' || type === 'poweramp' || type === 'p16' || type === 'scarlet2i2' || type === 'laptop' || isSpeakerWithThru(type);
+  return type === 'di' || isPedalsType(type) || type === 'ha8000' || type === 'ha400' || type === 'amp' || type === 'poweramp' || type === 'p16' || type === 'p16d' || type === 'router' || type === 'scarlet2i2' || type === 'laptop' || isSpeakerWithThru(type);
 }
 
 function supportsInputModeToggle(instr) {
@@ -4980,6 +4987,16 @@ function supportsOutputModeToggle(instr) {
 
 function getInstrumentInputPins(instr) {
   if(!instr) return [];
+  if(instr.type === 'router') {
+    const count = normalizeOutletPortCount(instr.outletPorts, instr, 4);
+    return Array.from({ length: count }, (_v, idx) => {
+      const n = idx + 1;
+      return { key:`ROUTER-LAN-${n}`, label:`L${n}` };
+    });
+  }
+  if(instr.type === 'p16d') {
+    return [{ key:'P16D-IN', label:'IN' }];
+  }
   if(instr.type === 'p16') {
     return [{ key:'P16-IN', label:'IN' }];
   }
@@ -5028,6 +5045,10 @@ function getInstrumentInputPins(instr) {
 
 function getInstrumentOutputPins(instr) {
   if(!instr) return [];
+  if(instr.type === 'p16d') {
+    const outCount = Math.max(1, Math.min(16, parseInt(instr.p16dOutCount, 10) || 8));
+    return Array.from({ length: outCount }, (_v, idx) => ({ key:`P16D-OUT-${idx + 1}`, label:String(idx + 1) }));
+  }
   if(instr.type === 'p16') {
     return [{ key:'P16-THRU', label:'THRU' }, { key:'P16-HP', label:'HP' }];
   }
@@ -5200,7 +5221,7 @@ function supportsMicPickup(instrOrType) {
   if(!type) return false;
   const disallowed = new Set([
     'elguitar', 'bass', 'keys',
-    'monitor', 'mainspk', 'subwoofer', 'passivespk', 'iem', 'headphones', 'pm1', 'p16', 'ha8000', 'ha400', 'di', 'amp', 'pedals', 'laptop', 'midipad', 'scarlet2i2',
+    'monitor', 'mainspk', 'subwoofer', 'passivespk', 'iem', 'headphones', 'pm1', 'p16', 'p16d', 'router', 'ha8000', 'ha400', 'di', 'amp', 'pedals', 'laptop', 'midipad', 'scarlet2i2',
     'snake8', 'snake16', 'snake24', 'snake32', 'xr18', 'x32', 'x32compact', 'x32rack', 'wing', 'wingcompact', 'wingrack'
   ]);
   return !disallowed.has(type);
@@ -5479,6 +5500,8 @@ function isNonConnectableInstrument(instrOrType) {
 function supportsMicStandOption(instrOrType) {
   if(!instrOrType) return false;
   const instr = (typeof instrOrType === 'string') ? getInstrumentDefinitionByType(instrOrType) : instrOrType;
+  const type = instr && instr.type;
+  if(type === 'router' || type === 'p16d') return false;
   if(isConnectionBoxInstrument(instr) || isStandType(instr) || isNonConnectableInstrument(instr)) return false;
   return true;
 }
@@ -5798,6 +5821,14 @@ function getPinAllowedCableTypes(instr, pin) {
     if(p === 'IO-USB') return ['usb'];
   }
 
+  if(instr.type === 'router') {
+    if(p.startsWith('ROUTER-LAN-')) return ['ethernet'];
+  }
+
+  if(instr.type === 'p16d') {
+    if(p === 'P16D-IN' || p.startsWith('P16D-OUT-')) return ['ethernet'];
+  }
+
   if(isSnakeBox(instr)) {
     if(isSnakeInputPinKey(p)) return instr.snakeAllowJackInputs ? ['xlr', 'ts', 'trs'] : ['xlr'];
     if(isSnakeOutputPinKey(p)) return ['xlr'];
@@ -5920,16 +5951,16 @@ function buildStageIconHTML(instr, iconFontSize) {
   return `<span class="icon-emoji" style="font-size:${iconFontSize}px;">${instr.icon}</span>`;
 }
 
-function getPinSlotPercent(slot = 0, count = 1) {
+function getPinSlotPercent(slot = 0, count = 1, edgePadding = 14) {
   if(count <= 1) return 50;
   if(count === 2) return slot === 0 ? 38 : 62;
-  const edgePad = 14;
+  const edgePad = Math.max(0, Math.min(25, Number(edgePadding) || 14));
   const span = 100 - (edgePad * 2);
   return edgePad + ((slot + 1) * (span / (count + 1)));
 }
 
-function getMainPinStyle(side, slot = 0, count = 1) {
-  const pct = getPinSlotPercent(slot, count);
+function getMainPinStyle(side, slot = 0, count = 1, edgePadding = 14) {
+  const pct = getPinSlotPercent(slot, count, edgePadding);
   const isSide = side === 'left' || side === 'right';
   const sideSizing = isSide ? 'width:9px;height:9px;border-width:1.5px;' : '';
   if(side === 'top') return `top:-8px;bottom:auto;left:${pct}%;right:auto;transform:translateX(-50%);`;
@@ -5938,8 +5969,8 @@ function getMainPinStyle(side, slot = 0, count = 1) {
   return `bottom:-8px;top:auto;left:${pct}%;right:auto;transform:translateX(-50%);`;
 }
 
-function getPinTagStyle(side, slot = 0, count = 1) {
-  const pct = getPinSlotPercent(slot, count);
+function getPinTagStyle(side, slot = 0, count = 1, edgePadding = 14) {
+  const pct = getPinSlotPercent(slot, count, edgePadding);
   if(side === 'top') return `top:-16px;bottom:auto;left:${pct}%;right:auto;transform:translateX(-50%);`;
   if(side === 'right') return `right:-17px;left:auto;top:${pct}%;bottom:auto;transform:translateY(-50%);`;
   if(side === 'left') return `left:-17px;right:auto;top:${pct}%;bottom:auto;transform:translateY(-50%);`;
@@ -6659,6 +6690,7 @@ function pinForReport(pin) {
     'P16-IN':'IN',
     'P16-THRU':'THRU',
     'P16-HP':'Headphones',
+    'P16D-IN':'IN',
     'HA-IN-L':abbreviateStereoPinLabel('MAIN-L'),
     'HA-IN-R':abbreviateStereoPinLabel('MAIN-R'),
     'AMP-IN':'IN',
@@ -6675,6 +6707,10 @@ function pinForReport(pin) {
   if(ioMap[key]) return ioMap[key];
   const ioOutMatch = key.match(/^IO-OUT-(\d+)$/);
   if(ioOutMatch) return `OUT-${parseInt(ioOutMatch[1], 10)}`;
+  const routerLanMatch = key.match(/^ROUTER-LAN-(\d+)$/);
+  if(routerLanMatch) return `L${parseInt(routerLanMatch[1], 10)}`;
+  const p16dOutMatch = key.match(/^P16D-OUT-(\d+)$/);
+  if(p16dOutMatch) return `OUT-${parseInt(p16dOutMatch[1], 10)}`;
   const haInMatch = key.match(/^HA-IN-(\d+)-(L|R)$/);
   if(haInMatch) return `IN-${parseInt(haInMatch[1], 10)}-${haInMatch[2]}`;
   const haOutMatch = key.match(/^HA-OUT-(\d+)$/);
@@ -8127,7 +8163,7 @@ function renderInstrument(instr) {
     const customBottomPinsHTML = hasCustomIO ? (swapCustomIORows ? inputPinsHTML : outputPinsHTML) : '';
     const customBottomCount = hasCustomIO ? (swapCustomIORows ? inputPins.length : outputPins.length) : 0;
     const customSidePins = renderCustomIOSidePins ? [...inputPins, ...outputPins] : [];
-    const keepCustomPinsSameSide = hasCustomIO && (isSpeakerWithThru(instr) || instr.type === 'amp');
+    const keepCustomPinsSameSide = hasCustomIO && (isSpeakerWithThru(instr) || instr.type === 'amp' || instr.type === 'router' || instr.type === 'p16d');
     const useDualSideCustomIO = hasCustomIO && !renderCustomIOSidePins && !keepCustomPinsSameSide;
     const inputSide = side;
     const outputSide = oppositeSide(side);
@@ -8160,9 +8196,10 @@ function renderInstrument(instr) {
     const sameSidePins = (renderCustomIOSidePins || keepCustomPinsSameSide)
       ? [...inputPins, ...outputPins]
       : [];
+    const sidePinEdgePadding = (instr.type === 'p16d' && (side === 'left' || side === 'right')) ? 6 : 14;
     const sameSidePinsHTML = sameSidePins.map((p, idx) => `
-      <div class="iconn${isPinUsed(instr.id, p.key)?' used':''}" style="${getMainPinStyle(side, idx, sameSidePins.length)}" data-pin="${p.key}" title="${buildPinTitle(instr, p.key, p.label)}"></div>
-      <div class="pin-tag" style="${getPinTagStyle(side, idx, sameSidePins.length)}">${p.label}</div>
+      <div class="iconn${isPinUsed(instr.id, p.key)?' used':''}" style="${getMainPinStyle(side, idx, sameSidePins.length, sidePinEdgePadding)}" data-pin="${p.key}" title="${buildPinTitle(instr, p.key, p.label)}"></div>
+      <div class="pin-tag" style="${getPinTagStyle(side, idx, sameSidePins.length, sidePinEdgePadding)}">${p.label}</div>
     `).join('');
     const customSidePinsHTML = customSidePins.map((p, idx) => `
       <div class="iconn${isPinUsed(instr.id, p.key)?' used':''}" style="${getMainPinStyle(side, idx, customSidePins.length)}" data-pin="${p.key}" title="${buildPinTitle(instr, p.key, p.label)}"></div>
@@ -8854,6 +8891,7 @@ function selectInstrument(id) {
   const ampExtra = document.getElementById('amp-extra');
   const haExtra = document.getElementById('ha-extra');
   const outletExtra = document.getElementById('outlet-extra');
+  const routerExtra = document.getElementById('router-extra');
   if(isConnectionBoxInstrument(instr)) {
     connTypeWrap.style.display = 'none';
     micWrap.style.display = 'none';
@@ -8866,6 +8904,7 @@ function selectInstrument(id) {
     ampExtra.style.display = 'none';
     haExtra.style.display = 'none';
     outletExtra.style.display = 'none';
+    if(routerExtra) routerExtra.style.display = 'none';
     if(wirelessLinkWrap) wirelessLinkWrap.style.display = 'none';
     renderAttachedAccessoryUI(instr);
   } else {
@@ -8929,6 +8968,7 @@ function selectInstrument(id) {
       if(haMainToggle) haMainToggle.checked = !!instr.haUseMainInputs;
     }
     outletExtra.style.display = 'none';
+    if(routerExtra) routerExtra.style.display = 'none';
     renderAttachedAccessoryUI(instr);
   }
   // snake extras
@@ -8955,6 +8995,16 @@ function selectInstrument(id) {
     renderOutletPortNamesUI(instr);
   } else {
     outletExtra.style.display = 'none';
+  }
+
+  if(routerExtra) {
+    if(instr.type === 'router') {
+      routerExtra.style.display = 'block';
+      const routerPortsInput = document.getElementById('p-router-ports');
+      if(routerPortsInput) routerPortsInput.value = normalizeOutletPortCount(instr.outletPorts, instr, 4);
+    } else {
+      routerExtra.style.display = 'none';
+    }
   }
 
   // drumkit extras
@@ -9402,6 +9452,22 @@ function updOutletPorts(value) {
   pushHistoryState();
   instr.outletPorts = next;
   instr.outletPortNames = normalizeOutletPortNames(instr.outletPortNames, next, instr);
+  markDirty();
+  renderInstrument(instr);
+  selectInstrument(instr.id);
+  updateClasses();
+  render();
+}
+
+function updRouterPorts(value) {
+  if(!selectedId) return;
+  const instr = instruments.find(i => i.id === selectedId); if(!instr || instr.type !== 'router') return;
+  const next = normalizeOutletPortCount(value, instr, 4);
+  const input = document.getElementById('p-router-ports');
+  if(input) input.value = next;
+  if(normalizeOutletPortCount(instr.outletPorts, instr, 4) === next) return;
+  pushHistoryState();
+  instr.outletPorts = next;
   markDirty();
   renderInstrument(instr);
   selectInstrument(instr.id);
@@ -9969,11 +10035,11 @@ function deleteInstrument(id) {
 
 
 function isOutputPin(pin) {
-  return typeof pin === 'string' && (pin === 'MONO' || pin === 'L' || pin === 'R' || pin.startsWith('DM-') || pin.startsWith('OUT-') || pin.startsWith('STAGE-OUT-') || pin.startsWith('CABLE-OUT-') || pin.startsWith('OUTLET-OUT-') || (pin.startsWith('MX-AUX-') && !pin.startsWith('MX-AUX-IN-')) || pin.startsWith('MX-MAIN-') || pin.startsWith('MX-JACK-OUT-') || pin.startsWith('MX-HP-') || pin.startsWith('MX-P16-') || pin.startsWith('MX-AES50-') || pin.startsWith('IO-OUT-') || pin.startsWith('HA-OUT-') || pin === 'AMP-OUT' || pin.startsWith('AMP-OUT-') || pin.startsWith('PAMP-OUT-') || pin === 'SPK-OUT' || pin === 'P16-THRU' || pin === 'P16-HP');
+  return typeof pin === 'string' && (pin === 'MONO' || pin === 'L' || pin === 'R' || pin.startsWith('DM-') || pin.startsWith('OUT-') || pin.startsWith('STAGE-OUT-') || pin.startsWith('CABLE-OUT-') || pin.startsWith('OUTLET-OUT-') || (pin.startsWith('MX-AUX-') && !pin.startsWith('MX-AUX-IN-')) || pin.startsWith('MX-MAIN-') || pin.startsWith('MX-JACK-OUT-') || pin.startsWith('MX-HP-') || pin.startsWith('MX-P16-') || pin.startsWith('MX-AES50-') || pin.startsWith('IO-OUT-') || pin.startsWith('HA-OUT-') || pin === 'AMP-OUT' || pin.startsWith('AMP-OUT-') || pin.startsWith('PAMP-OUT-') || pin === 'SPK-OUT' || pin === 'P16-THRU' || pin === 'P16-HP' || pin.startsWith('P16D-OUT-'));
 }
 
 function isInputPin(pin) {
-  return typeof pin === 'string' && (pin.startsWith('IN-') || pin.startsWith('STAGE-IN-') || pin.startsWith('CABLE-IN-') || pin.startsWith('OUTLET-IN-') || pin.startsWith('MX-IN-') || pin.startsWith('MX-AUX-IN-') || pin.startsWith('IO-IN-') || pin.startsWith('HA-IN-') || pin === 'AMP-IN' || pin.startsWith('AMP-IN-') || pin.startsWith('PAMP-IN-') || pin === 'SPK-IN' || pin === 'P16-IN');
+  return typeof pin === 'string' && (pin.startsWith('IN-') || pin.startsWith('STAGE-IN-') || pin.startsWith('CABLE-IN-') || pin.startsWith('OUTLET-IN-') || pin.startsWith('MX-IN-') || pin.startsWith('MX-AUX-IN-') || pin.startsWith('IO-IN-') || pin.startsWith('HA-IN-') || pin === 'AMP-IN' || pin.startsWith('AMP-IN-') || pin.startsWith('PAMP-IN-') || pin === 'SPK-IN' || pin === 'P16-IN' || pin === 'P16D-IN' || pin.startsWith('ROUTER-LAN-'));
 }
 
 function isEndpointOnlyOutput(instr, pin) {
@@ -9984,6 +10050,7 @@ function isEndpointOnlyOutput(instr, pin) {
   if(isMixerBox(instr) && ((key.startsWith('MX-AUX-') && !key.startsWith('MX-AUX-IN-')) || key.startsWith('MX-MAIN-') || key.startsWith('MX-JACK-OUT-') || key.startsWith('MX-HP-') || key.startsWith('MX-P16-') || key.startsWith('MX-AES50-'))) return true;
   if(instr.type === 'ha8000' && key.startsWith('HA-OUT-')) return true;
   if(instr.type === 'p16' && key === 'P16-HP') return true;
+  if(instr.type === 'p16d' && key.startsWith('P16D-OUT-')) return true;
   if(isSpeakerWithThru(instr) && key === 'SPK-OUT') return true;
   return false;
 }
@@ -10217,10 +10284,11 @@ function validateConnection(fromObj, toObj) {
   const fromPersonalMixerPort = isMixerBox(fromInstr) && fromKey.startsWith('MX-P16-');
   const fromOutletEthernetPort = isOutletBox(fromInstr) && getOutletPortCableTypeForPin(fromInstr, fromObj.pin) === 'ethernet';
   const fromP16ThruPort = fromInstr.type === 'p16' && fromKey === 'P16-THRU';
-  if(toInstr.type === 'p16' && !fromPersonalMixerPort && !fromOutletEthernetPort && !fromP16ThruPort) {
+  const fromP16DOutPort = fromInstr.type === 'p16d' && fromKey.startsWith('P16D-OUT-');
+  if(toInstr.type === 'p16' && !fromPersonalMixerPort && !fromOutletEthernetPort && !fromP16ThruPort && !fromP16DOutPort) {
     return {
       valid:false,
-      message:'P16 accepts Personal Monitoring Ethernet from mixer PM outputs, outlet ethernet ports, or another P16 THRU.'
+      message:'P16 accepts Personal Monitoring Ethernet from mixer PM outputs, outlet ethernet ports, P16-D OUT ports, or another P16 THRU.'
     };
   }
 
@@ -11991,6 +12059,14 @@ function getReportCableHopClass(label) {
   return 'default';
 }
 
+function buildConnectionBoxInputConnectorBadgeHTML(pinTone, conn) {
+  const connectorLabel = (pinTone === 'input' && conn && conn.label)
+    ? formatInlineConnectorLabel(conn.label)
+    : '';
+  if(!connectorLabel) return '';
+  return ` <span class="report-cable-hop report-cable-hop-${getReportCableHopClass(connectorLabel)}">${escapeHtml(connectorLabel)}</span>`;
+}
+
 function getCompactSnakeEndpointLabel(instr, pin, omitMono = false) {
   if(!instr) return 'Unknown';
   const pinLabel = getReportPinLabel(instr, pin);
@@ -12040,15 +12116,14 @@ function buildAttachedAccessoryRouteHTML(instr, pin, endpointHTML) {
   if(!instr || !hasAttachedAccessory(instr)) return endpointHTML;
   const typeLabel = getAttachedAccessoryLabel(instr.attachedAccessoryType);
   const pinId = pinKey(pin);
-  const instrumentInputStereo = isPrimarySignalModeStereo(instr);
-  const accessoryInputPort = instrumentInputStereo ? (pinId === 'R' ? 'I2' : 'I1') : 'I1';
-  const accessoryOutputPort = instr.attachedAccessoryStereo ? (pinId === 'R' ? 'O2' : 'O1') : 'O1';
-  const instrumentInputType = normalizeCableType((instr && instr.connectorMode) === 'jack' ? 'ts' : 'xlr');
-  const inputCableLabel = formatInlineConnectorLabel(getCableTypeLabel(instrumentInputType));
   const outputCableLabel = formatInlineConnectorLabel(getCableTypeLabel(normalizeAttachedAccessoryCableType(instr.attachedAccessoryOutputCableType || instr.attachedAccessoryCableType)));
-  const inputHopClass = getReportCableHopClass(inputCableLabel);
   const outputHopClass = getReportCableHopClass(outputCableLabel);
-  return `<span class="report-cable-hop report-cable-hop-${inputHopClass}">${escapeHtml(inputCableLabel)}</span> ${escapeHtml(typeLabel)} ${escapeHtml(accessoryInputPort)} -> ${escapeHtml(accessoryOutputPort)} -> <span class="report-cable-hop report-cable-hop-${outputHopClass}">${escapeHtml(outputCableLabel)}</span> ${endpointHTML}`;
+  if(normalizeAttachedAccessoryType(instr.attachedAccessoryType) === 'di') {
+    const diPort = instr.attachedAccessoryStereo ? (pinId === 'R' ? '2' : '1') : '';
+    const diLabel = diPort ? `${typeLabel} ${diPort}` : typeLabel;
+    return `${escapeHtml(diLabel)} -> <span class="report-cable-hop report-cable-hop-${outputHopClass}">${escapeHtml(outputCableLabel)}</span> ${endpointHTML}`;
+  }
+  return `${escapeHtml(typeLabel)} -> <span class="report-cable-hop report-cable-hop-${outputHopClass}">${escapeHtml(outputCableLabel)}</span> ${endpointHTML}`;
 }
 
 function getReportRelevantConnections(selectedIds, hasSelection) {
@@ -12330,7 +12405,7 @@ function buildReportPinLine(instr, pin, notePrefix = '') {
   const pinTone = getReportPinTone(instr, pin);
   if(!pinConnections.length) return '';
 
-  if(instr && isSnakeBox(instr)) {
+  if(instr && (isSnakeBox(instr) || isMixerBox(instr) || isStageboxBox(instr))) {
     return pinConnections.map(conn => {
       const other = getReportOtherEndpoint(conn, instr.id);
       const otherText = other && other.instr ? describeReportEndpoint(other.instr, other.pin, conn.id) : 'Unknown';
@@ -12341,8 +12416,9 @@ function buildReportPinLine(instr, pin, notePrefix = '') {
       if(!isReportAccessory(other && other.instr) && hasVirtualAccessory) {
         destinationHTML = buildAttachedAccessoryRouteHTML(other.instr, other.pin, destinationHTML);
       }
+      const connectorBadge = buildConnectionBoxInputConnectorBadgeHTML(pinTone, conn);
       const numberMarkup = `<span class="report-inline-key report-pin-tone-${pinTone}">${escapeHtml(pinLabel)}</span>`;
-      return `<div class="report-pin-line compact"><div class="report-pin-main">${numberMarkup} - ${destinationHTML}</div></div>`;
+      return `<div class="report-pin-line compact"><div class="report-pin-main">${numberMarkup}${connectorBadge} - ${destinationHTML}</div></div>`;
     }).join('');
   }
 
@@ -12361,7 +12437,7 @@ function buildReportPinLine(instr, pin, notePrefix = '') {
     if(hasVirtualAccessory) endpointHTML = buildAttachedAccessoryRouteHTML(other.instr, other.pin, endpointHTML);
     return `<div class="report-pin-line">
       <div class="report-pin-key report-pin-tone-${pinTone}">${escapeHtml(pinLabel)}</div>
-      <div class="report-pin-main">Connect to ${endpointHTML}</div>
+      <div class="report-pin-main">${endpointHTML}</div>
       <div class="report-pin-meta">${escapeHtml(conn.label || 'Cable')} ${extraNote ? `· ${escapeHtml(extraNote)}` : ''}</div>
       ${accessoryHint}
     </div>`;
@@ -12392,6 +12468,8 @@ function getReportPinTone(instr, pin) {
 
   if(key.startsWith('MX-IN-') || key.startsWith('MX-AUX-IN-')) return 'input';
   if(key === 'P16-IN') return 'input';
+  if(key === 'P16D-IN' || key.startsWith('ROUTER-LAN-')) return 'input';
+  if(key.startsWith('P16D-OUT-')) return 'output';
   if(key === 'P16-THRU' || key === 'P16-HP') return 'output';
   if(key.startsWith('MX-AUX-') || key.startsWith('MX-MAIN-') || key.startsWith('MX-JACK-OUT-') || key.startsWith('MX-HP-')) return 'output';
   if(key.startsWith('MX-P16-') || key.startsWith('MX-AES50-') || key.startsWith('MX-USB-')) return 'other';
@@ -12536,6 +12614,17 @@ function absolutizeImageSourcesInHTML(html) {
   });
 }
 
+function formatReportDistanceMeters(value) {
+  const num = Number(value);
+  if(!Number.isFinite(num)) return '0';
+  return Number.isInteger(num) ? String(num) : num.toFixed(2).replace(/\.?0+$/, '');
+}
+
+function getReportStagePartDimsLabel(part) {
+  if(!part) return '';
+  return `${formatReportDistanceMeters(part.widthM)}m × ${formatReportDistanceMeters(part.depthM)}m`;
+}
+
 function buildReportStageSvg(orientation) {
   const bounds = getReportStageBounds();
   const width = Math.max(1, bounds.right - bounds.left);
@@ -12552,16 +12641,36 @@ function buildReportStageSvg(orientation) {
   const stagePartSvg = stageParts.map(part => {
     const partW = Math.max(24, Math.max(0.5, Number(part.widthM) || 1) * pxPerM);
     const partD = Math.max(24, Math.max(0.5, Number(part.depthM) || 1) * pxPerM);
-    const x = (part.x - bounds.left).toFixed(2);
-    const y = (part.y - bounds.top).toFixed(2);
+    const partX = part.x - bounds.left;
+    const partY = part.y - bounds.top;
+    const x = partX.toFixed(2);
+    const y = partY.toFixed(2);
     const fill = /^#[0-9a-fA-F]{6}$/.test(String(part.color || '')) ? part.color : '#7da7c8';
     const label = escapeHtml(part.label || 'Stage');
+    const dimsLabel = escapeHtml(getReportStagePartDimsLabel(part));
+    const hasSteps = part.shape === 'rect' && (!!part.hasSteps || String(part.label || '').trim().toUpperCase() === 'STAIRS');
+    const stepLines = hasSteps
+      ? (() => {
+        const lines = [];
+        const startY = partY + 6;
+        const endY = partY + partD - 4;
+        for(let lineY = startY; lineY <= endY; lineY += 7) {
+          lines.push(`<line x1="${(partX + 2).toFixed(2)}" y1="${lineY.toFixed(2)}" x2="${(partX + partW - 2).toFixed(2)}" y2="${lineY.toFixed(2)}" stroke="rgba(10,11,13,.22)" stroke-width="2" />`);
+        }
+        return lines.join('');
+      })()
+      : '';
     const partShape = part.shape === 'circle'
-      ? `<circle cx="${(part.x - bounds.left + partW / 2).toFixed(2)}" cy="${(part.y - bounds.top + partD / 2).toFixed(2)}" r="${Math.min(partW, partD) / 2}" fill="${fill}" stroke="rgba(10,11,13,.45)" stroke-width="2" />`
+      ? `<circle cx="${(partX + partW / 2).toFixed(2)}" cy="${(partY + partD / 2).toFixed(2)}" r="${Math.min(partW, partD) / 2}" fill="${fill}" stroke="rgba(10,11,13,.45)" stroke-width="2" />`
       : `<rect x="${x}" y="${y}" width="${partW.toFixed(2)}" height="${partD.toFixed(2)}" rx="8" ry="8" fill="${fill}" stroke="rgba(10,11,13,.45)" stroke-width="2" />`;
-    const labelX = part.x - bounds.left + (partW / 2);
-    const labelY = part.y - bounds.top + (partD / 2) + 4;
-    return `<g>${partShape}<text x="${labelX.toFixed(2)}" y="${labelY.toFixed(2)}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="10" fill="#ffffff" opacity=".92">${label}</text></g>`;
+    const labelX = partX + (partW / 2);
+    const labelY = partY + (partD / 2) + 1;
+    const dimsY = labelY + 10;
+    const clipId = `report-part-steps-${part.id}`;
+    const stepOverlay = hasSteps
+      ? `<clipPath id="${clipId}"><rect x="${x}" y="${y}" width="${partW.toFixed(2)}" height="${partD.toFixed(2)}" rx="8" ry="8" /></clipPath><g clip-path="url(#${clipId})">${stepLines}</g>`
+      : '';
+    return `<g>${partShape}${stepOverlay}<text x="${labelX.toFixed(2)}" y="${labelY.toFixed(2)}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="10" fill="#ffffff" opacity=".94">${label}</text><text x="${labelX.toFixed(2)}" y="${dimsY.toFixed(2)}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="8" fill="#ffffff" opacity=".9">${dimsLabel}</text></g>`;
   }).join('');
 
   const instrumentSvg = instruments.map(instr => {
@@ -12699,15 +12808,20 @@ function buildReportItemCard(instr) {
   `;
 }
 
-function getSnakeReportPinIndex(key) {
-  const match = String(key || '').match(/^SNAKE-(IN|OUT)-(\d+)$/);
-  if(!match) return null;
-  return { family: match[1], index: parseInt(match[2], 10) || 0 };
+function getConnectionBoxReportPinIndex(key) {
+  const text = String(key || '');
+  const snakeMatch = text.match(/^SNAKE-(IN|OUT)-(\d+)$/);
+  if(snakeMatch) return { family: `SNAKE-${snakeMatch[1]}`, index: parseInt(snakeMatch[2], 10) || 0 };
+
+  const mixerMatch = text.match(/^MX-(IN|AUX-IN|AUX|MAIN|JACK-OUT|HP|P16|AES50|USB)-(\d+)$/);
+  if(mixerMatch) return { family: `MX-${mixerMatch[1]}`, index: parseInt(mixerMatch[2], 10) || 0 };
+
+  return null;
 }
 
-function shouldShowSnakeGapIndicator(prevKey, nextKey) {
-  const prev = getSnakeReportPinIndex(prevKey);
-  const next = getSnakeReportPinIndex(nextKey);
+function shouldShowConnectionBoxGapIndicator(prevKey, nextKey) {
+  const prev = getConnectionBoxReportPinIndex(prevKey);
+  const next = getConnectionBoxReportPinIndex(nextKey);
   if(!prev || !next) return false;
   if(prev.family !== next.family) return false;
   return (next.index - prev.index) > 1;
@@ -12725,8 +12839,15 @@ function addReportPinLineClass(html, className) {
 function buildReportPinGroupHTML(instr, group) {
   const lineEntries = (group.pins || []).map(pin => ({ key: pin.key, html: buildReportPinLine(instr, pin.key) })).filter(entry => !!entry.html);
   if(!lineEntries.length) return '';
-  if(instr && isSnakeBox(instr)) {
-    const columnCount = Math.min(3, Math.max(1, lineEntries.length));
+  if(instr && (isSnakeBox(instr) || isMixerBox(instr) || isStageboxBox(instr))) {
+    let columnCount = 1;
+    if(isSnakeBox(instr)) {
+      columnCount = Math.min(3, Math.max(1, lineEntries.length));
+    } else {
+      if(lineEntries.length >= 28) columnCount = 4;
+      else if(lineEntries.length >= 14) columnCount = 3;
+      else if(lineEntries.length >= 7) columnCount = 2;
+    }
     const baseSize = Math.floor(lineEntries.length / columnCount);
     const remainder = lineEntries.length % columnCount;
     let start = 0;
@@ -12735,11 +12856,13 @@ function buildReportPinGroupHTML(instr, group) {
       const size = baseSize + (index < remainder ? 1 : 0);
       const entries = lineEntries.slice(start, start + size);
       const decorated = entries.map(entry => entry.html);
-      for(let i = 1; i < entries.length; i++) {
-        const prev = entries[i - 1];
-        const curr = entries[i];
-        if(shouldShowSnakeGapIndicator(prev.key, curr.key)) {
-          decorated[i] = addReportPinLineClass(decorated[i], 'report-gap-before');
+      if(isSnakeBox(instr) || isMixerBox(instr) || isStageboxBox(instr)) {
+        for(let i = 1; i < entries.length; i++) {
+          const prev = entries[i - 1];
+          const curr = entries[i];
+          if(shouldShowConnectionBoxGapIndicator(prev.key, curr.key)) {
+            decorated[i] = addReportPinLineClass(decorated[i], 'report-gap-before');
+          }
         }
       }
       const html = decorated.join('');
@@ -12790,14 +12913,20 @@ function getReportStageSnapshotData(stageOrientation) {
   const parts = stageParts.map(part => {
     const partW = Math.max(24, Math.max(0.5, Number(part.widthM) || 1) * pxPerM);
     const partH = Math.max(24, Math.max(0.5, Number(part.depthM) || 1) * pxPerM);
+    const widthM = Math.max(0.5, Number(part.widthM) || 1);
+    const depthM = Math.max(0.5, Number(part.depthM) || 1);
     return {
       x: part.x - bounds.left,
       y: part.y - bounds.top,
       width: partW,
       height: partH,
+      widthM,
+      depthM,
+      hasSteps: !!part.hasSteps || String(part.label || '').trim().toUpperCase() === 'STAIRS',
       shape: part.shape,
       color: /^#[0-9a-fA-F]{6}$/.test(String(part.color || '')) ? part.color : '#7da7c8',
       label: part.label || 'Stage',
+      dimsLabel: getReportStagePartDimsLabel({ widthM, depthM }),
     };
   });
 
@@ -13424,6 +13553,7 @@ function buildSceneDiffReportPayload(reportOptions = {}) {
   }
 
   const utilityRows = buildGlobalUtilityCountRows(selectedScenes);
+  const showGlobalUtilitySection = selectedScenes.length > 1 && !!String(utilityRows || '').trim();
   const appendHtml = `
     <style>
       .scene-report-append{margin-top:18px;}
@@ -13450,16 +13580,18 @@ function buildSceneDiffReportPayload(reportOptions = {}) {
     </style>
     <section class="scene-report-append">
       ${sections.join('')}
-      <section class="scene-report-section scene-report-break">
-        <h2>Global Utility Count (Selected Scenes)</h2>
-        <p class="scene-meta">Uses the same utility categories as the standard report table (DI + stand types).</p>
-        <section class="scene-diff-block">
-          <table>
-            <thead><tr><th>Utility</th><th>Count</th></tr></thead>
-            <tbody>${utilityRows || '<tr><td colspan="2">No utility items in selected scenes.</td></tr>'}</tbody>
-          </table>
+      ${showGlobalUtilitySection ? `
+        <section class="scene-report-section scene-report-break">
+          <h2>Global Utility Count (Selected Scenes)</h2>
+          <p class="scene-meta">Uses the same utility categories as the standard report table (DI + stand types).</p>
+          <section class="scene-diff-block">
+            <table>
+              <thead><tr><th>Utility</th><th>Count</th></tr></thead>
+              <tbody>${utilityRows}</tbody>
+            </table>
+          </section>
         </section>
-      </section>
+      ` : ''}
     </section>
   `;
 
@@ -13967,13 +14099,14 @@ function buildReportHTML(reportOptions = {}, autoPrint = false) {
     });
   });
   standDefinitions.sort((a, b) => String(a.label).localeCompare(String(b.label)));
-  const utilityCountRows = [
+  const utilityCountEntries = [
     { label: 'DI', count: diCount },
     ...standDefinitions.map(def => ({
       label: def.label,
       count: standUsage.get(def.type) || 0,
     })),
-  ].map(row => `
+  ].filter(row => Number(row.count) > 0);
+  const utilityCountRows = utilityCountEntries.map(row => `
       <tr>
         <td>${escapeHtml(row.label)}</td>
         <td>${row.count}</td>
@@ -14043,7 +14176,9 @@ function buildReportHTML(reportOptions = {}, autoPrint = false) {
   .report-pin-group-title{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
   .report-pin-list{display:grid;gap:8px;}
   .report-pin-columns{display:grid;gap:10px;align-items:start;}
+  .report-item-card.mixer-card .report-pin-columns,.report-item-card.stagebox-card .report-pin-columns{gap:8px;}
   .report-pin-column{display:grid;gap:8px;align-content:start;}
+  .report-item-card.mixer-card .report-pin-column,.report-item-card.stagebox-card .report-pin-column{gap:6px;}
   .report-pin-line{display:grid;grid-template-columns:120px 1fr;gap:4px 12px;align-items:start;background:#fbfdff;border:1px solid #e3eaf2;border-radius:12px;padding:10px 12px;}
   .report-pin-line.compact{grid-template-columns:1fr;padding:8px 10px;}
   .report-pin-line.compact.report-gap-before{position:relative;}
@@ -14080,6 +14215,7 @@ function buildReportHTML(reportOptions = {}, autoPrint = false) {
   @media print{
     body{padding:0;}
     .report-cover{break-after:auto;page-break-after:auto;margin-bottom:14px;}
+    .report-cover.with-stage-image{break-after:page;page-break-after:always;}
     .report-section{break-inside:auto;page-break-inside:auto;}
     .report-section h2{break-after:avoid;page-break-after:avoid;}
     .report-item-list{display:block;break-before:avoid;page-break-before:avoid;}
@@ -14092,7 +14228,7 @@ function buildReportHTML(reportOptions = {}, autoPrint = false) {
 </style>
 </head>
 <body>
-<section class="report-cover">
+<section class="report-cover ${includeStageImage ? 'with-stage-image' : ''}">
   <div class="report-header">
     <h1>Project: ${escapeHtml(safeProjectName)}</h1>
     <div class="meta">Generated: ${escapeHtml(now)}</div>
@@ -14114,13 +14250,15 @@ function buildReportHTML(reportOptions = {}, autoPrint = false) {
       </table>
       <div class="report-cable-size-note">Estimated from routed stage distance plus endpoint slack, then rounded up to the next stocked cable size.</div>
     ` : ''}
-    <table class="report-cable-size-table">
-      <thead>
-        <tr><th>Utility</th><th>Count</th></tr>
-      </thead>
-      <tbody>${utilityCountRows}</tbody>
-    </table>
-    <div class="report-cable-size-note">Includes DI and all stand types defined in the palette. Unused stand types are shown as 0.</div>
+    ${utilityCountRows ? `
+      <table class="report-cable-size-table">
+        <thead>
+          <tr><th>Utility</th><th>Count</th></tr>
+        </thead>
+        <tbody>${utilityCountRows}</tbody>
+      </table>
+      <div class="report-cable-size-note">Includes DI and stand types that are used in this report.</div>
+    ` : ''}
   </section>
 </main>
 
@@ -14370,11 +14508,26 @@ function drawReportStageSnapshot(ctx, data, byKey, byAccessoryKey = new Map(), b
       roundRect(ctx, part.x, part.y, part.width, part.height, 8);
       ctx.fill();
       ctx.stroke();
+      if(part.hasSteps) {
+        ctx.save();
+        roundRect(ctx, part.x, part.y, part.width, part.height, 8);
+        ctx.clip();
+        ctx.fillStyle = 'rgba(10,11,13,.22)';
+        for(let y = part.y + 6; y <= (part.y + part.height - 4); y += 7) {
+          ctx.fillRect(part.x + 2, y, Math.max(0, part.width - 4), 2);
+        }
+        ctx.restore();
+      }
     }
     ctx.fillStyle = '#ffffff';
     ctx.font = '10px "Share Tech Mono", monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(part.label, part.x + part.width / 2, part.y + part.height / 2 + 4);
+    const partCenterX = part.x + (part.width / 2);
+    const labelY = part.y + (part.height / 2) + 1;
+    ctx.fillText(part.label, partCenterX, labelY);
+    ctx.font = '8px "Share Tech Mono", monospace';
+    ctx.fillStyle = 'rgba(255,255,255,.92)';
+    ctx.fillText(part.dimsLabel || getReportStagePartDimsLabel(part), partCenterX, labelY + 10);
   });
 
   (data.connections || []).forEach(conn => {
