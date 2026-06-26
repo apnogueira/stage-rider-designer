@@ -10227,6 +10227,12 @@ function validateConnection(fromObj, toObj) {
 
   const fromKey = pinKey(fromObj.pin);
   const toKey = pinKey(toObj.pin);
+  const fromAllowedTypes = getPinAllowedCableTypes(fromInstr, fromObj.pin);
+  const toAllowedTypes = getPinAllowedCableTypes(toInstr, toObj.pin);
+  const isEthernetPair = Array.isArray(fromAllowedTypes)
+    && Array.isArray(toAllowedTypes)
+    && fromAllowedTypes.includes('ethernet')
+    && toAllowedTypes.includes('ethernet');
 
   if(!canSourcePinAcceptAnotherConnection(fromInstr, fromObj.id, fromKey)) {
     return {
@@ -10266,7 +10272,7 @@ function validateConnection(fromObj, toObj) {
   }
 
   const allowsHA400MonitoringFeed = isHeadphoneOutputPin(fromInstr, fromObj.pin) && isHA400MonitoringInput(toInstr, toObj.pin);
-  if(!isSnakeBox(fromInstr) && isEndpointOnlyOutput(fromInstr, fromObj.pin) && !toInstr.requiresOutput && !allowsHA400MonitoringFeed) {
+  if(!isSnakeBox(fromInstr) && isEndpointOnlyOutput(fromInstr, fromObj.pin) && !toInstr.requiresOutput && !allowsHA400MonitoringFeed && !isEthernetPair) {
     return {
       valid:false,
       message:`${fromInstr.label} output ${fromKey} can only connect to output devices.`
@@ -10295,7 +10301,7 @@ function validateConnection(fromObj, toObj) {
   // Output pins cannot be destination points.
   if(isEffectiveOutputPin(toInstr, toObj.pin)) {
     const canReceiveOnMonitoringPin = !!toInstr.requiresOutput && (toKey === 'MONO' || toKey === 'L' || toKey === 'R');
-    if(canReceiveOnMonitoringPin) {
+    if(canReceiveOnMonitoringPin || isEthernetPair) {
       // Allowed: monitoring destinations use the regular MONO/L/R dot as a receive pin.
     } else {
     return {
