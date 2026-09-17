@@ -6826,6 +6826,8 @@ function renderInstrument(instr) {
   if(shouldHideWirelessReceiver(instr)) return;
 
   const el = document.createElement('div');
+  const instrumentIndex = instruments.findIndex(item => item.id === instr.id);
+  el.style.zIndex = String(21 + stageParts.length + Math.max(0, instrumentIndex));
   const boxKind = getConnectionBoxKind(instr);
   const visibleLabel = getVisibleInstrumentLabel(instr);
   const safeVisibleLabel = escapeHtml(visibleLabel);
@@ -8804,16 +8806,21 @@ function refreshInstrEl(instr) {
 }
 
 function updateClasses() {
+  const stagePartLayerBase = 20;
+  const cableLayer = stagePartLayerBase + stageParts.length;
+  const instrumentLayerBase = cableLayer + 1;
+  const connectionCanvas = document.getElementById('conn-canvas');
+  if(connectionCanvas) connectionCanvas.style.zIndex = String(cableLayer);
   const selectedIds = new Set(getWirelessSelectionIds(selectedId));
   instruments.forEach((instr, index)=>{
     const el=getEl(instr.id); if(!el) return;
-    el.style.zIndex = String(30 + index);
+    el.style.zIndex = String(instrumentLayerBase + index);
     el.classList.toggle('selected', selectedIds.has(instr.id));
     el.classList.toggle('connecting-source', connectingFrom&&connectingFrom.id===instr.id);
   });
   stageParts.forEach((part, index) => {
     const el = getStagePartEl(part.id); if(!el) return;
-    el.style.zIndex = String(20 + index);
+    el.style.zIndex = String(stagePartLayerBase + index);
     el.classList.toggle('selected', part.id === selectedStagePartId);
   });
 }
