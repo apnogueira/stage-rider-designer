@@ -1348,7 +1348,7 @@ function applyPanelVisibility() {
 
   const leftBtn = document.getElementById('toggle-left-panel');
   if(leftBtn) {
-    leftBtn.textContent = isLeftPanelCollapsed ? 'â¯' : 'â®';
+    leftBtn.textContent = isLeftPanelCollapsed ? '\u276F' : '\u276E';
     leftBtn.setAttribute('aria-label', isLeftPanelCollapsed ? 'Expand left sidebar' : 'Collapse left sidebar');
     leftBtn.setAttribute('title', isLeftPanelCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
   }
