@@ -1,5 +1,9 @@
 function drawReportStageSnapshot(ctx, data, byKey, byAccessoryKey = new Map(), byMicStandKey = new Map()) {
   const { stage } = data;
+  ctx.save();
+  ctx.translate(stage.x + stage.width / 2, stage.y + stage.height / 2);
+  ctx.rotate((stage.angle || 0) * Math.PI / 180);
+  ctx.translate(-stage.x - stage.width / 2, -stage.y - stage.height / 2);
   ctx.fillStyle = stage.color;
   ctx.strokeStyle = stage.borderColor;
   ctx.lineWidth = 2;
@@ -16,8 +20,13 @@ function drawReportStageSnapshot(ctx, data, byKey, byAccessoryKey = new Map(), b
   ctx.font = '10px "Share Tech Mono", monospace';
   ctx.fillStyle = '#3b4e66';
   ctx.fillText(stage.dims, stage.x + stage.width / 2, stage.y + 30);
+  ctx.restore();
 
   data.parts.forEach(part => {
+    ctx.save();
+    ctx.translate(part.x + part.width / 2, part.y + part.height / 2);
+    ctx.rotate((part.angle || 0) * Math.PI / 180);
+    ctx.translate(-part.x - part.width / 2, -part.y - part.height / 2);
     ctx.fillStyle = part.color;
     ctx.strokeStyle = 'rgba(10,11,13,.45)';
     ctx.lineWidth = 2;
@@ -50,6 +59,7 @@ function drawReportStageSnapshot(ctx, data, byKey, byAccessoryKey = new Map(), b
     ctx.font = '8px "Share Tech Mono", monospace';
     ctx.fillStyle = 'rgba(255,255,255,.92)';
     ctx.fillText(part.dimsLabel || getReportStagePartDimsLabel(part), partCenterX, labelY + 10);
+    ctx.restore();
   });
 
   (data.connections || []).forEach(conn => {

@@ -107,6 +107,18 @@ let sceneTabDragId = null;
 let isLoadRiderPickerOpen = false;
 let isLoadScenesPickerOpen = false;
 let isStageBuilderMode = false;
+let isViewMode = false;
+const hiddenViewLayers = new Set();
+const VIEW_LAYERS = [
+  { id:'instruments', label:'Instruments' },
+  { id:'snake', label:'Snakes' },
+  { id:'mixers', label:'Mixers' },
+  { id:'stageboxes', label:'Stageboxes' },
+  { id:'monitoring', label:'PA and Monitoring' },
+  { id:'accessories', label:'Accessories' },
+  { id:'stands', label:'Stands and Hardware' },
+  { id:'connections', label:'Connections' },
+];
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // INIT
@@ -119,6 +131,7 @@ function init() {
   loadCustomMicOptions();
   buildCatTabs(); buildPalette('all'); buildSnakePalette(); buildMixerPalette(); buildStageboxPalette(); buildMonitoringPalette(); buildAccessoryPalette(); buildStandPalette();
   buildCableColors();
+  buildViewLayers();
   applyThemeMode();
   applyStageColor();
   syncRackVisualScale();
@@ -1772,6 +1785,7 @@ function renderSceneTabs() {
     tab.draggable = true;
     tab.addEventListener('click', () => switchToScene(scene.id));
     tab.addEventListener('dblclick', () => {
+      if(isViewMode) return;
       const next = prompt('Rename scene', String(scene.name || ''));
       if(next == null) return;
       const cleaned = String(next).trim();
@@ -1784,6 +1798,7 @@ function renderSceneTabs() {
       markDirty();
     });
     tab.addEventListener('dragstart', e => {
+      if(isViewMode) { e.preventDefault(); return; }
       sceneTabDragId = scene.id;
       tab.classList.add('dragging');
       if(e.dataTransfer) {
@@ -1856,7 +1871,8 @@ function deleteCurrentScene() {
 }
 
 function getModeHintText() {
-  if(isStageBuilderMode) return 'Stage Builder: add shapes, drag to position, and edit size/color on the right panel';
+  if(isViewMode) return 'View mode: read-only. Use Visible Layers to hide or show categories; zoom and pan to explore.';
+  if(isStageBuilderMode) return 'Stage Builder: add shapes, drag to position, rotate with the handle, or edit size/color/angle on the right panel';
   return 'Drag from palette Â· Click source pin then destination pin Â· Drop on left sidebar to delete';
 }
 
@@ -1975,6 +1991,14 @@ function updateSelectionPanels() {
   const stagePartFields = document.getElementById('stage-part-fields');
   if(!noSel || !propFields || !stagePartFields) return;
 
+  if(isViewMode) {
+    noSel.style.display = '';
+    noSel.textContent = 'View mode is read-only';
+    propFields.style.display = 'none';
+    stagePartFields.style.display = 'none';
+    return;
+  }
+
   if(isStageBuilderMode) {
     propFields.style.display = 'none';
     if(selectedStagePartId) {
@@ -2000,11 +2024,13 @@ function updateSelectionPanels() {
 }
 
 function applyModeUI() {
-  document.body.classList.toggle('stage-builder-mode', !!isStageBuilderMode);
+  document.body.classList.toggle('stage-builder-mode', isStageBuilderMode && !isViewMode);
+  document.body.classList.toggle('view-mode', isViewMode);
+  applyViewModeUI();
   updateModeToggleButton();
   const hint = document.getElementById('stage-hint');
   if(hint) hint.textContent = getModeHintText();
-  if(isStageBuilderMode) {
+  if(isStageBuilderMode || isViewMode) {
     selectedId = null;
     connectingFrom = null;
     drawingLine = null;
@@ -2012,19 +2038,87 @@ function applyModeUI() {
   } else {
     selectedStagePartId = null;
   }
+  if(isViewMode) selectedStagePartId = null;
   updateSelectionPanels();
   updateClasses();
   render();
 }
 
 function toggleStageBuilderMode() {
+  if(isViewMode) return;
   pushHistoryState();
   isStageBuilderMode = !isStageBuilderMode;
   markDirty();
   applyModeUI();
 }
 
+function buildViewLayers() {
+  const container = document.getElementById('view-layers');
+  VIEW_LAYERS.forEach(layer => {
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = true;
+    input.dataset.layer = layer.id;
+    input.addEventListener('change', () => {
+      if(input.checked) hiddenViewLayers.delete(layer.id);
+      else hiddenViewLayers.add(layer.id);
+      applyViewModeUI();
+      render();
+    });
+    label.append(input, document.createTextNode(layer.label));
+    container.appendChild(label);
+  });
+}
+
+function isInstrumentVisibleInView(instr) {
+  if(!isViewMode) return true;
+  const layer = isSnakeBox(instr) ? 'snake'
+    : (VIEW_LAYERS.some(item => item.id === instr.cat) ? instr.cat : 'instruments');
+  return !hiddenViewLayers.has(layer);
+}
+
+function isConnectionVisibleInView(conn) {
+  if(!isViewMode) return true;
+  return !hiddenViewLayers.has('connections') && [conn.fromId, conn.toId].every(id => {
+    const instr = instruments.find(item => item.id === id);
+    return instr && isInstrumentVisibleInView(instr);
+  });
+}
+
+function applyViewModeUI() {
+  const button = document.getElementById('view-mode-toggle');
+  button.textContent = isViewMode ? 'View: ON' : 'View: OFF';
+  button.setAttribute('aria-pressed', String(isViewMode));
+  button.classList.toggle('mode-toggle-active', isViewMode);
+  document.querySelectorAll('#properties-panel, #layers-menu, #scenes-menu, .project-name-wrap, .sidebar > .ss:first-of-type').forEach(el => {
+    el.inert = isViewMode;
+  });
+  document.querySelectorAll('#mode-toggle-mobile, [data-edit-action]').forEach(el => {
+    el.disabled = isViewMode;
+  });
+  instruments.forEach(instr => {
+    const el = getEl(instr.id);
+    if(el) el.classList.toggle('view-layer-hidden', !isInstrumentVisibleInView(instr));
+  });
+  document.body.classList.toggle('view-hide-accessories', isViewMode && hiddenViewLayers.has('accessories'));
+  document.body.classList.toggle('view-hide-stands', isViewMode && hiddenViewLayers.has('stands'));
+}
+
+function toggleViewMode() {
+  isViewMode = !isViewMode;
+  selectedId = null;
+  selectedStagePartId = null;
+  connectingFrom = null;
+  drawingLine = null;
+  hoveredConnectionId = null;
+  isDraggingNew = false;
+  newDragData = null;
+  applyModeUI();
+}
+
 function addStagePart(shape) {
+  if(!isStageBuilderMode || isViewMode) return;
   const nextShape = shape === 'circle' ? 'circle' : 'rect';
   pushHistoryState();
   const baseWidth = nextShape === 'circle' ? 2.2 : 3.4;
@@ -2056,6 +2150,11 @@ function renderStagePart(part) {
   if(!part || part.isPrimary) {
     const oldPrimaryEl = part ? getStagePartEl(part.id) : null;
     if(oldPrimaryEl) oldPrimaryEl.remove();
+    if(part) {
+      const platform = document.getElementById('stage-platform');
+      platform.querySelectorAll('.rot-handle').forEach(el => el.remove());
+      appendStagePartRotationHandle(platform, part);
+    }
     return;
   }
   const wrap = document.getElementById('canvas-wrap');
@@ -2071,26 +2170,48 @@ function renderStagePart(part) {
   el.style.height = `${depthPx}px`;
   el.style.setProperty('--part-color', String(part.color || '#7da7c8'));
   el.classList.toggle('has-steps', !!part.hasSteps);
-  positionWorldElement(el, part.x, part.y);
+  positionWorldElement(el, part.x, part.y, part.angle);
   const label = String(part.label || (part.shape === 'circle' ? 'ROOM CIRCLE' : 'ROOM'));
   const labelEl = document.createElement('div');
   labelEl.className = 'part-label';
   labelEl.textContent = label;
   el.textContent = '';
   el.appendChild(labelEl);
+  appendStagePartRotationHandle(el, part);
 
   el.addEventListener('mousedown', e => {
+    if(!isStageBuilderMode || isViewMode) return;
     e.preventDefault();
     e.stopPropagation();
     startStagePartDrag(e, part.id, el);
   });
   el.addEventListener('touchstart', e => {
+    if(!isStageBuilderMode || isViewMode) return;
     if(e.cancelable) e.preventDefault();
     e.stopPropagation();
     startStagePartDrag(e, part.id, el);
   }, { passive: false });
 
   wrap.appendChild(el);
+}
+
+function appendStagePartRotationHandle(el, part) {
+  const handle = document.createElement('button');
+  handle.type = 'button';
+  handle.className = 'rot-handle';
+  handle.innerHTML = '&#8635;';
+  handle.title = 'Rotate stage shape';
+  handle.setAttribute('aria-label', handle.title);
+  const start = e => {
+    if(!isStageBuilderMode || isViewMode) return;
+    if(e.cancelable) e.preventDefault();
+    e.stopPropagation();
+    selectStagePart(part.id);
+    startItemRotation(e, part, true);
+  };
+  handle.addEventListener('mousedown', start);
+  handle.addEventListener('touchstart', start, { passive:false });
+  el.appendChild(handle);
 }
 
 function reorderSelectedItem(step) {
@@ -2186,9 +2307,11 @@ function populateStagePartFields(part) {
   color.value = /^#[0-9a-fA-F]{6}$/.test(String(part.color || '')) ? part.color : '#7da7c8';
   steps.checked = !!part.hasSteps;
   stepsWrap.style.display = part.shape === 'rect' ? '' : 'none';
+  updateAngleKnobUI(part.angle || 0);
 }
 
 function selectStagePart(id) {
+  if(!isStageBuilderMode || isViewMode) return;
   selectedStagePartId = id;
   selectedId = null;
   const part = stageParts.find(p => p.id === id);
@@ -2304,7 +2427,7 @@ function deleteStagePart(id) {
 }
 
 function startStagePartDrag(ev, id, el) {
-  if(!isStageBuilderMode) return;
+  if(!isStageBuilderMode || isViewMode) return;
   const part = stageParts.find(p => p.id === id);
   if(!part) return;
   const dragSnapshot = captureSnapshot();
@@ -2333,7 +2456,7 @@ function startStagePartDrag(ev, id, el) {
     part.x = ((p.clientX - wr.left - panX) / zoomLevel) - offsetWorldX;
     part.y = ((p.clientY - wr.top - panY) / zoomLevel) - offsetWorldY;
     syncStagePartNormFromWorld(part, stagePx);
-    positionWorldElement(el, part.x, part.y);
+    positionWorldElement(el, part.x, part.y, part.angle);
     moved = true;
   }
 
@@ -2765,6 +2888,10 @@ function pasteCopiedItemFromClipboard() {
 
 function handleKeyboardShortcuts(e) {
   const key = (e.key || '').toLowerCase();
+  if(isViewMode && (key === 'delete' || key === 'backspace' || ((e.ctrlKey || e.metaKey) && ['v', 'z', 'y'].includes(key)))) {
+    e.preventDefault();
+    return;
+  }
 
   if(key === 'escape') {
     const helpModal = document.getElementById('help-modal');
@@ -2842,12 +2969,17 @@ function handleKeyboardShortcuts(e) {
   }
 }
 
-function positionWorldElement(el, x, y) {
+function positionWorldElement(el, x, y, angle = 0) {
   if(!el) return;
   el.style.left = `${panX + (x * zoomLevel)}px`;
   el.style.top = `${panY + (y * zoomLevel)}px`;
   el.style.transformOrigin = 'top left';
   el.style.transform = `scale(${zoomLevel})`;
+  if(angle) {
+    const cx = parseFloat(el.style.width) / 2;
+    const cy = parseFloat(el.style.height) / 2;
+    el.style.transform += ` translate(${cx}px,${cy}px) rotate(${angle}deg) translate(${-cx}px,${-cy}px)`;
+  }
 }
 
 function normalizeStageFrame(frame) {
@@ -3092,7 +3224,7 @@ function endTouchPaletteDrag(ev) {
 }
 
 function applyZoom() {
-  positionWorldElement(document.getElementById('stage-platform'), stagePx.left, stagePx.top);
+  positionWorldElement(document.getElementById('stage-platform'), stagePx.left, stagePx.top, getPrimaryStagePart()?.angle);
   positionWorldElement(document.getElementById('ruler-h'), stagePx.left, stagePx.top - 22);
   positionWorldElement(document.getElementById('ruler-v'), stagePx.left - 22, stagePx.top);
   positionWorldElement(document.getElementById('audience-label'), stagePx.left, stagePx.top + stagePx.height + 24);
@@ -3103,7 +3235,7 @@ function applyZoom() {
   });
   stageParts.forEach(part => {
     const el = getStagePartEl(part.id);
-    if(el) positionWorldElement(el, part.x, part.y);
+    if(el) positionWorldElement(el, part.x, part.y, part.angle);
   });
 
   const zr = document.getElementById('zoom-range');
@@ -4894,7 +5026,7 @@ function getSnapshotSignature(snapshot) {
     c.id, c.fromId, c.fromPin, c.toId, c.toPin, c.cableType, c.routeX,
   ].join('|')).join('||');
   const stagePartSig = (snapshot.stageParts || []).map(p => [
-    p.id, p.shape, p.label, p.x, p.y, p.widthM, p.depthM, p.color,
+    p.id, p.shape, p.label, p.x, p.y, p.widthM, p.depthM, p.color, p.angle,
   ].join('|')).join('||');
   return [
     snapshot.stageW,
@@ -4982,7 +5114,7 @@ function serializeLayout() {
       noConnect:!!noConnect,collapsed:!!collapsed,wirelessPairId:Number.isFinite(Number(wirelessPairId)) ? Number(wirelessPairId) : null,wirelessRole:wirelessRole || '',hideWirelessReceiver:!!hideWirelessReceiver
     })),
     connections:connections.map(({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX,routeNX})=>({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX,routeNX})),
-    stageParts:stageParts.map(({id,shape,isPrimary,label,x,y,stageNX,stageNY,widthM,depthM,color,hasSteps})=>({id,shape,isPrimary:!!isPrimary,label,x,y,stageNX,stageNY,widthM,depthM,color,hasSteps:!!hasSteps})),
+    stageParts:stageParts.map(({id,shape,isPrimary,label,x,y,stageNX,stageNY,widthM,depthM,color,hasSteps,angle})=>({id,shape,isPrimary:!!isPrimary,label,x,y,stageNX,stageNY,widthM,depthM,color,hasSteps:!!hasSteps,angle:angle || 0})),
     scenes: serializedScenes,
     activeSceneId,
     sceneIdCounter,
@@ -6209,7 +6341,7 @@ function render(refreshConnectionList = true) {
   ctx.clearRect(0,0,cv.width,cv.height);
   connectionHandleCache = [];
   connectionGeometryCache = new Map();
-  if(isStageBuilderMode) {
+  if((isStageBuilderMode && !isViewMode) || (isViewMode && hiddenViewLayers.has('connections'))) {
     if(refreshConnectionList) updateConnList();
     return;
   }
@@ -6223,6 +6355,7 @@ function render(refreshConnectionList = true) {
   drawCableBusTrunks(ctx, busState, focusedConnIds);
 
   connections.forEach(conn => {
+    if(!isConnectionVisibleInView(conn)) return;
     const a = getCenterOf(conn.fromId, conn.fromPin);
     const b = getCenterOf(conn.toId, conn.toPin);
     if(a&&b) {
@@ -6274,6 +6407,7 @@ function getDirectedBusGroupKey(conn) {
 function buildCableBusState() {
   const groups = new Map();
   connections.forEach(conn => {
+    if(!isConnectionVisibleInView(conn)) return;
     const key = getDirectedBusGroupKey(conn);
     if(!key) return;
     if(!groups.has(key)) groups.set(key, []);
@@ -6569,6 +6703,7 @@ function findConnectionAtPoint(x, y) {
 }
 
 function handleCanvasConnectionHover(e) {
+  if(isViewMode) return;
     scheduleRender(false);
   pendingHoverPoint = { x: e.clientX - wr.left, y: e.clientY - wr.top };
   if(hoverConnectionFrameId) return;
@@ -6598,6 +6733,7 @@ function handleCableHandleTouchStart(e) {
 }
 
 function startCableHandleDrag(e, x, y, isTouch) {
+  if(isViewMode) return;
   const wr = canvasWrap.getBoundingClientRect();
   const hit = isTouch ? findCableHandleAtWithRadius(x, y, 14) : findCableHandleAt(x, y);
   if(!hit) return;
@@ -6661,6 +6797,7 @@ canvasWrap.addEventListener('mousedown', startPanDrag);
 canvasWrap.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.effectAllowed='copy';});
 canvasWrap.addEventListener('drop',e=>{
   e.preventDefault();
+  if(isViewMode) return;
   if(!isDraggingNew||!newDragData) return;
   const wr=canvasWrap.getBoundingClientRect();
   const body = getInstrumentBodyDimensionsPx(newDragData);
@@ -6675,6 +6812,7 @@ canvasWrap.addEventListener('drop',e=>{
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 function addInstrument(data, x, y) {
+  if(isViewMode) return;
   pushHistoryState();
   const id = ++idCounter;
   const size = Number(data.size) || (data.wide ? 82 : 52);
@@ -6833,6 +6971,7 @@ function renderInstrument(instr) {
   const safeVisibleLabel = escapeHtml(visibleLabel);
   const safeChannel = escapeHtml(instr.channel || '');
   el.className = 'si';
+  el.classList.toggle('view-layer-hidden', !isInstrumentVisibleInView(instr));
   if(instr.cat === 'monitoring') el.classList.add('is-monitoring');
   if(boxKind) {
     el.classList.add('is-connbox', `connbox-${boxKind}`);
@@ -7576,22 +7715,49 @@ function startDragTouch(e, id, el) {
 }
 
 function startInstrumentRotation(ev, id) {
+  if(isStageBuilderMode || isViewMode) return;
   const instr = instruments.find(i => i.id === id);
   if(!instr) return;
+  startItemRotation(ev, instr, false);
+}
+
+function getSelectedRotationItem() {
+  if(isViewMode) return null;
+  return isStageBuilderMode
+    ? stageParts.find(part => part.id === selectedStagePartId)
+    : instruments.find(instr => instr.id === selectedId);
+}
+
+function refreshRotatedItem(item, isStagePart) {
+  if(isStagePart) {
+    renderStagePart(item);
+    if(item.isPrimary) applyZoom();
+  } else {
+    renderInstrument(item);
+  }
+  updateClasses();
+}
+
+function startItemRotation(ev, instr, isStagePart, knob = null) {
+  if(isViewMode || isStagePart !== isStageBuilderMode) return;
+  const id = instr.id;
+  const getRotationEl = () => isStagePart
+    ? (instr.isPrimary ? document.getElementById('stage-platform') : getStagePartEl(id))
+    : getEl(id);
   const rotateSnapshot = captureSnapshot();
   let changed = false;
 
-  selectedId = id;
+  if(!isStagePart) selectedId = id;
   updateClasses();
   updateAngleKnobUI(parseInt(instr.angle || 0, 10));
 
-  const seedEl = getEl(id);
+  const seedEl = getRotationEl();
   if(seedEl) seedEl.classList.add('rotating');
 
   function clientToAngle(clientX, clientY) {
-    const liveEl = getEl(id);
+    const liveEl = getRotationEl();
     if(!liveEl) return parseInt(instr.angle || 0, 10);
-    const anchor = liveEl.querySelector('.ib') || liveEl;
+    const anchor = knob || liveEl.querySelector('.ib') || liveEl;
     const r = anchor.getBoundingClientRect();
     const cx = r.left + (r.width / 2);
     const cy = r.top + (r.height / 2);
@@ -7607,10 +7773,9 @@ function startInstrumentRotation(ev, id) {
     instr.angle = next;
     changed = true;
     markDirty();
-    renderInstrument(instr);
-    updateClasses();
+    refreshRotatedItem(instr, isStagePart);
     updateAngleKnobUI(next);
-    const liveEl = getEl(id);
+    const liveEl = getRotationEl();
     if(liveEl) liveEl.classList.add('rotating');
     scheduleRender();
   }
@@ -7627,26 +7792,23 @@ function startInstrumentRotation(ev, id) {
   }
 
   function finishRotation() {
-    const liveEl = getEl(id);
+    const liveEl = getRotationEl();
     if(liveEl) liveEl.classList.remove('rotating');
     if(changed) {
       commitSnapshotBeforeChange(rotateSnapshot);
       markDirty();
     }
-    selectInstrument(id);
+    if(isStagePart) selectStagePart(id);
+    else selectInstrument(id);
     scheduleRender();
   }
 
-  function onMouseUp() {
+  function finish() {
     document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
-    finishRotation();
-  }
-
-  function onTouchEnd() {
+    document.removeEventListener('mouseup', finish);
     document.removeEventListener('touchmove', onTouchMove);
-    document.removeEventListener('touchend', onTouchEnd);
-    document.removeEventListener('touchcancel', onTouchEnd);
+    document.removeEventListener('touchend', finish);
+    document.removeEventListener('touchcancel', finish);
     finishRotation();
   }
 
@@ -7654,14 +7816,14 @@ function startInstrumentRotation(ev, id) {
   if(p) applyAngle(p.clientX, p.clientY);
 
   document.addEventListener('mousemove', onMouseMove);
-  document.addEventListener('mouseup', onMouseUp);
+  document.addEventListener('mouseup', finish);
   document.addEventListener('touchmove', onTouchMove, { passive: false });
-  document.addEventListener('touchend', onTouchEnd, { passive: false });
-  document.addEventListener('touchcancel', onTouchEnd, { passive: false });
+  document.addEventListener('touchend', finish, { passive: false });
+  document.addEventListener('touchcancel', finish, { passive: false });
 }
 
 function selectInstrument(id) {
-  if(isStageBuilderMode) return;
+  if(isStageBuilderMode || isViewMode) return;
   selectedStagePartId = null;
   selectedId=id;
   updateClasses();
@@ -7872,15 +8034,16 @@ function updAngle(value) {
 }
 
 function setSelectedAngle(value) {
+  const instr = getSelectedRotationItem();
+  if(!instr) return;
   const angle = snapAngleToCommonIncrement(value);
   updateAngleKnobUI(angle);
-  if(!selectedId) return;
-  const instr = instruments.find(i=>i.id===selectedId); if(!instr) return;
   if((instr.angle||0) === angle) return;
   pushHistoryState();
   instr.angle = angle;
   markDirty();
-  renderInstrument(instr); render();
+  refreshRotatedItem(instr, isStageBuilderMode);
+  render();
 }
 
 function nudgeAngle(delta) {
@@ -7903,75 +8066,28 @@ function snapAngleToCommonIncrement(value) {
       nearest = target === 360 ? 0 : target;
     }
   }
-  return bestDelta <= 4 ? nearest : angle;
+  return bestDelta <= 4 ? (nearest > 180 ? nearest - 360 : nearest) : angle;
 }
 
 function updateAngleKnobUI(angle) {
   const v = Math.max(-180, Math.min(180, parseInt(angle, 10) || 0));
-  const readout = document.getElementById('p-angle-val');
-  if(readout) readout.textContent = `${v}Â°`;
-  const handle = document.getElementById('angle-knob-handle');
+  const readout = document.getElementById(isStageBuilderMode ? 'sp-angle-val' : 'p-angle-val');
+  if(readout) readout.textContent = `${v}\u00b0`;
+  const handle = document.getElementById(isStageBuilderMode ? 'sp-angle-knob-handle' : 'angle-knob-handle');
   if(handle) handle.style.transform = `translate(-50%,-50%) rotate(${v}deg) translateY(-25px)`;
-  const knob = document.getElementById('angle-knob');
+  const knob = document.getElementById(isStageBuilderMode ? 'sp-angle-knob' : 'angle-knob');
   if(knob) {
     const sweep = v + 180;
     knob.style.background = `conic-gradient(#47c4ff ${sweep}deg, #2a2e3a ${sweep}deg 360deg)`;
   }
 }
 
-function angleFromKnobPointer(clientX, clientY) {
-  const knob = document.getElementById('angle-knob');
-  if(!knob) return 0;
-  const r = knob.getBoundingClientRect();
-  const cx = r.left + (r.width / 2);
-  const cy = r.top + (r.height / 2);
-  const dx = clientX - cx;
-  const dy = clientY - cy;
-  let deg = Math.round((Math.atan2(dy, dx) * 180 / Math.PI) + 90);
-  if(deg > 180) deg -= 360;
-  if(deg < -180) deg += 360;
-  return deg;
-}
-
 function startAngleKnobDrag(e) {
-  if(!selectedId) return;
-  if(e.cancelable) e.preventDefault();
-  const instr = instruments.find(i=>i.id===selectedId);
+  const instr = getSelectedRotationItem();
   if(!instr) return;
-  const snapshot = captureSnapshot();
-
-  function onMove(ev) {
-    const point = getClientPointFromEvent(ev);
-    if(!point) return;
-    if(ev.cancelable) ev.preventDefault();
-    const angle = snapAngleToCommonIncrement(angleFromKnobPointer(point.clientX, point.clientY));
-    const prev = instr.angle || 0;
-    if(prev === angle) return;
-    instr.angle = angle;
-    updateAngleKnobUI(angle);
-    markDirty();
-    renderInstrument(instr);
-    updateClasses();
-    render();
-  }
-
-  function onUp() {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('touchend', onUp);
-    document.removeEventListener('touchcancel', onUp);
-    if((instr.angle || 0) !== (snapshot.instruments.find(i => i.id === instr.id)?.angle || 0)) {
-      commitSnapshotBeforeChange(snapshot);
-    }
-  }
-
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onUp);
-  document.addEventListener('touchmove', onMove, { passive: false });
-  document.addEventListener('touchend', onUp, { passive: false });
-  document.addEventListener('touchcancel', onUp, { passive: false });
-  onMove(e);
+  if(e.cancelable) e.preventDefault();
+  const knob = document.getElementById(isStageBuilderMode ? 'sp-angle-knob' : 'angle-knob');
+  startItemRotation(e, instr, isStageBuilderMode, knob);
 }
 
 function setInstrumentConnSide(id, value, shouldSelect) {
@@ -8826,6 +8942,7 @@ function updateClasses() {
 }
 
 function deleteSelected() {
+  if(isViewMode) return;
   if(isStageBuilderMode) {
     if(!selectedStagePartId) return;
     pushHistoryState();
@@ -10504,6 +10621,7 @@ function loadRiderFromData(data) {
     stageNY: Number.isFinite(parseFloat(raw.stageNY)) ? parseFloat(raw.stageNY) : null,
     widthM: Math.max(0.5, Math.min(120, parseFloat(raw.widthM) || 2.5)),
     depthM: Math.max(0.5, Math.min(120, parseFloat(raw.depthM) || 2.0)),
+    angle: Math.max(-180, Math.min(180, parseInt(raw.angle, 10) || 0)),
     color: /^#[0-9a-fA-F]{6}$/.test(String(raw.color || '')) ? raw.color : '#7da7c8',
     hasSteps: !!raw.hasSteps,
   }));
@@ -11342,13 +11460,18 @@ function getReportStageBounds() {
   stageParts.forEach(part => {
     const partWidth = Math.max(24, Math.max(0.5, Number(part.widthM) || 1) * pxPerM);
     const partDepth = Math.max(24, Math.max(0.5, Number(part.depthM) || 1) * pxPerM);
-    points.push({ left: part.x, top: part.y, right: part.x + partWidth, bottom: part.y + partDepth });
+    const radians = (Number(part.angle) || 0) * Math.PI / 180;
+    const halfWidth = (Math.abs(partWidth * Math.cos(radians)) + Math.abs(partDepth * Math.sin(radians))) / 2;
+    const halfDepth = (Math.abs(partWidth * Math.sin(radians)) + Math.abs(partDepth * Math.cos(radians))) / 2;
+    const cx = part.x + partWidth / 2;
+    const cy = part.y + partDepth / 2;
+    points.push({ left: cx - halfWidth, top: cy - halfDepth, right: cx + halfWidth, bottom: cy + halfDepth });
   });
   reportItems.forEach(item => {
     points.push({ left: item.worldX, top: item.worldY, right: item.worldX + item.width + 8, bottom: item.worldY + item.height + 12 });
   });
-  const left = Math.max(0, Math.min(...points.map(p => p.left)) - 24);
-  const top = Math.max(0, Math.min(...points.map(p => p.top)) - 24);
+  const left = Math.min(...points.map(p => p.left)) - 24;
+  const top = Math.min(...points.map(p => p.top)) - 24;
   const right = Math.max(...points.map(p => p.right)) + 24;
   const bottom = Math.max(...points.map(p => p.bottom)) + 24;
   return { left, top, right, bottom };
@@ -11528,7 +11651,7 @@ function buildReportStageSvg(orientation) {
     const stepOverlay = hasSteps
       ? `<clipPath id="${clipId}"><rect x="${x}" y="${y}" width="${partW.toFixed(2)}" height="${partD.toFixed(2)}" rx="8" ry="8" /></clipPath><g clip-path="url(#${clipId})">${stepLines}</g>`
       : '';
-    return `<g>${partShape}${stepOverlay}<text x="${labelX.toFixed(2)}" y="${labelY.toFixed(2)}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="10" fill="#ffffff" opacity=".94">${label}</text><text x="${labelX.toFixed(2)}" y="${dimsY.toFixed(2)}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="8" fill="#ffffff" opacity=".9">${dimsLabel}</text></g>`;
+    return `<g transform="rotate(${Number(part.angle) || 0} ${labelX.toFixed(2)} ${(partY + partD / 2).toFixed(2)})">${partShape}${stepOverlay}<text x="${labelX.toFixed(2)}" y="${labelY.toFixed(2)}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="10" fill="#ffffff" opacity=".94">${label}</text><text x="${labelX.toFixed(2)}" y="${dimsY.toFixed(2)}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="8" fill="#ffffff" opacity=".9">${dimsLabel}</text></g>`;
   }).join('');
 
   const instrumentSvg = instruments.map(instr => {
@@ -11622,10 +11745,12 @@ function buildReportStageSvg(orientation) {
         ${foreignObjectStyle}
       ]]></style>
       <rect width="100%" height="100%" fill="#ffffff" />
+      <g transform="rotate(${Number(getPrimaryStagePart()?.angle) || 0} ${stageLabelX} ${stageY + stageHpx / 2})">
       <rect x="${stageX}" y="${stageY}" width="${stageWpx}" height="${stageHpx}" rx="9" ry="9" fill="${stageColor}" stroke="${stageBorder}" stroke-width="2" />
       <rect x="${stageX}" y="${stageY + stageHpx - 14}" width="${stageWpx}" height="14" rx="0" ry="0" fill="${stageBorder}" opacity=".25" />
       <text x="${stageLabelX}" y="${stageLabelY}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="12" fill="#132034" opacity=".78">STAGE</text>
       <text x="${stageLabelX}" y="${stageLabelY + 12}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="10" fill="#3b4e66" opacity=".82">${stageW}m Ã— ${stageD}m</text>
+      </g>
       ${stagePartSvg}
       ${instrumentSvg}
       <text x="${stageLabelX}" y="${stageY + stageHpx + 24}" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="11" fill="#6c7c8f">â—€ AUDIENCE â–¶</text>
@@ -11751,6 +11876,7 @@ function buildReportPinGroupHTML(instr, group) {
 function getReportStageSnapshotData(stageOrientation) {
   const bounds = getReportStageBounds();
   const stage = {
+    angle: Number(getPrimaryStagePart()?.angle) || 0,
     x: stagePx.left - bounds.left,
     y: stagePx.top - bounds.top,
     width: stagePx.width,
@@ -11780,6 +11906,7 @@ function getReportStageSnapshotData(stageOrientation) {
       y: part.y - bounds.top,
       width: partW,
       height: partH,
+      angle: Number(part.angle) || 0,
       widthM,
       depthM,
       hasSteps: !!part.hasSteps || String(part.label || '').trim().toUpperCase() === 'STAIRS',
@@ -13372,29 +13499,14 @@ function exportPNG() {
   cv.width=wr.width*dpr; cv.height=wr.height*dpr;
   const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
   ctx.fillStyle='#0a0b0d'; ctx.fillRect(0,0,wr.width,wr.height);
-  ctx.fillStyle=stageColor; ctx.strokeStyle=getStageBorderColor(stageColor); ctx.lineWidth=2;
-  roundRect(ctx,stagePx.left,stagePx.top,stagePx.width,stagePx.height,9); ctx.fill(); ctx.stroke();
-  if(showStageStairs) {
-    const stairsWidth = Math.min(stagePx.width, 2 * pxPerM);
-    const stairsDepth = 0.75 * pxPerM;
-    const stairsX = stagePx.left + (stagePx.width - stairsWidth) / 2;
-    const stairsY = stagePx.top + stagePx.height - 2;
-    ctx.fillStyle = getStageBorderColor(stageColor);
-    ctx.strokeStyle = getStageBorderColor(stageColor);
-    ctx.beginPath();
-    ctx.roundRect(stairsX, stairsY, stairsWidth, stairsDepth, 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = 'rgba(10,11,13,.45)';
-    const lineH = Math.max(2, stairsDepth * 0.12);
-    ctx.fillRect(stairsX, stairsY + stairsDepth * 0.33, stairsWidth, lineH);
-    ctx.fillRect(stairsX, stairsY + stairsDepth * 0.66, stairsWidth, lineH);
-  }
-  ctx.font='9px Share Tech Mono,monospace'; ctx.fillStyle='#2d3340'; ctx.textAlign='center';
-  ctx.fillText('STAGE',stagePx.left+stagePx.width/2,stagePx.top+16);
-  ctx.fillText(`${stageW}m Ã— ${stageD}m`,stagePx.left+stagePx.width/2,stagePx.top+28);
+  const stageSnapshot = getReportStageSnapshotData('horizontal');
+  ctx.save();
+  ctx.translate(stageSnapshot.bounds.left, stageSnapshot.bounds.top);
+  drawReportStageSnapshot(ctx, { ...stageSnapshot, items:[], connections:[] }, new Map());
+  ctx.restore();
   ctx.drawImage(document.getElementById('conn-canvas'),0,0,wr.width,wr.height);
   instruments.forEach(instr=>{
+    if(!isInstrumentVisibleInView(instr)) return;
     const ex=instr.x;
     const ey=instr.y;
     const bw=instr.size||(instr.wide?82:52);

@@ -40,6 +40,17 @@ No build toolchain is required.
 - Resize and recolor stage shapes from properties panel
 - Label each shape for venue-specific planning
 - Optional steps flag for rectangular shapes
+- Rotate shapes with the on-stage handle or Angle knob (Stage Builder only)
+- Shape angles are retained in saved riders, scenes, undo/redo, and visual exports
+
+### Read-only View Mode
+
+- Toggle **View** in the header to inspect the stage without editing
+- All visibility checkboxes start selected: Instruments, Snakes, Mixers, Stageboxes, PA and Monitoring, Accessories, Stands and Hardware, and Connections
+- Uncheck a category to hide its elements and their connections without deleting or changing rider data
+- Accessory and mic stand badges follow their corresponding category filters
+- Zoom and pan remain available; returning to editing shows all elements again
+- Visibility filters are temporary, are not saved in rider files, and do not change production reports
 
 ### 3) Layer Ordering Controls
 
@@ -66,6 +77,7 @@ Palettes include:
 
 Representative built-in device coverage includes:
 
+- Glockenspiel (Drums palette)
 - XR18
 - X32 family (full, compact, rack)
 - M32 and M32R
