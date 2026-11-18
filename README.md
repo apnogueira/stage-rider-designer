@@ -49,6 +49,7 @@ No build toolchain is required.
 - All visibility checkboxes start selected: Instruments, Snakes, Mixers, Stageboxes, PA and Monitoring, Accessories, Stands and Hardware, and Connections
 - Uncheck a category to hide its elements and their connections without deleting or changing rider data
 - Accessory and mic stand badges follow their corresponding category filters
+- Unchecking **Connections** also hides connection points and their pin labels on every stage element
 - Zoom and pan remain available; returning to editing shows all elements again
 - Visibility filters are temporary, are not saved in rider files, and do not change production reports
 

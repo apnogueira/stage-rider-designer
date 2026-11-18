@@ -2103,6 +2103,7 @@ function applyViewModeUI() {
   });
   document.body.classList.toggle('view-hide-accessories', isViewMode && hiddenViewLayers.has('accessories'));
   document.body.classList.toggle('view-hide-stands', isViewMode && hiddenViewLayers.has('stands'));
+  document.body.classList.toggle('view-hide-connections', isViewMode && hiddenViewLayers.has('connections'));
 }
 
 function toggleViewMode() {
