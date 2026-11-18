@@ -8,6 +8,7 @@ const CATS = [
 
 const ICON_ASSET_BY_TYPE = {
   drumkit:'images/drums.png',
+  glockenspiel:'images/glockenspiel.png',
   acguitar:'images/acustic_guitar.png',
   elguitar:'images/eletric_guitar.png',
   bass:'images/bass.png',
@@ -70,6 +71,7 @@ const ICON_ASSET_BY_TYPE = {
 
 const INSTRUMENTS = [
   {type:'drumkit',   cat:'drums',   icon:'🥁', name:'Drum Kit',      wide:true,  size:92, connSide:'bottom' },
+  {type:'glockenspiel',cat:'drums', icon:'🎼', name:'Glockenspiel',  wide:false, size:68, footprintAspect:1.82, connSide:'bottom'},
   {type:'acguitar',  cat:'strings', icon:'🎸', name:'AC-G', wide:false, size:56, connSide:'bottom'},
   {type:'elguitar',  cat:'strings', icon:'🎸', name:'EL-G', wide:false, size:56, connSide:'bottom'},
   {type:'bass',      cat:'strings', icon:'🎸', name:'EL-B',            wide:false, size:58, connSide:'bottom'},
@@ -122,7 +124,7 @@ const INSTRUMENTS = [
   {type:'plasticchair', cat:'stands', icon:'🪑', name:'Plastic Chair',  wide:false, size:35, footprintAspect:1, noConnect:true},
   {type:'woodtable', cat:'stands', icon:'🪑', name:'Wood Table',        wide:false, size:135, footprintAspect:1.85, noConnect:true},
   {type:'pianosit',  cat:'stands', icon:'🪑', name:'Piano Sit',         wide:false, size:60, footprintAspect:1.71, noConnect:true},
-  {type:'sheetstand',cat:'stands', icon:'🎼', name:'Sheet Stand',       wide:false, size:54, footprintAspect:0.58, noConnect:true},
+  {type:'sheetstand',cat:'stands', icon:'🎼', name:'Sheet Stand',       wide:false, size:54, footprintAspect:1.85, noConnect:true},
   {type:'laptop',    cat:'infra',   icon:'💻', name:'Laptop',      wide:false, size:22, connSide:'right'},
   {type:'midipad',   cat:'infra',   icon:'🟦', name:'MIDI Pad',    wide:false, size:48, connSide:'right'},
 ];
