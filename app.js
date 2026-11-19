@@ -1872,7 +1872,7 @@ function deleteCurrentScene() {
 
 function getModeHintText() {
   if(isViewMode) return 'View mode: read-only. Use Visible Layers to hide or show categories; zoom and pan to explore.';
-  if(isStageBuilderMode) return 'Stage Builder: add shapes, drag to position, rotate with the handle, or edit size/color/angle on the right panel';
+  if(isStageBuilderMode) return 'Stage Builder: add shapes, drag to position, rotate with the handle, or edit size/color on the right panel';
   return 'Drag from palette Â· Click source pin then destination pin Â· Drop on left sidebar to delete';
 }
 
@@ -2080,9 +2080,11 @@ function isInstrumentVisibleInView(instr) {
 
 function isConnectionVisibleInView(conn) {
   if(!isViewMode) return true;
-  return !hiddenViewLayers.has('connections') && [conn.fromId, conn.toId].every(id => {
+  const endpoints = [{ id:conn.fromId, pin:conn.fromPin }, { id:conn.toId, pin:conn.toPin }];
+  return !hiddenViewLayers.has('connections') && endpoints.every(({ id, pin }) => {
     const instr = instruments.find(item => item.id === id);
-    return instr && isInstrumentVisibleInView(instr);
+    return instr && isInstrumentVisibleInView(instr)
+      && !(hiddenViewLayers.has('monitoring') && isIndividualMonitoringPin(instr, pin));
   });
 }
 
@@ -2104,6 +2106,7 @@ function applyViewModeUI() {
   document.body.classList.toggle('view-hide-accessories', isViewMode && hiddenViewLayers.has('accessories'));
   document.body.classList.toggle('view-hide-stands', isViewMode && hiddenViewLayers.has('stands'));
   document.body.classList.toggle('view-hide-connections', isViewMode && hiddenViewLayers.has('connections'));
+  document.body.classList.toggle('view-hide-monitoring', isViewMode && hiddenViewLayers.has('monitoring'));
 }
 
 function toggleViewMode() {
@@ -2308,7 +2311,6 @@ function populateStagePartFields(part) {
   color.value = /^#[0-9a-fA-F]{6}$/.test(String(part.color || '')) ? part.color : '#7da7c8';
   steps.checked = !!part.hasSteps;
   stepsWrap.style.display = part.shape === 'rect' ? '' : 'none';
-  updateAngleKnobUI(part.angle || 0);
 }
 
 function selectStagePart(id) {
@@ -3985,6 +3987,12 @@ function getInstrumentOutputPins(instr) {
 }
 
 function getValidPinsForInstrument(instr) {
+  const pins = getValidSignalPinsForInstrument(instr);
+  if(pins && hasIndividualMonitoring(instr)) pins.add(INDIVIDUAL_MONITORING_PIN);
+  return pins;
+}
+
+function getValidSignalPinsForInstrument(instr) {
   if(!instr) return new Set();
   if(isWirelessMicNode(instr)) return new Set();
   if(isConnectionBoxInstrument(instr)) return null;
@@ -4124,6 +4132,48 @@ function allowsMicPickupWithAccessory(instr) {
 }
 
 const MIC_STAND_IMAGE_PATH = 'images/mic_stand.png';
+const INDIVIDUAL_MONITORING_PIN = 'PM1-IN';
+
+function supportsIndividualMonitoring(instr) {
+  if(!instr || isWirelessReceiverNode(instr) || isConnectionBoxInstrument(instr) || isNonConnectableInstrument(instr)) return false;
+  const category = instr.cat || getInstrumentDefinitionByType(instr.type)?.cat;
+  return CATS.some(cat => cat.id !== 'all' && cat.id === category);
+}
+
+function getIndividualMonitoring(instr) {
+  return supportsIndividualMonitoring(instr) && instr.individualMonitoring === 'pm1' ? 'pm1' : 'none';
+}
+
+function hasIndividualMonitoring(instr) {
+  return getIndividualMonitoring(instr) === 'pm1';
+}
+
+function isIndividualMonitoringPin(instr, pin) {
+  return pinKey(pin) === INDIVIDUAL_MONITORING_PIN && hasIndividualMonitoring(instr);
+}
+
+function updIndividualMonitoring(value) {
+  if(isViewMode || isStageBuilderMode || !selectedId) return;
+  const instr = instruments.find(item => item.id === selectedId);
+  if(!supportsIndividualMonitoring(instr)) return;
+  const next = value === 'pm1' ? 'pm1' : 'none';
+  if(getIndividualMonitoring(instr) === next) return;
+  pushHistoryState();
+  instr.individualMonitoring = next;
+  pruneInvalidInstrumentPins(instr);
+  markDirty();
+  renderInstrument(instr);
+  updateClasses();
+  render();
+}
+
+function buildIndividualMonitoringHTML(instr) {
+  if(!hasIndividualMonitoring(instr)) return '';
+  return `<div class="individual-monitoring-badge" title="Individual monitoring: PM1">
+    <img src="${getInstrumentImage('pm1')}" alt="PM1" draggable="false">
+    <div class="iconn individual-monitoring-pin${isPinUsed(instr.id, INDIVIDUAL_MONITORING_PIN) ? ' used' : ''}" data-pin="${INDIVIDUAL_MONITORING_PIN}" title="PM1 input - XLR"></div>
+  </div>`;
+}
 
 function normalizeAttachedAccessoryType(value) {
   const next = String(value || '').trim().toLowerCase();
@@ -4360,6 +4410,7 @@ function syncWirelessPairSharedProps(source) {
   const excluded = new Set([
     'id', 'type', 'cat', 'icon', 'image', 'x', 'y', 'stageNX', 'stageNY', 'size', 'wide', 'angle', 'connSide',
     'wirelessPairId', 'wirelessRole', 'noConnect', 'micStandCount', 'drumMicStandAssignments', 'drumMics',
+    'individualMonitoring',
   ]);
   Object.keys(source).forEach(key => {
     if(excluded.has(key)) return;
@@ -4583,6 +4634,7 @@ function derivePinMicAssignments(raw, instr) {
 }
 
 function getPinMicNote(instr, pin) {
+  if(isIndividualMonitoringPin(instr, pin)) return '';
   const map = normalizePinMicAssignments(instr && instr.pinMicAssignments);
   return map[pinKey(pin)] || '';
 }
@@ -4669,6 +4721,7 @@ function normalizeAllMixerConnectionPins() {
 function getPinAllowedCableTypes(instr, pin) {
   const p = pinKey(pin);
   if(!instr) return ['xlr', 'ts', 'trs', 'ethernet', 'usb'];
+  if(isIndividualMonitoringPin(instr, p)) return ['xlr'];
 
   if(isSpeakerWithThru(instr)) {
     if(p === 'SPK-IN') return speakerConnectorModeToCableTypes(normalizeSpeakerConnectorMode(instr.spkInputMode, 'xlr'));
@@ -4901,6 +4954,7 @@ function cloneInstruments(list) {
     attachedAccessoryInputCableType: normalizeAttachedAccessoryCableType(i && i.attachedAccessoryInputCableType),
     attachedAccessoryOutputCableType: normalizeAttachedAccessoryCableType(i && i.attachedAccessoryOutputCableType),
     attachedAccessoryStereo: !!(i && i.attachedAccessoryStereo),
+    individualMonitoring: getIndividualMonitoring(i),
   }));
 }
 
@@ -5020,7 +5074,8 @@ function getSnapshotSignature(snapshot) {
   const instrSig = (snapshot.instruments || []).map(i => [
     i.id, i.type, i.label, i.channel, i.notes, i.x, i.y, i.size, i.angle,
     i.stereo, i.inputStereo, i.outputStereo, i.connectorMode, i.connSide,
-    i.attachedAccessoryType, i.attachedAccessoryStereo, i.micStandCount,
+    i.attachedAccessoryType, i.attachedAccessoryStereo, i.micStandCount, i.individualMonitoring,
+    JSON.stringify(i.drumMics || []),
     i.wirelessPairId, i.wirelessRole, i.hideWirelessReceiver,
   ].join('|')).join('||');
   const connSig = (snapshot.connections || []).map(c => [
@@ -5098,7 +5153,7 @@ function serializeLayout() {
     showStageGrid: !!showStageGrid,
     isStageBuilderMode: !!isStageBuilderMode,
     stage:{widthM:stageW, depthM:stageD, showStairs:showStageStairs, suppressBuiltInStairsPart:!!suppressBuiltInStairsPart, themeMode, color:stageColor},
-    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,connSide,connectionBoxKind,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,outletConnectorType,outletPorts,outletViewMode,outletPortModes,outletPortNames,outletPlacement,isSnake,snakeViewMode,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,drumMicStandAssignments,micStandCount,attachedAccessoryType,attachedAccessoryCableType,attachedAccessoryInputCableType,attachedAccessoryOutputCableType,attachedAccessoryStereo,collapsed,noConnect,wirelessPairId,wirelessRole,hideWirelessReceiver})=>({
+    instruments:instruments.map(({id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,connSide,connectionBoxKind,isMixer,mixerInputs,mixerInputXlrOnly,mixerInputCombo,mixerInputJackOnly,mixerAux,mixerMain,mixerJackOut,mixerP16,mixerAes50,outletConnectorType,outletPorts,outletViewMode,outletPortModes,outletPortNames,outletPlacement,isSnake,snakeViewMode,snakeChannels,snakeAllowJackInputs,snakeOutputs,requiresOutput,drumMics,drumMicStandAssignments,micStandCount,attachedAccessoryType,attachedAccessoryCableType,attachedAccessoryInputCableType,attachedAccessoryOutputCableType,attachedAccessoryStereo,individualMonitoring,collapsed,noConnect,wirelessPairId,wirelessRole,hideWirelessReceiver})=>({
       id,type,cat,icon,image,label,channel,notes,x,y,stageNX,stageNY,size,wide,angle,stereo,inputStereo,outputStereo,ampOutputs,
       haUseMainInputs:!!haUseMainInputs,spkInputMode,spkOutputMode,connectorMode,pinMicAssignments,
       micModels:Object.values(pinMicAssignments||{}),micModel:Object.values(pinMicAssignments||{})[0]||'',
@@ -5112,6 +5167,7 @@ function serializeLayout() {
       attachedAccessoryInputCableType: normalizeAttachedAccessoryCableType(attachedAccessoryInputCableType || attachedAccessoryCableType),
       attachedAccessoryOutputCableType: normalizeAttachedAccessoryCableType(attachedAccessoryOutputCableType || attachedAccessoryCableType),
       attachedAccessoryStereo: !!attachedAccessoryStereo,
+      individualMonitoring: individualMonitoring === 'pm1' ? 'pm1' : 'none',
       noConnect:!!noConnect,collapsed:!!collapsed,wirelessPairId:Number.isFinite(Number(wirelessPairId)) ? Number(wirelessPairId) : null,wirelessRole:wirelessRole || '',hideWirelessReceiver:!!hideWirelessReceiver
     })),
     connections:connections.map(({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX,routeNX})=>({id,fromId,toId,fromPin,toPin,cableType,color,label,routeX,routeNX})),
@@ -5553,6 +5609,7 @@ function pinForReport(pin) {
     'DM-KICK':'Kick',
     'DM-HH':'HiHat',
     'DM-SN':'Snare',
+    'DM-SN-BOTTOM':'Snare Below',
     'DM-T1':'Tom1',
     'DM-T2':'Tom2',
     'DM-T3':'Tom3',
@@ -5564,6 +5621,7 @@ function pinForReport(pin) {
   };
   if(drumMap[key]) return drumMap[key];
   const ioMap = {
+    'PM1-IN':'PM1 IN',
     'IO-IN-MONO':'IN',
     'IO-IN-1':'IN-1',
     'IO-IN-2':'IN-2',
@@ -6857,6 +6915,7 @@ function addInstrument(data, x, y) {
     attachedAccessoryInputCableType: normalizeAttachedAccessoryCableType(data.attachedAccessoryInputCableType || data.attachedAccessoryCableType),
     attachedAccessoryOutputCableType: normalizeAttachedAccessoryCableType(data.attachedAccessoryOutputCableType || data.attachedAccessoryCableType),
     attachedAccessoryStereo: !!data.attachedAccessoryStereo,
+    individualMonitoring: getIndividualMonitoring(data),
     hideWirelessReceiver: !!data.hideWirelessReceiver,
     wirelessPairId: Number.isFinite(Number(data.wirelessPairId)) ? Number(data.wirelessPairId) : null,
     wirelessRole: String(data.wirelessRole || '').trim().toLowerCase(),
@@ -6972,6 +7031,7 @@ function renderInstrument(instr) {
   const safeVisibleLabel = escapeHtml(visibleLabel);
   const safeChannel = escapeHtml(instr.channel || '');
   el.className = 'si';
+  el.classList.toggle('has-individual-monitoring', hasIndividualMonitoring(instr));
   el.classList.toggle('view-layer-hidden', !isInstrumentVisibleInView(instr));
   if(instr.cat === 'monitoring') el.classList.add('is-monitoring');
   if(boxKind) {
@@ -7142,6 +7202,7 @@ function renderInstrument(instr) {
           ${buildStageIconHTML(instr, fontSize)}
           ${standBadgeHTML}
           ${accessoryBadgeHTML}
+          ${buildIndividualMonitoringHTML(instr)}
           ${showFacingMarker ? `<div class="front-edge" aria-hidden="true"></div>` : ''}
           <div class="ib-label">${safeVisibleLabel}</div>
           ${instr.channel?`<div class="ich">${safeChannel}</div>`:''}
@@ -7722,13 +7783,6 @@ function startInstrumentRotation(ev, id) {
   startItemRotation(ev, instr, false);
 }
 
-function getSelectedRotationItem() {
-  if(isViewMode) return null;
-  return isStageBuilderMode
-    ? stageParts.find(part => part.id === selectedStagePartId)
-    : instruments.find(instr => instr.id === selectedId);
-}
-
 function refreshRotatedItem(item, isStagePart) {
   if(isStagePart) {
     renderStagePart(item);
@@ -7739,7 +7793,7 @@ function refreshRotatedItem(item, isStagePart) {
   updateClasses();
 }
 
-function startItemRotation(ev, instr, isStagePart, knob = null) {
+function startItemRotation(ev, instr, isStagePart) {
   if(isViewMode || isStagePart !== isStageBuilderMode) return;
   const id = instr.id;
   const getRotationEl = () => isStagePart
@@ -7750,7 +7804,6 @@ function startItemRotation(ev, instr, isStagePart, knob = null) {
 
   if(!isStagePart) selectedId = id;
   updateClasses();
-  updateAngleKnobUI(parseInt(instr.angle || 0, 10));
 
   const seedEl = getRotationEl();
   if(seedEl) seedEl.classList.add('rotating');
@@ -7758,7 +7811,7 @@ function startItemRotation(ev, instr, isStagePart, knob = null) {
   function clientToAngle(clientX, clientY) {
     const liveEl = getRotationEl();
     if(!liveEl) return parseInt(instr.angle || 0, 10);
-    const anchor = knob || liveEl.querySelector('.ib') || liveEl;
+    const anchor = liveEl.querySelector('.ib') || liveEl;
     const r = anchor.getBoundingClientRect();
     const cx = r.left + (r.width / 2);
     const cy = r.top + (r.height / 2);
@@ -7775,7 +7828,6 @@ function startItemRotation(ev, instr, isStagePart, knob = null) {
     changed = true;
     markDirty();
     refreshRotatedItem(instr, isStagePart);
-    updateAngleKnobUI(next);
     const liveEl = getRotationEl();
     if(liveEl) liveEl.classList.add('rotating');
     scheduleRender();
@@ -7842,14 +7894,13 @@ function selectInstrument(id) {
   const defSz = getDefaultSizeForType(instr.type, instr.wide ? 82 : 52);
   const defEl = document.getElementById('p-size-def');
   if(defEl) defEl.textContent = `Def:${defSz}`;
-  const ang = parseInt(instr.angle || 0, 10);
-  updateAngleKnobUI(ang);
+  document.getElementById('individual-monitoring-wrap').style.display = supportsIndividualMonitoring(instr) ? '' : 'none';
+  document.getElementById('p-individual-monitoring').value = getIndividualMonitoring(instr);
   const connTypeWrap = document.getElementById('conn-type-wrap');
   const micWrap = document.getElementById('mic-wrap');
   const micStandWrap = document.getElementById('mic-stand-wrap');
   const accessoryWrap = document.getElementById('accessory-wrap');
   const wirelessLinkWrap = document.getElementById('wireless-link-wrap');
-  const sideWrap = document.getElementById('conn-side-wrap');
   const stereoWrap = document.getElementById('stereo-wrap');
   const ioModeWrap = document.getElementById('io-mode-wrap');
   const speakerIOWrap = document.getElementById('speaker-io-wrap');
@@ -7862,7 +7913,6 @@ function selectInstrument(id) {
     micWrap.style.display = 'none';
     micStandWrap.style.display = 'none';
     accessoryWrap.style.display = '';
-    sideWrap.style.display = 'none';
     stereoWrap.style.display = 'none';
     ioModeWrap.style.display = 'none';
     speakerIOWrap.style.display = 'none';
@@ -7919,9 +7969,6 @@ function selectInstrument(id) {
     renderMicAssignmentsUI(instr);
     updateMicSummary(instr);
     renderMicStandUI(instr);
-    const showConnSideWrap = !isNonConnectable;
-    sideWrap.style.display = showConnSideWrap ? '' : 'none';
-    updateConnSideButtons(instr.connSide || 'bottom');
     ampExtra.style.display = instr.type === 'poweramp' ? 'block' : 'none';
     haExtra.style.display = instr.type === 'ha8000' ? 'block' : 'none';
     if(instr.type === 'poweramp') {
@@ -8030,30 +8077,6 @@ function resetSize() {
   updSize(defSz);
 }
 
-function updAngle(value) {
-  setSelectedAngle(value);
-}
-
-function setSelectedAngle(value) {
-  const instr = getSelectedRotationItem();
-  if(!instr) return;
-  const angle = snapAngleToCommonIncrement(value);
-  updateAngleKnobUI(angle);
-  if((instr.angle||0) === angle) return;
-  pushHistoryState();
-  instr.angle = angle;
-  markDirty();
-  refreshRotatedItem(instr, isStageBuilderMode);
-  render();
-}
-
-function nudgeAngle(delta) {
-  if(!selectedId) return;
-  const instr = instruments.find(i=>i.id===selectedId); if(!instr) return;
-  const base = parseInt(instr.angle || 0, 10);
-  setSelectedAngle(base + (parseInt(delta, 10) || 0));
-}
-
 function snapAngleToCommonIncrement(value) {
   let angle = Math.max(-180, Math.min(180, parseInt(value, 10) || 0));
   const normalized = ((angle % 360) + 360) % 360;
@@ -8070,27 +8093,6 @@ function snapAngleToCommonIncrement(value) {
   return bestDelta <= 4 ? (nearest > 180 ? nearest - 360 : nearest) : angle;
 }
 
-function updateAngleKnobUI(angle) {
-  const v = Math.max(-180, Math.min(180, parseInt(angle, 10) || 0));
-  const readout = document.getElementById(isStageBuilderMode ? 'sp-angle-val' : 'p-angle-val');
-  if(readout) readout.textContent = `${v}\u00b0`;
-  const handle = document.getElementById(isStageBuilderMode ? 'sp-angle-knob-handle' : 'angle-knob-handle');
-  if(handle) handle.style.transform = `translate(-50%,-50%) rotate(${v}deg) translateY(-25px)`;
-  const knob = document.getElementById(isStageBuilderMode ? 'sp-angle-knob' : 'angle-knob');
-  if(knob) {
-    const sweep = v + 180;
-    knob.style.background = `conic-gradient(#47c4ff ${sweep}deg, #2a2e3a ${sweep}deg 360deg)`;
-  }
-}
-
-function startAngleKnobDrag(e) {
-  const instr = getSelectedRotationItem();
-  if(!instr) return;
-  if(e.cancelable) e.preventDefault();
-  const knob = document.getElementById(isStageBuilderMode ? 'sp-angle-knob' : 'angle-knob');
-  startItemRotation(e, instr, isStageBuilderMode, knob);
-}
-
 function setInstrumentConnSide(id, value, shouldSelect) {
   const instr = instruments.find(i=>i.id===id); if(!instr || isConnectionBoxInstrument(instr) || isNonConnectableInstrument(instr)) return;
   const allowed = new Set(['bottom','right','top','left']);
@@ -8102,16 +8104,10 @@ function setInstrumentConnSide(id, value, shouldSelect) {
   renderInstrument(instr);
   if(shouldSelect) {
     selectedId = id;
-    updateConnSideButtons(next);
     selectInstrument(id);
   }
   updateClasses();
   render();
-}
-
-function updConnSide(value) {
-  if(!selectedId) return;
-  setInstrumentConnSide(selectedId, value, true);
 }
 
 function updStereoMode(value) {
@@ -8246,12 +8242,6 @@ function updHaUseMainInputs(enabled) {
   selectInstrument(instr.id);
   updateClasses();
   render();
-}
-
-function updateConnSideButtons(side) {
-  document.querySelectorAll('#prop-side-pad .prop-side-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.side === side);
-  });
 }
 
 function updSnakeChannels(value) {
@@ -8857,6 +8847,7 @@ function getDrumMicPins(instr) {
     'Kick': [{key:'DM-KICK', label:'K', name:'Kick'}],
     'Hi-Hat': [{key:'DM-HH', label:'HH', name:'Hi-Hat'}],
     'Snare': [{key:'DM-SN', label:'SN', name:'Snare'}],
+    'Snare Below': [{key:'DM-SN-BOTTOM', label:'SN-B', name:'Snare Below'}],
     'Tom 1': [{key:'DM-T1', label:'T1', name:'Tom 1'}],
     'Tom 2': [{key:'DM-T2', label:'T2', name:'Tom 2'}],
     'Tom 3': [{key:'DM-T3', label:'T3', name:'Tom 3'}],
@@ -8872,6 +8863,7 @@ function getDrumMicPins(instr) {
   const preferredOrder = [
     'Kick',
     'Snare',
+    'Snare Below',
     'Hi-Hat',
     'Tom 1',
     'Tom 2',
@@ -8985,6 +8977,7 @@ function isOutputPin(pin) {
 }
 
 function isInputPin(pin) {
+  if(pin === INDIVIDUAL_MONITORING_PIN) return true;
   return typeof pin === 'string' && (pin.startsWith('IN-') || pin.startsWith('STAGE-IN-') || pin.startsWith('CABLE-IN-') || pin.startsWith('OUTLET-IN-') || pin.startsWith('MX-IN-') || pin.startsWith('MX-AUX-IN-') || pin.startsWith('IO-IN-') || pin.startsWith('HA-IN-') || pin === 'AMP-IN' || pin.startsWith('AMP-IN-') || pin.startsWith('PAMP-IN-') || pin === 'SPK-IN' || pin === 'P16-IN' || pin === 'P16D-IN' || pin.startsWith('ROUTER-LAN-'));
 }
 
@@ -9060,7 +9053,7 @@ function getPinTargetAtClientPoint(clientX, clientY) {
 }
 
 function startConnectionFromPin(id, pin, e) {
-  if(isStageBuilderMode) return;
+  if(isStageBuilderMode || isViewMode) return;
   const clickedPin = pinKey(pin);
 
   if(!connectingFrom) {
@@ -9173,6 +9166,11 @@ function validateConnection(fromObj, toObj) {
 
   const fromKey = pinKey(fromObj.pin);
   const toKey = pinKey(toObj.pin);
+  if((fromKey === INDIVIDUAL_MONITORING_PIN && !hasIndividualMonitoring(fromInstr))
+    || (toKey === INDIVIDUAL_MONITORING_PIN && !hasIndividualMonitoring(toInstr))) {
+    return { valid:false, message:'Add individual monitoring before connecting a PM1 input.' };
+  }
+  const toMonitoringInput = !!toInstr.requiresOutput || isIndividualMonitoringPin(toInstr, toKey);
   const fromAllowedTypes = getPinAllowedCableTypes(fromInstr, fromObj.pin);
   const toAllowedTypes = getPinAllowedCableTypes(toInstr, toObj.pin);
   const isEthernetPair = Array.isArray(fromAllowedTypes)
@@ -9210,7 +9208,7 @@ function validateConnection(fromObj, toObj) {
   }
 
   // Snake stage-return outputs are for output-destination devices only (monitors/PM1/etc).
-  if(isSnakeBox(fromInstr) && isSnakeStageReturnOutputPin(fromObj.pin) && !toInstr.requiresOutput) {
+  if(isSnakeBox(fromInstr) && isSnakeStageReturnOutputPin(fromObj.pin) && !toMonitoringInput) {
     return {
       valid:false,
       message:`${fromInstr.label} output ${fromKey} can only connect to output devices.`
@@ -9218,7 +9216,7 @@ function validateConnection(fromObj, toObj) {
   }
 
   const allowsHA400MonitoringFeed = isHeadphoneOutputPin(fromInstr, fromObj.pin) && isHA400MonitoringInput(toInstr, toObj.pin);
-  if(!isSnakeBox(fromInstr) && isEndpointOnlyOutput(fromInstr, fromObj.pin) && !toInstr.requiresOutput && !allowsHA400MonitoringFeed && !isEthernetPair) {
+  if(!isSnakeBox(fromInstr) && isEndpointOnlyOutput(fromInstr, fromObj.pin) && !toMonitoringInput && !allowsHA400MonitoringFeed && !isEthernetPair) {
     return {
       valid:false,
       message:`${fromInstr.label} output ${fromKey} can only connect to output devices.`
@@ -9266,7 +9264,7 @@ function validateConnection(fromObj, toObj) {
   }
 
   // PM1 and monitors must connect to outputs
-  if(toInstr.requiresOutput) {
+  if(toMonitoringInput) {
     if(!isEffectiveOutputPin(fromInstr, fromObj.pin)) {
       return {
         valid:false,
@@ -10527,6 +10525,7 @@ function loadRiderFromData(data) {
       attachedAccessoryInputCableType: normalizeAttachedAccessoryCableType(raw.attachedAccessoryInputCableType || raw.attachedAccessoryCableType),
       attachedAccessoryOutputCableType: normalizeAttachedAccessoryCableType(raw.attachedAccessoryOutputCableType || raw.attachedAccessoryCableType),
       attachedAccessoryStereo: !!raw.attachedAccessoryStereo,
+      individualMonitoring: getIndividualMonitoring(raw),
       hideWirelessReceiver: !!raw.hideWirelessReceiver,
       wirelessPairId: Number.isFinite(parseInt(raw.wirelessPairId, 10)) ? parseInt(raw.wirelessPairId, 10) : null,
       wirelessRole: String(raw.wirelessRole || '').trim().toLowerCase(),
@@ -10960,6 +10959,7 @@ function describeAccessoryChain(instr, sourceConnId, visited = new Set()) {
 
 function describeReportEndpoint(instr, pin, sourceConnId, visited = new Set()) {
   if(!instr) return 'Unknown';
+  if(isIndividualMonitoringPin(instr, pin)) return `${instr.label} PM1 IN`;
   const visitKey = `${instr.id}:${pinKey(pin)}`;
   if(visited.has(visitKey)) {
     const fallbackLabel = getReportPinLabel(instr, pin);
@@ -11026,6 +11026,7 @@ function buildConnectionBoxInputConnectorBadgeHTML(instr, pinTone, conn, endpoin
 
 function getCompactSnakeEndpointLabel(instr, pin, omitMono = false) {
   if(!instr) return 'Unknown';
+  if(isIndividualMonitoringPin(instr, pin)) return `${instr.label} PM1 IN`;
   const pinLabel = getReportPinLabel(instr, pin);
   if(instr.type === 'drumkit') {
     if(!pinLabel) return instr.label || instr.name || instr.type || 'Unknown';
@@ -11060,7 +11061,7 @@ function describeInlineAccessoryRouteHTML(instr, inboundConn, pin, visited = new
 }
 
 function describeAttachedAccessoryChain(instr, pin) {
-  if(!instr || !hasAttachedAccessory(instr)) return '';
+  if(!instr || !hasAttachedAccessory(instr) || isIndividualMonitoringPin(instr, pin)) return '';
   const label = getAttachedAccessoryLabel(instr.attachedAccessoryType);
   const pinLabel = getReportPinLabel(instr, pin);
   const endpoint = (!pinLabel || pinLabel === 'MONO')
@@ -11070,7 +11071,7 @@ function describeAttachedAccessoryChain(instr, pin) {
 }
 
 function buildAttachedAccessoryRouteHTML(instr, pin, endpointHTML) {
-  if(!instr || !hasAttachedAccessory(instr)) return endpointHTML;
+  if(!instr || !hasAttachedAccessory(instr) || isIndividualMonitoringPin(instr, pin)) return endpointHTML;
   const typeLabel = getAttachedAccessoryLabel(instr.attachedAccessoryType);
   const pinId = pinKey(pin);
   const outputCableLabel = formatInlineConnectorLabel(getCableTypeLabel(normalizeAttachedAccessoryCableType(instr.attachedAccessoryOutputCableType || instr.attachedAccessoryCableType)));
@@ -11366,7 +11367,7 @@ function buildReportPinLine(instr, pin, notePrefix = '') {
     return pinConnections.map(conn => {
       const other = getReportOtherEndpoint(conn, instr.id);
       const otherText = other && other.instr ? describeReportEndpoint(other.instr, other.pin, conn.id) : 'Unknown';
-      const hasVirtualAccessory = !!(other && other.instr && hasAttachedAccessory(other.instr) && !isReportAccessory(other.instr));
+      const hasVirtualAccessory = !!(other && other.instr && hasAttachedAccessory(other.instr) && !isReportAccessory(other.instr) && !isIndividualMonitoringPin(other.instr, other.pin));
       const directMicModel = other && other.instr ? getPinMicNote(other.instr, other.pin) : '';
       let destinationHTML = other && other.instr && isReportAccessory(other.instr)
         ? describeInlineAccessoryRouteHTML(other.instr, conn, other.pin, new Set())
@@ -11393,7 +11394,7 @@ function buildReportPinLine(instr, pin, notePrefix = '') {
   return pinConnections.map(conn => {
     const other = getReportOtherEndpoint(conn, instr.id);
     const otherText = other && other.instr ? describeReportEndpoint(other.instr, other.pin, conn.id) : 'Unknown';
-    const hasVirtualAccessory = !!(other && other.instr && hasAttachedAccessory(other.instr) && !isReportAccessory(other.instr));
+    const hasVirtualAccessory = !!(other && other.instr && hasAttachedAccessory(other.instr) && !isReportAccessory(other.instr) && !isIndividualMonitoringPin(other.instr, other.pin));
     const accessoryHint = other && other.instr && isReportAccessory(other.instr)
       ? `<div class="report-pin-note">Middle accessory path: ${escapeHtml(describeAccessoryChain(other.instr, conn.id, new Set()))}</div>`
       : (hasVirtualAccessory
@@ -11432,6 +11433,7 @@ function splitReportEndpointMicHTML(html) {
 function getReportPinTone(instr, pin) {
   const key = pinKey(pin);
   if(!key) return 'default';
+  if(isIndividualMonitoringPin(instr, pin)) return 'input';
 
   if(instr && isOutletBox(instr)) {
     return key.startsWith('OUTLET-IN-') ? 'input' : 'output';
@@ -11469,7 +11471,8 @@ function getReportStageBounds() {
     points.push({ left: cx - halfWidth, top: cy - halfDepth, right: cx + halfWidth, bottom: cy + halfDepth });
   });
   reportItems.forEach(item => {
-    points.push({ left: item.worldX, top: item.worldY, right: item.worldX + item.width + 8, bottom: item.worldY + item.height + 12 });
+    const standOffset = item.monitoringImage && item.micStandCount > 0 ? 40 : 0;
+    points.push({ left: item.worldX - standOffset, top: item.worldY, right: item.worldX + item.width + 8, bottom: item.worldY + item.height + 12 });
   });
   const left = Math.min(...points.map(p => p.left)) - 24;
   const top = Math.min(...points.map(p => p.top)) - 24;
@@ -11514,6 +11517,7 @@ function getReportSnapshotInstrument(instr) {
     hasAccessory: !!attachedAccessory,
     accessoryImage: attachedAccessory && attachedAccessory.image ? attachedAccessory.image : '',
     accessoryEmoji: attachedAccessory && !attachedAccessory.image ? attachedAccessory.emoji : '',
+    monitoringImage: hasIndividualMonitoring(instr) ? getInstrumentImage('pm1') : '',
     isStand: isStandType(instr),
     isSnake: !!isSnakeBox(instr),
     isMixer: !!isMixerBox(instr),
@@ -11560,6 +11564,12 @@ function getReportSnapshotInstrument(instr) {
 
 function getReportSnapshotConnectionPoint(instr, reportItem, pin) {
   if(!instr || !reportItem) return null;
+  if(isIndividualMonitoringPin(instr, pin)) {
+    return getReportWorldCenterForPin(instr.id, pin) || {
+      x: reportItem.worldX - 10,
+      y: reportItem.worldY - 2,
+    };
+  }
   // For regular instruments, keep report cables anchored to item center.
   if(!isConnectionBoxInstrument(instr) && !isOutletBox(instr)) {
     return {
@@ -11660,6 +11670,9 @@ function buildReportStageSvg(orientation) {
     const angle = parseInt(instr.angle || 0, 10) || 0;
     const cx = instr.x - bounds.left + (body.width / 2);
     const cy = instr.y - bounds.top + (body.height / 2);
+    const monitoringSvg = hasIndividualMonitoring(instr)
+      ? `<image href="${escapeHtml(resolveReportAssetUrl(getInstrumentImage('pm1')))}" x="${(instr.x - bounds.left - 10).toFixed(2)}" y="${(instr.y - bounds.top - 2).toFixed(2)}" width="26" height="26" preserveAspectRatio="xMidYMid meet" />`
+      : '';
     const openGroup = angle ? `<g transform="rotate(${angle} ${cx.toFixed(2)} ${cy.toFixed(2)})">` : '<g>';
     const x = (instr.x - bounds.left).toFixed(2);
     const y = (instr.y - bounds.top).toFixed(2);
@@ -11713,6 +11726,7 @@ function buildReportStageSvg(orientation) {
       <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" ry="10" fill="${fill}" stroke="${stroke}" stroke-width="2.2" />
       ${imageSvg}
       ${insideLabelSvg}
+      ${monitoringSvg}
     </g>`;
   }).join('');
 
@@ -11965,6 +11979,7 @@ function getReportWorldCenterForPin(id, pin) {
       'DM-KICK': { x: 0.50, y: 0.76 },
       'DM-HH': { x: 0.24, y: 0.50 },
       'DM-SN': { x: 0.38, y: 0.58 },
+      'DM-SN-BOTTOM': { x: 0.40, y: 0.62 },
       'DM-T1': { x: 0.44, y: 0.43 },
       'DM-T2': { x: 0.56, y: 0.43 },
       'DM-T3': { x: 0.70, y: 0.56 },
@@ -12617,15 +12632,18 @@ function loadReportImagesForData(win, data) {
     const hasPrimary = !!item.image;
     const hasAccessory = !!item.accessoryImage;
     const hasMicStand = !!item.micStandImage;
+    const hasMonitoring = !!item.monitoringImage;
     let primaryLoaded = !hasPrimary;
     let accessoryLoaded = !hasAccessory;
     let micStandLoaded = !hasMicStand;
+    let monitoringLoaded = !hasMonitoring;
     let primaryImg = null;
     let accessoryImg = null;
     let micStandImg = null;
+    let monitoringImg = null;
 
     const done = () => {
-      if(primaryLoaded && accessoryLoaded && micStandLoaded) resolve({ item, img: primaryImg, accessoryImg, micStandImg });
+      if(primaryLoaded && accessoryLoaded && micStandLoaded && monitoringLoaded) resolve({ item, img: primaryImg, accessoryImg, micStandImg, monitoringImg });
     };
 
     if(hasPrimary) {
@@ -12668,6 +12686,21 @@ function loadReportImagesForData(win, data) {
         done();
       };
       standImg.src = resolveReportAssetUrl(item.micStandImage);
+    }
+
+    if(hasMonitoring) {
+      const img = new win.Image();
+      img.onload = () => {
+        monitoringImg = img;
+        monitoringLoaded = true;
+        done();
+      };
+      img.onerror = () => {
+        console.warn('Could not load individual monitoring image:', item.monitoringImage);
+        monitoringLoaded = true;
+        done();
+      };
+      img.src = resolveReportAssetUrl(item.monitoringImage);
     }
 
     done();
@@ -12937,6 +12970,7 @@ async function renderSceneDiffCanvasToContext(win, ctx, prevState, nextState, di
   const byKey = new Map(images.map(entry => [entry.item.id, entry.img]));
   const byAccessoryKey = new Map(images.filter(entry => entry && entry.accessoryImg).map(entry => [entry.item.id, entry.accessoryImg]));
   const byMicStandKey = new Map(images.filter(entry => entry && entry.micStandImg).map(entry => [entry.item.id, entry.micStandImg]));
+  const byMonitoringKey = new Map(images.filter(entry => entry && entry.monitoringImg).map(entry => [entry.item.id, entry.monitoringImg]));
   const prevByKey = new Map(prevImages.map(entry => [entry.item.id, entry.img]));
 
   const fit = computeFittedSceneTransform(nextData, canvasWidth, canvasHeight);
@@ -12954,7 +12988,7 @@ async function renderSceneDiffCanvasToContext(win, ctx, prevState, nextState, di
   baseCtx.save();
   baseCtx.translate(fit.ox, fit.oy);
   baseCtx.scale(fit.scale, fit.scale);
-  drawReportStageSnapshot(baseCtx, nextData, byKey, byAccessoryKey, byMicStandKey);
+  drawReportStageSnapshot(baseCtx, nextData, byKey, byAccessoryKey, byMicStandKey, byMonitoringKey);
   baseCtx.restore();
 
   ctx.fillStyle = '#ffffff';
@@ -13418,33 +13452,17 @@ async function renderReportStageCanvas(win, reportOptions = {}, autoPrint = fals
 
   // Fallback path: legacy canvas renderer is enabled by default unless explicitly disabled.
   if(!renderedWithSharedEngine && allowLegacyFallback && !strictSharedEngine) {
-    const images = await Promise.all(data.items.filter(item => item.image).map(item => new Promise(resolve => {
-      const img = new win.Image();
-      img.onload = () => resolve({ item, img });
-      img.onerror = () => resolve({ item, img: null });
-      img.src = resolveReportAssetUrl(item.image);
-    })));
+    const images = await loadReportImagesForData(win, data);
     const byKey = new Map(images.map(entry => [entry.item.id, entry.img]));
-    const accessoryImages = await Promise.all(data.items.filter(item => item.accessoryImage).map(item => new Promise(resolve => {
-      const img = new win.Image();
-      img.onload = () => resolve({ item, img });
-      img.onerror = () => resolve({ item, img: null });
-      img.src = resolveReportAssetUrl(item.accessoryImage);
-    })));
-    const byAccessoryKey = new Map(accessoryImages.filter(entry => entry && entry.img).map(entry => [entry.item.id, entry.img]));
-    const micStandImages = await Promise.all(data.items.filter(item => item.micStandImage).map(item => new Promise(resolve => {
-      const img = new win.Image();
-      img.onload = () => resolve({ item, img });
-      img.onerror = () => resolve({ item, img: null });
-      img.src = resolveReportAssetUrl(item.micStandImage);
-    })));
-    const byMicStandKey = new Map(micStandImages.filter(entry => entry && entry.img).map(entry => [entry.item.id, entry.img]));
+    const byAccessoryKey = new Map(images.filter(entry => entry.accessoryImg).map(entry => [entry.item.id, entry.accessoryImg]));
+    const byMicStandKey = new Map(images.filter(entry => entry.micStandImg).map(entry => [entry.item.id, entry.micStandImg]));
+    const byMonitoringKey = new Map(images.filter(entry => entry.monitoringImg).map(entry => [entry.item.id, entry.monitoringImg]));
 
     const fit = computeFittedSceneTransform(data, cssWidth, cssHeight);
     ctx.save();
     ctx.translate(fit.ox, fit.oy);
     ctx.scale(fit.scale, fit.scale);
-    drawReportStageSnapshot(ctx, data, byKey, byAccessoryKey, byMicStandKey);
+    drawReportStageSnapshot(ctx, data, byKey, byAccessoryKey, byMicStandKey, byMonitoringKey);
     ctx.restore();
   } else if(!renderedWithSharedEngine) {
     // Keep this explicit so users can tell when the shared engine fails instead of silently seeing legacy output.
@@ -13493,6 +13511,17 @@ function exportHTML() {
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 function exportPNG() {
+  const monitoringImages = new Map();
+  for(const instr of instruments) {
+    if(!hasIndividualMonitoring(instr) || !isInstrumentVisibleInView(instr)
+      || (isViewMode && hiddenViewLayers.has('monitoring'))) continue;
+    const img = getEl(instr.id)?.querySelector('.individual-monitoring-badge img');
+    if(!img || !img.complete || !img.naturalWidth) {
+      alert('The PM1 image is not ready. Wait for it to load, then export again.');
+      return;
+    }
+    monitoringImages.set(instr.id, img);
+  }
   const wrap=document.getElementById('canvas-wrap');
   const wr=wrap.getBoundingClientRect();
   const dpr=window.devicePixelRatio||1;
@@ -13523,6 +13552,13 @@ function exportPNG() {
     ctx.lineWidth=1.5; roundRect(ctx,ex+4,ey,bw,bw*.85,8); ctx.fill(); ctx.stroke();
     ctx.font=Math.round(bw*.35)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(instr.icon,ex+4+bw/2,ey+bw*.4);
+    const monitoringImg = monitoringImages.get(instr.id);
+    if(monitoringImg) {
+      const ratio = Math.min(26 / monitoringImg.naturalWidth, 26 / monitoringImg.naturalHeight);
+      const width = monitoringImg.naturalWidth * ratio;
+      const height = monitoringImg.naturalHeight * ratio;
+      ctx.drawImage(monitoringImg, ex - 10 + (26 - width) / 2, ey - 2 + (26 - height) / 2, width, height);
+    }
     ctx.restore();
     ctx.font='bold 8px Barlow,sans-serif'; ctx.fillStyle='#d4d8e2'; ctx.textBaseline='top'; ctx.textAlign='center';
     ctx.fillText(instr.label,ex+4+bw/2,ey+bw*.88);

@@ -40,7 +40,7 @@ No build toolchain is required.
 - Resize and recolor stage shapes from properties panel
 - Label each shape for venue-specific planning
 - Optional steps flag for rectangular shapes
-- Rotate shapes with the on-stage handle or Angle knob (Stage Builder only)
+- Rotate shapes with the on-stage handle (Stage Builder only)
 - Shape angles are retained in saved riders, scenes, undo/redo, and visual exports
 
 ### Read-only View Mode
@@ -48,7 +48,7 @@ No build toolchain is required.
 - Toggle **View** in the header to inspect the stage without editing
 - All visibility checkboxes start selected: Instruments, Snakes, Mixers, Stageboxes, PA and Monitoring, Accessories, Stands and Hardware, and Connections
 - Uncheck a category to hide its elements and their connections without deleting or changing rider data
-- Accessory and mic stand badges follow their corresponding category filters
+- Accessory, individual monitoring, and mic stand badges follow their corresponding category filters
 - Unchecking **Connections** also hides connection points and their pin labels on every stage element
 - Zoom and pan remain available; returning to editing shows all elements again
 - Visibility filters are temporary, are not saved in rider files, and do not change production reports
@@ -120,9 +120,11 @@ Representative built-in device coverage includes:
 ### 8) Instrument Properties and Behavior
 
 - Editable label, channel/input text, and notes
-- Connector side controls
+- On-stage connector side handles
 - Size slider and reset-to-default
-- Angle control with rotary knob
+- Rotation using the on-stage handle
+- Optional individual monitoring (None / PM1) for instruments, shown at the upper-left with an independent XLR input
+- Individual monitoring is retained in saved riders, scenes, undo/redo, and reports
 - Stereo signal mode where supported
 - Input/output mode toggles for custom I/O devices
 - Speaker connector mode controls for through chains
@@ -147,6 +149,7 @@ Representative built-in device coverage includes:
 ### 11) Drumkit Workflow Enhancements
 
 - Drum input checkbox matrix (kick, snare, toms, overheads, etc.)
+- Independent Snare and Snare Below microphone, stand, and connection options
 - Stereo overhead handling with separate left/right pin outcomes
 - Automatic pruning of invalid drum-related connections when drum setup changes
 - Drum mic stand assignment matrix linked to selected drum inputs

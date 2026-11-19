@@ -190,7 +190,7 @@
         <button class="pal-tile" type="button" onclick="addStagePart('rect')"><div class="ti">&#x25AD;</div><div class="tn">Rectangle</div></button>
         <button class="pal-tile" type="button" onclick="addStagePart('circle')"><div class="ti">&#x25EF;</div><div class="tn">Circle</div></button>
       </div>
-      <div style="font-size:10px;color:var(--muted);line-height:1.55;margin-top:7px;">Add rooms as shapes, then set dimensions, color and angle on the right panel. Drag the rotation handle to rotate a shape.</div>
+      <div style="font-size:10px;color:var(--muted);line-height:1.55;margin-top:7px;">Add rooms as shapes, then set dimensions and color on the right panel. Drag the rotation handle to rotate a shape.</div>
     </div>
     <div class="ss mode-live-only">
       <div class="st">Tips</div>
@@ -293,19 +293,17 @@
         <div class="pr" id="accessory-wrap" style="display:none;"><label class="plbl">Add Accessory</label>
           <div id="accessory-controls" class="stand-controls"></div>
         </div>
+        <div class="pr" id="individual-monitoring-wrap" style="display:none;"><label class="plbl" for="p-individual-monitoring">Add Individual Monitoring</label>
+          <select class="pselect" id="p-individual-monitoring" onchange="updIndividualMonitoring(this.value)">
+            <option value="none">None</option>
+            <option value="pm1">PM1</option>
+          </select>
+        </div>
         <div class="pr" id="wireless-link-wrap" style="display:none;"><label class="plbl">Wireless Pair</label>
           <label style="display:flex;align-items:center;gap:6px;font-size:11px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:7px 8px;">
             <input id="p-wireless-hide-receiver" type="checkbox" onchange="updWirelessHideReceiver(this.checked)">
             Hide receiver
           </label>
-        </div>
-        <div class="pr" id="conn-side-wrap"><label class="plbl">Connector Side</label>
-          <div class="prop-side-pad" id="prop-side-pad" role="group" aria-label="Connector side selector">
-            <button class="prop-side-btn side-top" data-side="top" type="button" onclick="updConnSide('top')">â†‘</button>
-            <button class="prop-side-btn side-left" data-side="left" type="button" onclick="updConnSide('left')">â†</button>
-            <button class="prop-side-btn side-right" data-side="right" type="button" onclick="updConnSide('right')">â†’</button>
-            <button class="prop-side-btn side-bottom" data-side="bottom" type="button" onclick="updConnSide('bottom')">â†“</button>
-          </div>
         </div>
         <div class="size-row">
           <label>Size</label>
@@ -314,16 +312,6 @@
           <span class="size-delta" id="p-size-delta" title="Difference from default">0</span>
           <button class="angle-reset-btn" type="button" onclick="resetSize()">Reset Size</button>
           <span class="size-val" id="p-size-def" title="Default size" style="width:auto;min-width:44px;color:var(--muted);">Def:52</span>
-        </div>
-        <div class="angle-row">
-          <label>Angle</label>
-          <div class="angle-knob-wrap">
-            <div class="angle-knob" id="angle-knob" onmousedown="startAngleKnobDrag(event)" ontouchstart="startAngleKnobDrag(event)">
-              <div class="angle-knob-handle" id="angle-knob-handle"></div>
-              <div class="angle-knob-center" id="p-angle-val">0Â°</div>
-            </div>
-            <button class="angle-reset-btn" type="button" onclick="setSelectedAngle(0)">Reset</button>
-          </div>
         </div>
         <div id="snake-extra" style="display:none;" class="snake-props">
           <div class="pr"><label class="plbl">Channels (count)</label><input class="pi" id="p-snake-ch" type="number" min="4" max="64" step="4" value="16" oninput="updSnakeChannels(this.value)"></div>
@@ -380,6 +368,7 @@
                   <label><span>Kick</span><input type="checkbox" value="Kick" onchange="toggleDrumMic(this)"></label>
                   <label><span>Hi-Hat</span><input type="checkbox" value="Hi-Hat" onchange="toggleDrumMic(this)"></label>
                   <label><span>Snare</span><input type="checkbox" value="Snare" onchange="toggleDrumMic(this)"></label>
+                  <label><span>Snare Below</span><input type="checkbox" value="Snare Below" onchange="toggleDrumMic(this)"></label>
                   <label><span>Tom 1</span><input type="checkbox" value="Tom 1" onchange="toggleDrumMic(this)"></label>
                   <label><span>Tom 2</span><input type="checkbox" value="Tom 2" onchange="toggleDrumMic(this)"></label>
                   <label><span>Tom 3</span><input type="checkbox" value="Tom 3" onchange="toggleDrumMic(this)"></label>
@@ -405,16 +394,6 @@
         <div class="pr"><label class="plbl">Width (m)</label><input class="pi" id="sp-width" type="number" min="0.5" max="120" step="0.1" oninput="updStagePartDimension('widthM', this.value)"></div>
         <div class="pr"><label class="plbl">Depth (m)</label><input class="pi" id="sp-depth" type="number" min="0.5" max="120" step="0.1" oninput="updStagePartDimension('depthM', this.value)"></div>
         <div class="pr"><label class="plbl">Color</label><input class="stage-color-input" id="sp-color" type="color" onchange="updStagePartColor(this.value)"></div>
-        <div class="angle-row">
-          <label>Angle</label>
-          <div class="angle-knob-wrap">
-            <div class="angle-knob" id="sp-angle-knob" onmousedown="startAngleKnobDrag(event)" ontouchstart="startAngleKnobDrag(event)">
-              <div class="angle-knob-handle" id="sp-angle-knob-handle"></div>
-              <div class="angle-knob-center" id="sp-angle-val">0&#176;</div>
-            </div>
-            <button class="angle-reset-btn" type="button" onclick="setSelectedAngle(0)">Reset</button>
-          </div>
-        </div>
         <div class="pr" id="sp-steps-wrap"><label class="plbl">Rectangle Options</label>
           <label style="display:flex;align-items:center;gap:6px;font-size:11px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:7px 8px;">
             <input id="sp-steps" type="checkbox" onchange="updStagePartSteps(this.checked)">
