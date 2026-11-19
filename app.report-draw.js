@@ -1,4 +1,4 @@
-function drawReportStageSnapshot(ctx, data, byKey, byAccessoryKey = new Map(), byMicStandKey = new Map()) {
+function drawReportStageSnapshot(ctx, data, byKey, byAccessoryKey = new Map(), byMicStandKey = new Map(), byMonitoringKey = new Map()) {
   const { stage } = data;
   ctx.save();
   ctx.translate(stage.x + stage.width / 2, stage.y + stage.height / 2);
@@ -146,7 +146,7 @@ function drawReportStageSnapshot(ctx, data, byKey, byAccessoryKey = new Map(), b
 
     if(item.micStandCount > 0) {
       const micStandImg = byMicStandKey.get(item.id) || null;
-      const standX = item.x - 12;
+      const standX = item.x - (item.monitoringImage ? 40 : 12);
       const standY = item.y - 2;
       const standSize = 42;
       if(micStandImg) {
@@ -216,6 +216,13 @@ function drawReportStageSnapshot(ctx, data, byKey, byAccessoryKey = new Map(), b
         ctx.fillText(String(item.accessoryEmoji), ex + (emojiSize / 2), ey + (emojiSize / 2) + 0.2);
       }
       ctx.restore();
+    }
+    const monitoringImg = byMonitoringKey.get(item.id);
+    if(item.monitoringImage && monitoringImg) {
+      const ratio = Math.min(26 / monitoringImg.width, 26 / monitoringImg.height);
+      const width = monitoringImg.width * ratio;
+      const height = monitoringImg.height * ratio;
+      ctx.drawImage(monitoringImg, item.x - 10 + (26 - width) / 2, item.y - 2 + (26 - height) / 2, width, height);
     }
     ctx.restore();
   });
