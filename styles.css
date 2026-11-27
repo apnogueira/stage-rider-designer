@@ -94,6 +94,9 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);heig
   }
 }
 /* HEADER */
+.deprecation-notice{flex-shrink:0;padding:12px 16px;background:#fff3cd;color:#5c4300;border-bottom:1px solid #e6c66a;font-size:14px;line-height:1.5;}
+.deprecation-notice a{color:#174c87;font-weight:600;text-decoration:underline;overflow-wrap:anywhere;}
+.deprecation-notice a:focus-visible{outline:2px solid currentColor;outline-offset:3px;}
 header{display:flex;align-items:center;gap:10px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;z-index:100;}
 .logo{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--accent);letter-spacing:2px;white-space:nowrap;}
 .logo span{color:var(--muted);}
